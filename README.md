@@ -17,7 +17,7 @@
 - **Version Control**: GitHub
 
 ### Links
-[Figma File](https://www.figma.com/design/BHYeizEnUXlrv3Hf82ce19/Project-Upscale?node-id=0%3A1&t=5VoSTA0YajevcYPG-1
+[Figma File](https://www.figma.com/design/BHYeizEnUXlrv3Hf82ce19/Project-Upscale?node-id=0%3A1&t=5VoSTA0YajevcYPG-1)
 <br>
 [Staging Website](https://upscale.tylerpixel.com)
 <br>
