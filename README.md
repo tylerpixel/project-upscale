@@ -18,7 +18,9 @@
 
 ### Links
 [Figma File](https://www.figma.com/design/BHYeizEnUXlrv3Hf82ce19/Project-Upscale?node-id=0%3A1&t=5VoSTA0YajevcYPG-1)
+&ensp;|&ensp;
 [Staging Website](https://upscale.tylerpixel.com)
+&ensp;|&ensp;
 [Current Website](https://tylerpixel.com)
 
 I hope you enjoy **Project Upscale**! This project is my challenge and showcases my wide range of design and development skillsets.
