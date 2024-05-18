@@ -1,0 +1,23 @@
+{
+    "name": "Tyler Pixel | Project Upscale",
+    "short_name": "Upscale",
+    "description": "This is a simple Tyler Pixel portfolio redevelop",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#EEF2F6",
+    "theme_color": "#0060E5",
+    "icons": [
+      {
+        "src": "images/webclip.png",
+        "sizes": "256x256",
+        "type": "image/png",
+        "purpose": "maskable"
+      },
+      {
+        "src": "images/splash.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }
