@@ -20,4 +20,4 @@ I hope you enjoy **Project Upscale**! This project is my challenge and showcases
 
 **🪙 [BTC Tip](https://pay.tylerpixel.com)**
 &ensp;|&ensp;
-**🛠️ [Work with Me](tylerpixel.com)**
+**🛠️ [Work with Me](https://tylerpixel.com)**
