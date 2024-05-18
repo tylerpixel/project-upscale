@@ -1,8 +1,10 @@
 /* Global Colour Variables */
 :root {
-  --tp-teal: #0060E5;
-  --tp-lightberry: #EEF2F6;
-  --tp-darkberry: #212326;}
+  --tealberry: #0060E5;
+  --lightberry: #EEF2F6;
+  --midberry: #B8C6D9;
+  --darkberry: #212326;
+  --speed: 90ms;}
 
 @font-face {
   font-family: 'GeistSans';
@@ -11,63 +13,86 @@
   font-style: normal;}
 
 html{
-  background-color: var(--tp-lightberry);}
+  background-color: var(--lightberry);}
 
 body {
-    margin: 0;
-    font-family: "GeistSans", sans-serif;
-    font-weight: 500;
-    line-height: 1.33em;
-    font-style: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;}
+  margin: 0;
+  font-family: "GeistSans", sans-serif;
+  font-weight: 500;
+  line-height: 1.33em;
+  font-style: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;}
   
 .notice {
-    position: fixed;
-    transition: 90ms;
-    bottom: 75px;
-    left: 75px;
-    text-align: left;
-    max-width: 250px;}
+  position: fixed;
+  transition: var(--speed);
+  bottom: 75px;
+  left: 75px;
+  text-align: left;
+  max-width: 250px;}
   
 .logo {
-    color: var(--tp-teal);
-    max-width: 75%;}
+  color: var(--tealberry);
+  max-width: 75%;}
   
 h1 {
-    font-family: "GeistSans", sans-serif;
-    font-weight: 900;
-    color: var(--tp-teal);
-    font-size: 2em;
-    line-height: 1em;
-    letter-spacing:-1.5px;
-    margin: 20px 0;}
+  font-family: "GeistSans", sans-serif;
+  font-weight: 900;
+  color: var(--tealberry);
+  font-size: 2em;
+  line-height: 1em;
+  letter-spacing:-1.5px;
+  margin: 20px 0;}
 
 .hero {
-    max-width: 250px;}
+  max-width: 250px;}
   
 p {
-    color: #333333;
-    font-size: 1em;
-    letter-spacing: -0.25px;
-    margin: 10px 0;
-    word-wrap: break-word;}
+  color: #333333;
+  font-size: 1em;
+  letter-spacing: -0.25px;
+  margin: 10px 0;
+  word-wrap: break-word;}
   
-.handle {
-    color: var(--tp-teal);
-    text-decoration: none;}
+.linky, .days {
+  text-decoration: none;
+  background:
+  linear-gradient(
+    to right,
+    var(--lightberry),
+    var(--lightberry)
+  ),
+  linear-gradient(
+    to right,
+    var(--tealberry),
+    var(--tealberry)
+);
+  background-size: 100% 1px, 0 1px;
+  background-position: 100% 100%, 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size var(--speed);
+  color: var(--tealberry);
+  font-weight: 900;
+  }
+
+.linky:hover, .days:hover {
+  background-size: 0 1px, 100% 1px;
+}
   
 .days {
-  color: var(--tp-teal);}
+  color: var(--tealberry);
+  text-decoration: none;
+  font-weight: 900;}
   
 .email {
   display: inline-block;
   margin-top: 20px;
-  color: var(--tp-lightberry);
-  background-color: var(--tp-darkberry);
-  transition: background-color 90ms, color 90ms;
+  color: var(--lightberry);
+  background-color: var(--darkberry);
+  transition: background-color var(--speed), color var(--speed);
   padding: 10px 20px;
   border-radius: 4px;
   stroke-width: 1px;
@@ -77,8 +102,8 @@ p {
   font-style: normal;}
   
 .email:hover {
-  background-color: var(--tp-teal);
-  color: var(--tp-lightberry);}
+  background-color: var(--tealberry);
+  color: var(--lightberry);}
   
 @media (max-width: 600px) {
   .notice {
