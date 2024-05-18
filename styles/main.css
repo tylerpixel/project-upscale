@@ -1,0 +1,93 @@
+/* Global Colour Variables */
+:root {
+  --tp-teal: #0060E5;
+  --tp-lightberry: #EEF2F6;
+  --tp-darkberry: #212326;}
+
+@font-face {
+  font-family: 'GeistSans';
+  src: url('/fonts/GeistVF.woff2') format('woff2');
+  font-weight: 500 700;
+  font-style: normal;}
+
+html{
+  background-color: var(--tp-lightberry);}
+
+body {
+    margin: 0;
+    font-family: "GeistSans", sans-serif;
+    font-weight: 500;
+    line-height: 1.33em;
+    font-style: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;}
+  
+.notice {
+    position: fixed;
+    transition: 90ms;
+    bottom: 75px;
+    left: 75px;
+    text-align: left;
+    max-width: 250px;}
+  
+.logo {
+    color: var(--tp-teal);
+    max-width: 75%;}
+  
+h1 {
+    font-family: "GeistSans", sans-serif;
+    font-weight: 900;
+    color: var(--tp-teal);
+    font-size: 2em;
+    line-height: 1em;
+    letter-spacing:-1.5px;
+    margin: 20px 0;}
+
+.hero {
+    max-width: 250px;}
+  
+p {
+    color: #333333;
+    font-size: 1em;
+    letter-spacing: -0.25px;
+    margin: 10px 0;
+    word-wrap: break-word;}
+  
+.handle {
+    color: var(--tp-teal);
+    text-decoration: none;}
+  
+.days {
+  color: var(--tp-teal);}
+  
+.email {
+  display: inline-block;
+  margin-top: 20px;
+  color: var(--tp-lightberry);
+  background-color: var(--tp-darkberry);
+  transition: background-color 90ms, color 90ms;
+  padding: 10px 20px;
+  border-radius: 4px;
+  stroke-width: 1px;
+  text-decoration: none;
+  font-family: "GeistSans", sans-serif;
+  font-weight: 600;
+  font-style: normal;}
+  
+.email:hover {
+  background-color: var(--tp-teal);
+  color: var(--tp-lightberry);}
+  
+@media (max-width: 600px) {
+  .notice {
+    max-width: 250px;
+    bottom: 25px;
+    left: 25px;}
+  
+  p {
+    font-size: 1em; }
+  
+  .email {
+    font-size: 0.9em;}}
