@@ -1,0 +1,79 @@
+body {
+    margin: 0;
+    font-family: "neue-haas-grotesk-display", sans-serif;
+    font-weight: 700;
+    font-style: bold;
+    background-color: #d3d7df;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  .container {
+    text-align: left;
+    max-width: 233px;
+  }
+  
+  .logo svg {
+    fill: #007bff; /* Adjust the color as needed */
+  }
+  
+  h1 {
+    color: #007bff;
+    font-size: 2em;
+    letter-spacing:-0.75px;
+    margin: 20px 0;
+  }
+  
+  p {
+    color: #333333;
+    font-size: 1em;
+    letter-spacing: -0.25px;
+    margin: 10px 0;
+    word-wrap: break-word;
+  }
+  
+  .handle {
+    color: #007bff;
+  }
+  
+  .days {
+    color: #007bff;
+  }
+  
+  .email {
+    
+    display: inline-block;
+    margin-top: 20px;
+    color: #ffffff;
+    background-color: #007bff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-family: "neue-haas-grotesk-display", sans-serif;
+    font-weight: 600;
+    font-style: normal;
+  }
+  
+  .email:hover {
+    background-color: #0056b3;
+  }
+  
+  @media (max-width: 600px) {
+    .container {
+      padding: 20px;
+    }
+  
+    h1 {
+      font-size: 1.5em;
+    }
+  
+    p {
+      font-size: 1em;
+    }
+  
+    .email {
+      font-size: 0.9em;
+    }
+  }
