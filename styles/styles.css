@@ -1,9 +1,19 @@
+/*Global Colour Variables */
+:root {
+  --tp-teal: #0060E5;
+  --tp-lightberry: #EEF2F6;
+  --tp-darkberry: #212326;
+}
+
+html{
+  background-color: var(--tp-lightberry);
+}
+
 body {
     margin: 0;
     font-family: "neue-haas-grotesk-display", sans-serif;
     font-weight: 700;
     font-style: bold;
-    background-color: #d3d7df;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -15,12 +25,12 @@ body {
     max-width: 233px;
   }
   
-  .logo svg {
-    fill: #007bff; /* Adjust the color as needed */
+  .logo {
+    color: var(--tp-teal);
   }
   
   h1 {
-    color: #007bff;
+    color: var(--tp-teal);
     font-size: 2em;
     letter-spacing:-0.75px;
     margin: 20px 0;
@@ -35,21 +45,23 @@ body {
   }
   
   .handle {
-    color: #007bff;
+    color: var(--tp-teal);
+    text-decoration: none;
   }
   
   .days {
-    color: #007bff;
+    color: var(--tp-teal);
   }
   
   .email {
-    
     display: inline-block;
     margin-top: 20px;
-    color: #ffffff;
-    background-color: #007bff;
+    color: var(--tp-lightberry);
+    background-color: var(--tp-darkberry);
+    transition: background-color 90ms, color 90ms;
     padding: 10px 20px;
-    border-radius: 5px;
+    border-radius: 4px;
+    stroke-width: 1px;
     text-decoration: none;
     font-family: "neue-haas-grotesk-display", sans-serif;
     font-weight: 600;
@@ -57,7 +69,8 @@ body {
   }
   
   .email:hover {
-    background-color: #0056b3;
+    background-color: var(--tp-teal);
+    color: var(--tp-lightberry);
   }
   
   @media (max-width: 600px) {

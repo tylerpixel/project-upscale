@@ -11,7 +11,7 @@
 
 ### 🏗️ Tech Stack
 - **Languages**: HTML, CSS, and JS
-- **LLM AI**: GPT-4o via Perplexity
+- **LLM AI**: GPT-4 Omni via Perplexity
 - **Editor**: VS Code
 - **Hosting**: Vercel
 - **Version Control**: GitHub
