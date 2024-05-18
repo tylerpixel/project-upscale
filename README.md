@@ -11,7 +11,7 @@
 
 ### 🏗️ Tech Stack
 - **Languages**: HTML, CSS, and JS
-- **LLM AI**: GPT-4o via Perplexity
+- **LLM AI**: GPT-4 Omni via Perplexity
 - **Editor**: VS Code
 - **Hosting**: Vercel
 - **Version Control**: GitHub
@@ -20,4 +20,4 @@ I hope you enjoy **Project Upscale**! This project is my challenge and showcases
 
 **🪙 [BTC Tip](https://pay.tylerpixel.com)**
 &ensp;|&ensp;
-**🛠️ [Work with Me](tylerpixel.com)**
+**🛠️ [Work with Me](https://tylerpixel.com)**
