@@ -216,8 +216,6 @@ p {
 .email:hover {
   background-color: var(--tealberry);
   color: var(--lightberry);}
-  
-```css
 
 /* Styles for PWA standalone mode */
 @media (display-mode: standalone) {
