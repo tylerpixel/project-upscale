@@ -216,14 +216,24 @@ p {
 .email:hover {
   background-color: var(--tealberry);
   color: var(--lightberry);}
+  
+```css
+
+/* Styles for PWA standalone mode */
+@media (display-mode: standalone) {
+    .navlist {
+      padding-bottom: 40px; /* Padding for navbar */
+    }
+    .headlogo {
+      padding-top: 40px /* Padding for headbar */
+    }
+}
 
 @media (max-width: 600px) {
   .notice {
     left: 20px;}
 
   p { font-size: 1em; }
-  
-  .email { font-size: 0.9em;}}
 
 @media (max-width: 360px) {
   .navbutton.mobile-menu { display: block; }
