@@ -1,10 +1,12 @@
 /* Global Colour Variables */
 :root {
   --tealberry: #0060E5;
+  --skyberry: #82abe4;
   --lightberry: #EEF2F6;
   --midberry: #B8C6D9;
   --darkberry: #212326;
-  --speed: 90ms;}
+  --speed: 90ms;
+  --radius: 6px;}
 
 @font-face {
   font-family: 'GeistSans';
@@ -25,6 +27,42 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;}
+
+.headbar {
+  position: fixed;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  top: 0px;
+  display: flex; }
+
+.headlogo {
+  flex: 1 1 auto; /* Allow the navlist to shrink and grow as needed */
+  justify-content: center;
+  align-self: center;
+  align-items: center;
+  margin: 8px !important;
+  margin-top: 0px !important;
+  border-color: var(--midberry) !important;
+  border: 1px solid var(--midberry); /* Apply border to all sides */
+  border-top: none !important; /* Remove the top border */
+  border-bottom-left-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+  border-style: solid;
+  background-color: var(--lightberry);
+  padding: 14px;
+  max-width: 460px;
+}
+
+.logo {
+  color: var(--tealberry);
+  max-height: 15px;
+  flex-shrink: 1;
+  justify-content: left;
+  align-self: left;
+  align-items: left;
+  display: block;}
   
 .notice {
   position: fixed;
@@ -32,12 +70,89 @@ body {
   bottom: 75px;
   left: 75px;
   text-align: left;
-  max-width: 250px;}
-  
-.logo {
-  color: var(--tealberry);
-  max-width: 75%;}
-  
+  max-width: 315px;}
+
+.navbar {
+  position: fixed;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  bottom: 0px;
+  display: flex; }
+
+.navlist {
+  flex: 1 1 auto; /* Allow the navlist to shrink and grow as needed */
+  justify-content: space-between;
+  align-self: center;
+  align-items: center;
+  margin: 8px !important;
+  margin-bottom: 0px !important;
+  list-style: none;
+  padding: 0;
+  border-color: var(--midberry) !important;
+  border: 1px solid var(--midberry); /* Apply border to all sides */
+  border-bottom: none !important; /* Remove the bottom border */
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+  border-style: solid;
+  background-color: var(--lightberry);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: row; /* Default to row for larger screens */
+  flex-wrap: wrap; /* Allow wrapping */
+  max-width: 460px;
+}
+
+.navbutton {
+  border-style: none;
+  border-radius: var(--radius);
+  flex: none;
+  justify-content: center;
+  align-self: center;
+  align-items: center;
+  display: flex;
+  padding: 8px 10px;
+  font-size: 1em;
+  font-family: "GeistSans", sans-serif;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--darkberry);
+  transition: background-color var(--speed), color var(--speed);
+}
+
+.navbutton:hover{
+  background-color: var(--midberry);
+  color: var(--darkberry);
+}
+
+.navbutton.mobile-menu {
+  display: none;
+  height: 18px;
+  text-decoration: none;
+}
+
+.cta {
+  background-color: var(--tealberry);
+  color: var(--lightberry);
+  border-radius: var(--radius);
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.cta:hover{
+  background-color: var(--darkberry);
+  color: var(--lightberry);
+}
+
+.cta:hover{
+  background-color: var(--darkberry);
+  color: var(--lightberry);
+  transition: background-color var(--speed), color var(--speed);
+}
+
 h1 {
   font-family: "GeistSans", sans-serif;
   font-weight: 900;
@@ -75,12 +190,9 @@ p {
   background-repeat: no-repeat;
   transition: background-size var(--speed);
   color: var(--tealberry);
-  font-weight: 900;
-  }
+  font-weight: 900; }
 
-.linky:hover, .days:hover {
-  background-size: 0 1px, 100% 1px;
-}
+.linky:hover, .days:hover { background-size: 0 1px, 100% 1px; }
   
 .days {
   color: var(--tealberry);
@@ -104,15 +216,18 @@ p {
 .email:hover {
   background-color: var(--tealberry);
   color: var(--lightberry);}
-  
+
 @media (max-width: 600px) {
   .notice {
-    max-width: 250px;
-    bottom: 35px;
-    left: 25px;}
+    left: 20px;}
+
+  p { font-size: 1em; }
   
-  p {
-    font-size: 1em; }
-  
-  .email {
-    font-size: 0.9em;}}
+  .email { font-size: 0.9em;}}
+
+@media (max-width: 360px) {
+  .navbutton.mobile-menu { display: block; }
+  .navbutton { display: none;}
+  .navbar { flex-direction: column; /* Stack navbar items vertically */ }
+  .navlist { flex-direction: column; /* Stack navlist items vertically */}
+}
