@@ -225,6 +225,9 @@ p {
     .headlogo {
       padding-top: 40px /* Padding for headbar */
     }
+    .notice {
+      bottom: 100px;
+    }
 }
 
 @media (max-width: 600px) {
