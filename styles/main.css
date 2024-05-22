@@ -28,7 +28,8 @@ body {
   align-items: center;
   height: 100vh;}
 
-.headbar {
+.header-wrapper {
+  z-index: 10;
   position: fixed;
   align-self: center;
   align-items: center;
@@ -37,7 +38,7 @@ body {
   top: 0px;
   display: flex; }
 
-.headlogo {
+.header-logo {
   flex: 1 1 auto; /* Allow the navlist to shrink and grow as needed */
   justify-content: center;
   align-self: center;
@@ -55,6 +56,24 @@ body {
   max-width: 460px;
 }
 
+.notice {
+  position: fixed;
+  transition: var(--speed);
+  top: 75px;
+  left: 20px;
+  text-align: left;
+  max-width: 315px;}
+
+.works-wrapper { 
+  top: 500px; /* Position halfway down the viewport */
+  z-index: 1;
+  max-width: 315px;
+}
+
+img {
+  width: 100%;
+}
+
 .logo {
   color: var(--tealberry);
   max-height: 15px;
@@ -62,34 +81,29 @@ body {
   justify-content: left;
   align-self: left;
   align-items: left;
-  display: block;}
-  
-.notice {
-  position: fixed;
-  transition: var(--speed);
-  bottom: 75px;
-  left: 75px;
-  text-align: left;
-  max-width: 315px;}
+  display: block;
+}
 
 .navbar {
+  z-index: 5;
   position: fixed;
   align-self: center;
   align-items: center;
   justify-content: center;
   width: 100%;
   bottom: 0px;
-  display: flex; }
+  display: flex;
+  flex-direction: column;}
 
 .navlist {
   flex: 1 1 auto; /* Allow the navlist to shrink and grow as needed */
   justify-content: space-between;
   align-self: center;
   align-items: center;
+  justify-content: center;
   margin: 8px !important;
   margin-bottom: 0px !important;
   list-style: none;
-  padding: 0;
   border-color: var(--midberry) !important;
   border: 1px solid var(--midberry); /* Apply border to all sides */
   border-bottom: none !important; /* Remove the bottom border */
@@ -101,8 +115,42 @@ body {
   display: flex;
   flex-direction: row; /* Default to row for larger screens */
   flex-wrap: wrap; /* Allow wrapping */
+  width: 100%;
   max-width: 460px;
+  display: flex; 
 }
+
+.works-wrapper {
+
+}
+
+.works-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+}
+
+.works-info{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.title {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.year{
+  writing-mode: vertical-rl;
+  color: var(--tealberry);
+  transform: rotate(180deg);
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
 
 .navbutton {
   border-style: none;
@@ -219,26 +267,18 @@ p {
 
 /* Styles for PWA standalone mode */
 @media (display-mode: standalone) {
-    .navlist {
-      padding-bottom: 40px; /* Padding for navbar */
-    }
-    .headlogo {
-      padding-top: 40px /* Padding for headbar */
-    }
-    .notice {
-      bottom: 100px;
-    }
-}
+    .navlist { padding-bottom: 40px; /* Padding for navbar */ }
+    .header-logo {
+      background-color: var(--tealberry);
+      padding-top: 50px /* Padding for headbar */ }
+    .logo { color: var(--lightberry); }}
 
 @media (max-width: 600px) {
-  .notice {
-    left: 20px;}
-
+  .notice { left: 20px;}
   p { font-size: 1em; }
 
-@media (max-width: 360px) {
+@media (max-width: 362px) {
   .navbutton.mobile-menu { display: block; }
   .navbutton { display: none;}
   .navbar { flex-direction: column; /* Stack navbar items vertically */ }
-  .navlist { flex-direction: column; /* Stack navlist items vertically */}
-}
+  .navlist { flex-direction: column; /* Stack navlist items vertically */}}}

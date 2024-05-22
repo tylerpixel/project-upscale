@@ -1,0 +1,32 @@
+.chatbox {
+    text-align: center;
+}
+
+.chat-form {
+    display: none;
+    margin-top: 20px;
+}
+
+.chat-form input {
+    padding: 10px;
+    width: 80%;
+    margin-bottom: 10px;
+}
+
+.email-wrapper {
+    display: block;
+}
+
+.text {
+    background-color: var(--lightberry);
+}
+
+.submit-button, .send-button {
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.error-message {
+    color: red;
+    font-size: 14px;
+}
