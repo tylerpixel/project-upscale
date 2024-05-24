@@ -23,6 +23,10 @@
 &ensp;|&ensp;
 [Current Website](https://tylerpixel.com)
 
+### Archive
+[Merge 12](https://archive.is/NVRyb)
+[Merge 13](https://archive.is/Ia0zS)
+
 I hope you enjoy **Project Upscale**! This project is my challenge and showcases my wide range of design and development skillsets.
 
 **🪙 [BTC Tip](https://pay.tylerpixel.com)**
