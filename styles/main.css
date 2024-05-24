@@ -6,18 +6,24 @@
   --midberry: #B8C6D9;
   --darkberry: #212326;
   --speed: 90ms;
-  --radius: 6px;}
+  --radius: 6px;
+  --cards: 4;
+  --cardHeight:8
+}
 
 @font-face {
   font-family: 'GeistSans';
   src: url('/fonts/GeistVF.woff2') format('woff2');
   font-weight: 500 700;
-  font-style: normal;}
+  font-style: normal;
+}
 
 html{
-  background-color: var(--lightberry);}
+  background-color: var(--lightberry);
+}
 
 body {
+  position: relative;
   margin: 0;
   font-family: "GeistSans", sans-serif;
   font-weight: 500;
@@ -26,7 +32,8 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;}
+  height: 100vh;
+}
 
 .header-wrapper {
   z-index: 10;
@@ -36,7 +43,8 @@ body {
   justify-content: center;
   width: 100%;
   top: 0px;
-  display: flex; }
+  display: flex;
+}
 
 .header-logo {
   flex: 1 1 auto; /* Allow the navlist to shrink and grow as needed */
@@ -50,7 +58,6 @@ body {
   border-top: none !important; /* Remove the top border */
   border-bottom-left-radius: var(--radius);
   border-bottom-right-radius: var(--radius);
-  border-style: solid;
   background-color: var(--lightberry);
   padding: 14px;
   max-width: 460px;
@@ -62,16 +69,13 @@ body {
   top: 75px;
   left: 20px;
   text-align: left;
-  max-width: 315px;}
-
-.works-wrapper { 
-  top: 500px; /* Position halfway down the viewport */
-  z-index: 1;
   max-width: 315px;
 }
 
 img {
-  width: 100%;
+  max-width: 100%; /* Ensures the image scales down to fit the container */
+  height: auto; /* Maintains the aspect ratio of the image */
+  display: block; /* Removes any extra space below the image */
 }
 
 .logo {
@@ -93,14 +97,15 @@ img {
   width: 100%;
   bottom: 0px;
   display: flex;
-  flex-direction: column;}
+  flex-direction: column;
+}
 
 .navlist {
   flex: 1 1 auto; /* Allow the navlist to shrink and grow as needed */
-  justify-content: space-between;
   align-self: center;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   margin: 8px !important;
   margin-bottom: 0px !important;
   list-style: none;
@@ -109,7 +114,6 @@ img {
   border-bottom: none !important; /* Remove the bottom border */
   border-top-left-radius: var(--radius);
   border-top-right-radius: var(--radius);
-  border-style: solid;
   background-color: var(--lightberry);
   padding: 12px 16px;
   display: flex;
@@ -117,45 +121,64 @@ img {
   flex-wrap: wrap; /* Allow wrapping */
   width: 100%;
   max-width: 460px;
-  display: flex; 
 }
 
 .works-wrapper {
-
+  position: absolute;
+  top: 400px;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  flex-direction: column;
+  gap: 16px;
+  max-width: auto;
 }
 
 .works-item {
+  position: sticky;
+  top: 400px;
+  flex-grow: 1;
   display: flex;
-  flex-direction: row;
+  gap: 8px;
+  border-radius: var(--radius);
+  flex-direction: column-reverse;
   justify-content: space-evenly;
+  background-color: var(--lightberry);
 }
 
 .works-info{
+  gap: 16px;
   display: flex;
+  padding: 6px 8px;
+  background-color: var(--lightberry);
   flex-direction: row;
   justify-content: space-between;
+  border: 1px solid var(--midberry);
+  border-radius: var(--radius);
 }
 
-.title {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font-size: 16px;
-  margin-bottom: 20px;
+.works-img {
+  max-width: 460px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--midberry);
 }
 
-.year{
-  writing-mode: vertical-rl;
+.works-info-text {
+  margin: 0;
+  flex-direction: row;
+}
+
+.works-info-text.year {
   color: var(--tealberry);
-  transform: rotate(180deg);
   font-size: 16px;
-  margin-bottom: 20px;
 }
-
 
 .navbutton {
   border-style: none;
   border-radius: var(--radius);
-  flex: none;
+  flex: 1 1 auto;
   justify-content: center;
   align-self: center;
   align-items: center;
