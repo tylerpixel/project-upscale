@@ -23,59 +23,75 @@ html{
 }
 
 body {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100vh;
   margin: 0;
   font-family: "GeistSans", sans-serif;
   font-weight: 500;
   line-height: 1.33em;
   font-style: bold;
+  justify-content: center;
+  align-items: center;
+}
+
+.header-wrapper, .nav-wrapper {
+  width: 100%;
+  z-index: 5;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+}
+
+.header-container, .nav-container, .works-container, .hero-container {
+  flex-grow: 1; /* New property */
+  max-width: 460px !important;
+  box-sizing: border-box;
+  max-width: 100%; /* Set the initial max-width to 100% */
+  margin: 0;
 }
 
 .header-wrapper {
-  z-index: 10;
-  position: fixed;
-  align-self: center;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  top: 0px;
-  display: flex;
+  position: sticky;
+  top: 0;
 }
 
-.header-logo {
-  flex: 1 1 auto; /* Allow the navlist to shrink and grow as needed */
-  justify-content: center;
-  align-self: center;
-  align-items: center;
-  margin: 8px !important;
-  margin-top: 0px !important;
-  border-color: var(--midberry) !important;
-  border: 1px solid var(--midberry); /* Apply border to all sides */
-  border-top: none !important; /* Remove the top border */
+.header-container {
+  border: 1px solid var(--midberry);
+  border-top: none;
   border-bottom-left-radius: var(--radius);
   border-bottom-right-radius: var(--radius);
   background-color: var(--lightberry);
   padding: 14px;
-  max-width: 460px;
 }
 
-.notice {
-  position: fixed;
+.hero-container {
   transition: var(--speed);
-  top: 75px;
-  left: 20px;
-  text-align: left;
-  max-width: 315px;
+  padding-left: 8px;
 }
 
-img {
-  max-width: 100%; /* Ensures the image scales down to fit the container */
-  height: auto; /* Maintains the aspect ratio of the image */
-  display: block; /* Removes any extra space below the image */
+.nav-wrapper {
+  position: fixed;
+  bottom: 0;
+}
+
+.nav-container {
+  flex: 1 1 auto;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  list-style: none;
+  border: 1px solid var(--midberry);
+  border-bottom: none;
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+  background-color: var(--lightberry);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 
 .logo {
@@ -88,55 +104,32 @@ img {
   display: block;
 }
 
-.navbar {
-  z-index: 5;
-  position: fixed;
-  align-self: center;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  bottom: 0px;
-  display: flex;
-  flex-direction: column;
-}
-
-.navlist {
-  flex: 1 1 auto; /* Allow the navlist to shrink and grow as needed */
-  align-self: center;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  margin: 8px !important;
-  margin-bottom: 0px !important;
-  list-style: none;
-  border-color: var(--midberry) !important;
-  border: 1px solid var(--midberry); /* Apply border to all sides */
-  border-bottom: none !important; /* Remove the bottom border */
-  border-top-left-radius: var(--radius);
-  border-top-right-radius: var(--radius);
-  background-color: var(--lightberry);
-  padding: 12px 16px;
-  display: flex;
-  flex-direction: row; /* Default to row for larger screens */
-  flex-wrap: wrap; /* Allow wrapping */
-  width: 100%;
-  max-width: 460px;
+img {
+  max-width: 100%; /* Ensures the image scales down to fit the container */
+  height: auto; /* Maintains the aspect ratio of the image */
+  display: block; /* Removes any extra space below the image */
 }
 
 .works-wrapper {
-  position: absolute;
-  top: 400px;
+  position: relative;
+  max-width: 460px;
+  width: 100%;
   z-index: 1;
   display: grid;
   grid-template-columns: 1fr;
   flex-direction: column;
   gap: 16px;
-  max-width: auto;
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
-.works-item {
+.works-wrapper::-webkit-scrollbar {
+  display: none; /* Hide the scrollbar in Chrome, Safari and Edge */
+}
+
+.works-container {
   position: sticky;
-  top: 400px;
+  top: 0; /* This will make the item stick to the top of the container */
   flex-grow: 1;
   display: flex;
   gap: 8px;
@@ -144,6 +137,7 @@ img {
   flex-direction: column-reverse;
   justify-content: space-evenly;
   background-color: var(--lightberry);
+  z-index: 1; /* This will make the item appear above the others when scrolling */
 }
 
 .works-info{
@@ -228,13 +222,11 @@ h1 {
   font-family: "GeistSans", sans-serif;
   font-weight: 900;
   color: var(--tealberry);
+  margin-top: 0px !important;
   font-size: 2em;
   line-height: 1em;
   letter-spacing:-1.5px;
   margin: 20px 0;}
-
-.hero {
-  max-width: 250px;}
   
 p {
   color: #333333;
@@ -290,18 +282,34 @@ p {
 
 /* Styles for PWA standalone mode */
 @media (display-mode: standalone) {
-    .navlist { padding-bottom: 40px; /* Padding for navbar */ }
-    .header-logo {
+    .nav-container { padding-bottom: 40px; /* Padding for navbar */ }
+    .header-container {
       background-color: var(--tealberry);
       padding-top: 50px /* Padding for headbar */ }
     .logo { color: var(--lightberry); }}
 
+/* Media Queries */
+
+@media (max-width: 460px) {
+  .header-container, .nav-container, .works-container, .hero-container {
+    flex-grow: 1; /* New property */
+    max-width: 460px !important;
+    box-sizing: border-box;
+    max-width: 100%; /* Set the initial max-width to 100% */
+    margin: 0 8px !important; /* Add 8px margin on the sides */
+  }
+}
+
 @media (max-width: 600px) {
-  .notice { left: 20px;}
-  p { font-size: 1em; }
+  p {
+    font-size: 1em;
+  }
 
 @media (max-width: 362px) {
-  .navbutton.mobile-menu { display: block; }
-  .navbutton { display: none;}
-  .navbar { flex-direction: column; /* Stack navbar items vertically */ }
-  .navlist { flex-direction: column; /* Stack navlist items vertically */}}}
+  .navbutton.mobile-menu {
+    display: block;
+  }
+  .navbutton {
+    display: none;
+  }
+}}
