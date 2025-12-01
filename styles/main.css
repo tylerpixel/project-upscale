@@ -8,7 +8,15 @@
   --speed: 90ms;
   --radius: 6px;
   --cards: 4;
-  --cardHeight:8
+  --cardHeight: 8;
+  
+  /* Spacing Scale (4px base) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 20px;
+  --space-2xl: 24px;
 }
 
 @font-face {
@@ -25,7 +33,7 @@ html{
 body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-sm);
   height: 100vh;
   margin: 0;
   font-family: "GeistSans", sans-serif;
@@ -63,12 +71,12 @@ body {
   border-bottom-left-radius: var(--radius);
   border-bottom-right-radius: var(--radius);
   background-color: var(--lightberry);
-  padding: 14px;
+  padding: var(--space-md);
 }
 
 .hero-container {
   transition: var(--speed);
-  padding-left: 8px;
+  padding-left: var(--space-sm);
 }
 
 .nav-wrapper {
@@ -81,14 +89,14 @@ body {
   align-self: center;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: var(--space-xs);
   list-style: none;
   border: 1px solid var(--midberry);
   border-bottom: none;
   border-top-left-radius: var(--radius);
   border-top-right-radius: var(--radius);
   background-color: var(--lightberry);
-  padding: 12px 16px;
+  padding: var(--space-md) var(--space-lg);
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -115,12 +123,14 @@ img {
   max-width: 460px;
   width: 100%;
   z-index: 1;
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex; /* Changed from grid to flex for column layout consistency */
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-lg);
   overflow-y: auto;
   scrollbar-width: none;
+  flex: 1; /* Allow it to grow and fill the body space */
+  min-height: 0; /* Crucial for scrolling inside flex item */
+  padding-bottom: calc(var(--space-lg) * 6.25); /* 100px - space for fixed nav */
 }
 
 .works-wrapper::-webkit-scrollbar {
@@ -128,22 +138,22 @@ img {
 }
 
 .works-container {
-  position: sticky;
-  top: 0; /* This will make the item stick to the top of the container */
-  flex-grow: 1;
+  position: relative;
+  top: auto;
+  flex-grow: 0;
   display: flex;
-  gap: 8px;
+  gap: var(--space-sm);
   border-radius: var(--radius);
-  flex-direction: column-reverse;
-  justify-content: space-evenly;
+  flex-direction: column;
+  justify-content: flex-start;
   background-color: var(--lightberry);
-  z-index: 1; /* This will make the item appear above the others when scrolling */
+  z-index: 1;
 }
 
 .works-info{
-  gap: 16px;
+  gap: var(--space-lg);
   display: flex;
-  padding: 6px 8px;
+  padding: var(--space-xs) var(--space-sm);
   background-color: var(--lightberry);
   flex-direction: row;
   justify-content: space-between;
@@ -170,24 +180,25 @@ img {
 }
 
 .navbutton {
-  border-style: none;
+  border: 1px solid var(--lightberry);
   border-radius: var(--radius);
   flex: 1 1 auto;
   justify-content: center;
   align-self: center;
   align-items: center;
   display: flex;
-  padding: 8px 10px;
+  padding: var(--space-sm) var(--space-md);
   font-size: 1em;
   font-family: "GeistSans", sans-serif;
   font-weight: 500;
   text-decoration: none;
   color: var(--darkberry);
-  transition: background-color var(--speed), color var(--speed);
+  transition: background-color var(--speed), color var(--speed), border-color var(--speed);
 }
 
 .navbutton:hover{
   background-color: var(--midberry);
+  border-color: var(--midberry);
   color: var(--darkberry);
 }
 
@@ -199,41 +210,44 @@ img {
 
 .cta {
   background-color: var(--tealberry);
+  border: 1px solid var(--tealberry);
   color: var(--lightberry);
   border-radius: var(--radius);
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 8px;
-  padding-bottom: 8px;
+  padding: var(--space-sm) var(--space-md);
 }
 
 .cta:hover{
   background-color: var(--darkberry);
+  border-color: var(--darkberry);
   color: var(--lightberry);
+  transition: background-color var(--speed), color var(--speed), border-color var(--speed);
 }
 
-.cta:hover{
+.navbutton.cta.close-active {
   background-color: var(--darkberry);
+  border-color: var(--darkberry);
   color: var(--lightberry);
-  transition: background-color var(--speed), color var(--speed);
 }
 
 h1 {
   font-family: "GeistSans", sans-serif;
   font-weight: 900;
   color: var(--tealberry);
-  margin-top: 0px !important;
+  margin: 0;
+  margin-top: 0 !important;
   font-size: 2em;
   line-height: 1em;
-  letter-spacing:-1.5px;
-  margin: 20px 0;}
+  letter-spacing: -1.5px;
+  margin-bottom: var(--space-xl);
+}
   
 p {
   color: #333333;
   font-size: 1em;
   letter-spacing: -0.25px;
-  margin: 10px 0;
-  word-wrap: break-word;}
+  margin: var(--space-md) 0;
+  word-wrap: break-word;
+}
   
 .linky, .days {
   text-decoration: none;
@@ -264,17 +278,18 @@ p {
   
 .email {
   display: inline-block;
-  margin-top: 20px;
+  margin-top: var(--space-xl);
   color: var(--lightberry);
   background-color: var(--darkberry);
   transition: background-color var(--speed), color var(--speed);
-  padding: 10px 20px;
-  border-radius: 4px;
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--space-xs);
   stroke-width: 1px;
   text-decoration: none;
   font-family: "GeistSans", sans-serif;
   font-weight: 600;
-  font-style: normal;}
+  font-style: normal;
+}
   
 .email:hover {
   background-color: var(--tealberry);
@@ -282,11 +297,17 @@ p {
 
 /* Styles for PWA standalone mode */
 @media (display-mode: standalone) {
-    .nav-container { padding-bottom: 40px; /* Padding for navbar */ }
-    .header-container {
-      background-color: var(--tealberry);
-      padding-top: 50px /* Padding for headbar */ }
-    .logo { color: var(--lightberry); }}
+  .nav-container {
+    padding-bottom: calc(var(--space-xl) * 2); /* 40px - space for navbar */
+  }
+  .header-container {
+    background-color: var(--tealberry);
+    padding-top: calc(var(--space-xl) * 2.5); /* 50px - space for headbar */
+  }
+  .logo {
+    color: var(--lightberry);
+  }
+}
 
 /* Media Queries */
 
@@ -296,7 +317,7 @@ p {
     max-width: 460px !important;
     box-sizing: border-box;
     max-width: 100%; /* Set the initial max-width to 100% */
-    margin: 0 8px !important; /* Add 8px margin on the sides */
+    margin: 0 var(--space-sm) !important; /* Add spacing on the sides */
   }
 }
 
@@ -312,4 +333,26 @@ p {
   .navbutton {
     display: none;
   }
-}}
+}}.works-separator {
+  position: relative;
+  width: 100%;
+  height: 1px;
+  background-color: var(--midberry);
+  margin: var(--space-lg) 0; /* Spacing top and bottom */
+  flex-shrink: 0; /* Prevent it from being squashed */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.works-separator::before {
+  content: "START";
+  position: absolute;
+  background-color: var(--lightberry);
+  padding: 0 var(--space-sm);
+  font-size: 8pt;
+  color: var(--midberry);
+  font-family: "GeistSans", sans-serif;
+  font-weight: 500;
+}
+
