@@ -1,8 +1,0 @@
-.works-separator {
-  width: 100%;
-  height: 1px;
-  background-color: var(--midberry);
-  margin: 16px 0; /* 16px top and bottom margin (padding effect) */
-  flex-shrink: 0; /* Prevent it from being squashed */
-}
-

@@ -53,10 +53,9 @@ body {
 }
 
 .header-container, .nav-container, .works-container, .hero-container {
-  flex-grow: 1; /* New property */
+  flex-grow: 1;
   max-width: 460px !important;
   box-sizing: border-box;
-  max-width: 100%; /* Set the initial max-width to 100% */
   margin: 0;
 }
 
@@ -249,7 +248,7 @@ p {
   word-wrap: break-word;
 }
   
-.linky, .days {
+.linky {
   text-decoration: none;
   background:
   linear-gradient(
@@ -267,14 +266,12 @@ p {
   background-repeat: no-repeat;
   transition: background-size var(--speed);
   color: var(--tealberry);
-  font-weight: 900; }
+  font-weight: 900;
+}
 
-.linky:hover, .days:hover { background-size: 0 1px, 100% 1px; }
-  
-.days {
-  color: var(--tealberry);
-  text-decoration: none;
-  font-weight: 900;}
+.linky:hover {
+  background-size: 0 1px, 100% 1px;
+}
   
 .email {
   display: inline-block;
@@ -313,11 +310,10 @@ p {
 
 @media (max-width: 460px) {
   .header-container, .nav-container, .works-container, .hero-container {
-    flex-grow: 1; /* New property */
+    flex-grow: 1;
     max-width: 460px !important;
     box-sizing: border-box;
-    max-width: 100%; /* Set the initial max-width to 100% */
-    margin: 0 var(--space-sm) !important; /* Add spacing on the sides */
+    margin: 0 var(--space-sm) !important;
   }
 }
 

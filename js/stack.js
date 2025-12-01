@@ -14,6 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let loopLowerLimit = 0;
   let loopUpperLimit = 0;
   let scrollControllerReady = false;
+  let snapTimeout = null;
+  let lastScrollPosition = 0;
+  let lastScrollTime = Date.now();
 
   const setAnchors = [];
   const supportsResizeObserver = typeof ResizeObserver === "function";
@@ -176,18 +179,65 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       requestAnimationFrame(raf);
 
-      lenis.on("scroll", ({ scroll }) => {
+      lenis.on("scroll", ({ scroll, velocity }) => {
         if (isJumping) return;
         enforceLoop(scroll);
+
+        // Track scroll position and velocity for snap detection
+        const currentTime = Date.now();
+        lastScrollPosition = scroll;
+        lastScrollTime = currentTime;
+
+        // Clear any pending snap
+        clearTimeout(snapTimeout);
+
+        // Check if scrolling has stopped (velocity is near zero)
+        // Wait a bit to ensure scrolling has truly stopped
+        snapTimeout = setTimeout(() => {
+          // Double-check velocity is zero and position hasn't changed
+          if (
+            Math.abs(velocity) < 0.1 &&
+            Math.abs(lenis.scroll - lastScrollPosition) < 1
+          ) {
+            snapToNearestCard();
+          }
+        }, 100); // Wait 100ms after last scroll event
       });
 
       lenis.scrollTo(worksWrapper.scrollTop, { immediate: true, force: true });
     } else {
+      let nativeScrollVelocity = 0;
+      let nativeLastScrollTop = 0;
+      let nativeLastScrollTime = Date.now();
+
       worksWrapper.addEventListener(
         "scroll",
         () => {
           if (isJumping) return;
           enforceLoop(worksWrapper.scrollTop);
+
+          // Track scroll velocity for native scrolling
+          const currentTime = Date.now();
+          const timeDelta = currentTime - nativeLastScrollTime;
+          const scrollDelta = worksWrapper.scrollTop - nativeLastScrollTop;
+
+          if (timeDelta > 0) {
+            nativeScrollVelocity = scrollDelta / timeDelta;
+          }
+
+          nativeLastScrollTop = worksWrapper.scrollTop;
+          nativeLastScrollTime = currentTime;
+
+          // Clear any pending snap
+          clearTimeout(snapTimeout);
+
+          // Check if scrolling has stopped
+          snapTimeout = setTimeout(() => {
+            // Check if velocity is near zero
+            if (Math.abs(nativeScrollVelocity) < 0.1) {
+              snapToNearestCard();
+            }
+          }, 100);
         },
         { passive: true }
       );
@@ -224,5 +274,54 @@ document.addEventListener("DOMContentLoaded", () => {
     requestAnimationFrame(() => {
       isJumping = false;
     });
+  }
+
+  // Snap to nearest card top when scrolling stops
+  function snapToNearestCard() {
+    if (isJumping) return;
+
+    const containers = worksWrapper.querySelectorAll(".works-container");
+    if (containers.length === 0) return;
+
+    const scrollTop = lenis ? lenis.scroll : worksWrapper.scrollTop;
+    let nearestContainer = null;
+    let nearestDistance = Infinity;
+
+    // Find the nearest card
+    containers.forEach((container) => {
+      const containerTop = container.offsetTop;
+      const distance = Math.abs(containerTop - scrollTop);
+
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestContainer = container;
+      }
+    });
+
+    if (nearestContainer) {
+      const targetScroll = nearestContainer.offsetTop;
+
+      // Only snap if we're not already aligned (within 2px threshold)
+      if (Math.abs(scrollTop - targetScroll) > 2) {
+        isJumping = true;
+
+        if (lenis) {
+          lenis.scrollTo(targetScroll, {
+            duration: 0.4,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            force: true,
+          });
+        } else {
+          worksWrapper.scrollTo({
+            top: targetScroll,
+            behavior: "smooth",
+          });
+        }
+
+        setTimeout(() => {
+          isJumping = false;
+        }, 400);
+      }
+    }
   }
 });
