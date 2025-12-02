@@ -1,15 +1,13 @@
 /* Global Colour Variables */
 :root {
-  --tealberry: #0060E5;
+  --tealberry: #0060e5;
   --skyberry: #82abe4;
-  --lightberry: #EEF2F6;
-  --midberry: #B8C6D9;
+  --lightberry: #eef2f6;
+  --midberry: #b8c6d9;
   --darkberry: #212326;
   --speed: 90ms;
   --radius: 6px;
-  --cards: 4;
-  --cardHeight: 8;
-  
+
   /* Spacing Scale (4px base) */
   --space-xs: 4px;
   --space-sm: 8px;
@@ -20,13 +18,13 @@
 }
 
 @font-face {
-  font-family: 'GeistSans';
-  src: url('/fonts/GeistVF.woff2') format('woff2');
+  font-family: "GeistSans";
+  src: url("/fonts/GeistVF.woff2") format("woff2");
   font-weight: 500 700;
   font-style: normal;
 }
 
-html{
+html {
   background-color: var(--lightberry);
 }
 
@@ -44,7 +42,8 @@ body {
   align-items: center;
 }
 
-.header-wrapper, .nav-wrapper {
+.header-wrapper,
+.nav-wrapper {
   width: 100%;
   z-index: 5;
   display: flex;
@@ -52,7 +51,10 @@ body {
   align-items: center;
 }
 
-.header-container, .nav-container, .works-container, .hero-container {
+.header-container,
+.nav-container,
+.works-container,
+.hero-container {
   flex-grow: 1;
   max-width: 460px !important;
   box-sizing: border-box;
@@ -122,14 +124,19 @@ img {
   max-width: 460px;
   width: 100%;
   z-index: 1;
-  display: flex; /* Changed from grid to flex for column layout consistency */
+  display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: 0; /* Remove gap to eliminate weird spacing */
   overflow-y: auto;
   scrollbar-width: none;
-  flex: 1; /* Allow it to grow and fill the body space */
-  min-height: 0; /* Crucial for scrolling inside flex item */
-  padding-bottom: calc(var(--space-lg) * 6.25); /* 100px - space for fixed nav */
+  flex: 1;
+  min-height: 0;
+  padding-top: var(--space-md);
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+  padding-bottom: calc(var(--space-lg) * 5); /* 100px - space for fixed nav */
+  border: 1px solid var(--midberry);
+  border-radius: var(--radius);
 }
 
 .works-wrapper::-webkit-scrollbar {
@@ -138,7 +145,6 @@ img {
 
 .works-container {
   position: relative;
-  top: auto;
   flex-grow: 0;
   display: flex;
   gap: var(--space-sm);
@@ -146,10 +152,10 @@ img {
   flex-direction: column;
   justify-content: flex-start;
   background-color: var(--lightberry);
-  z-index: 1;
+  margin-bottom: var(--space-lg);
 }
 
-.works-info{
+.works-info {
   gap: var(--space-lg);
   display: flex;
   padding: var(--space-xs) var(--space-sm);
@@ -192,10 +198,11 @@ img {
   font-weight: 500;
   text-decoration: none;
   color: var(--darkberry);
-  transition: background-color var(--speed), color var(--speed), border-color var(--speed);
+  transition: background-color var(--speed), color var(--speed),
+    border-color var(--speed);
 }
 
-.navbutton:hover{
+.navbutton:hover {
   background-color: var(--midberry);
   border-color: var(--midberry);
   color: var(--darkberry);
@@ -215,11 +222,12 @@ img {
   padding: var(--space-sm) var(--space-md);
 }
 
-.cta:hover{
+.cta:hover {
   background-color: var(--darkberry);
   border-color: var(--darkberry);
   color: var(--lightberry);
-  transition: background-color var(--speed), color var(--speed), border-color var(--speed);
+  transition: background-color var(--speed), color var(--speed),
+    border-color var(--speed);
 }
 
 .navbutton.cta.close-active {
@@ -239,7 +247,7 @@ h1 {
   letter-spacing: -1.5px;
   margin-bottom: var(--space-xl);
 }
-  
+
 p {
   color: #333333;
   font-size: 1em;
@@ -247,20 +255,11 @@ p {
   margin: var(--space-md) 0;
   word-wrap: break-word;
 }
-  
+
 .linky {
   text-decoration: none;
-  background:
-  linear-gradient(
-    to right,
-    var(--lightberry),
-    var(--lightberry)
-  ),
-  linear-gradient(
-    to right,
-    var(--tealberry),
-    var(--tealberry)
-);
+  background: linear-gradient(to right, var(--lightberry), var(--lightberry)),
+    linear-gradient(to right, var(--tealberry), var(--tealberry));
   background-size: 100% 1px, 0 1px;
   background-position: 100% 100%, 0 100%;
   background-repeat: no-repeat;
@@ -272,7 +271,7 @@ p {
 .linky:hover {
   background-size: 0 1px, 100% 1px;
 }
-  
+
 .email {
   display: inline-block;
   margin-top: var(--space-xl);
@@ -287,10 +286,11 @@ p {
   font-weight: 600;
   font-style: normal;
 }
-  
+
 .email:hover {
   background-color: var(--tealberry);
-  color: var(--lightberry);}
+  color: var(--lightberry);
+}
 
 /* Styles for PWA standalone mode */
 @media (display-mode: standalone) {
@@ -309,7 +309,10 @@ p {
 /* Media Queries */
 
 @media (max-width: 460px) {
-  .header-container, .nav-container, .works-container, .hero-container {
+  .header-container,
+  .nav-container,
+  .works-container,
+  .hero-container {
     flex-grow: 1;
     max-width: 460px !important;
     box-sizing: border-box;
@@ -322,14 +325,16 @@ p {
     font-size: 1em;
   }
 
-@media (max-width: 362px) {
-  .navbutton.mobile-menu {
-    display: block;
+  @media (max-width: 362px) {
+    .navbutton.mobile-menu {
+      display: block;
+    }
+    .navbutton {
+      display: none;
+    }
   }
-  .navbutton {
-    display: none;
-  }
-}}.works-separator {
+}
+.works-separator {
   position: relative;
   width: 100%;
   height: 1px;
@@ -352,3 +357,58 @@ p {
   font-weight: 500;
 }
 
+.social-separator {
+  margin-top: var(--space-xl);
+  margin-bottom: var(--space-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.social-separator::before {
+  display: none; /* Hide START text for social separator */
+}
+
+.social-icons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  background-color: var(--lightberry); /* To "break" the line */
+  padding: 0 var(--space-sm);
+  position: relative;
+  z-index: 1;
+}
+
+.social-copyright {
+  font-size: 8pt;
+  font-family: "GeistSans", sans-serif;
+  color: var(--midberry);
+  background-color: var(--lightberry); /* To "break" the line */
+  padding: 0 var(--space-sm);
+  position: relative;
+  z-index: 1;
+}
+
+.social-icon {
+  font-size: 14px;
+  line-height: 1;
+  text-decoration: none;
+  color: var(--midberry);
+  transition: color var(--speed);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+}
+
+.social-icon svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.social-icon:hover {
+  color: var(--tealberry);
+}
