@@ -25,4 +25,8 @@ Thumbs.db
 
 # Local admin/microsite (not committed)
 admin/
+data/.backups/
+
+# Wrangler local state
+.wrangler/
 

@@ -1,0 +1,12 @@
+.git
+.gitignore
+.assetsignore
+.vscode
+.wrangler
+.claude
+.DS_Store
+node_modules
+worker
+admin
+README.md
+wrangler.jsonc

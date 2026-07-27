@@ -1,0 +1,39 @@
+{
+  "name": "portfolio",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-07-01",
+  // The whole repo is the asset directory; .assetsignore keeps the worker,
+  // local CMS and repo housekeeping out of the upload.
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    // Without this, any path that matches an asset (e.g. "/") is served
+    // before the worker runs — which would hand the portfolio homepage to
+    // the vanity redirect subdomains instead of redirecting them.
+    "run_worker_first": true
+  },
+  // Email Sending binding for the message form. The sender lock means a bug
+  // (or abuse) can never make this worker send as any other address.
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "allowed_sender_addresses": ["message@tylerpixel.com"]
+    }
+  ],
+  // Vanity-redirect click counts — the same namespace the old
+  // subdomainstracker worker wrote to, so the counts carry on.
+  "kv_namespaces": [
+    {
+      "binding": "SUBDOMAIN_CLICKS",
+      "id": "e734812790bd4140b30137b6517bc05b"
+    }
+  ],
+  "routes": [
+    { "pattern": "tylerpixel.com", "custom_domain": true },
+    // Vanity subdomain redirects (x., github., book., …) — the proxied DNS
+    // records for each subdomain already exist on the zone.
+    { "pattern": "*.tylerpixel.com/*", "zone_name": "tylerpixel.com" }
+  ],
+  "workers_dev": true
+}

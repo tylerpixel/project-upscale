@@ -1,414 +1,1554 @@
-/* Global Colour Variables */
-:root {
-  --tealberry: #0060e5;
-  --skyberry: #82abe4;
-  --lightberry: #eef2f6;
-  --midberry: #b8c6d9;
-  --darkberry: #212326;
-  --speed: 90ms;
-  --radius: 6px;
-
-  /* Spacing Scale (4px base) */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 12px;
-  --space-lg: 16px;
-  --space-xl: 20px;
-  --space-2xl: 24px;
+/* ── Fonts ── */
+/* Custom subset built from the full DM Sans variable font — the Google-served
+   web subset strips the stylistic sets, and ss03 (single-story g) is wanted
+   site-wide. */
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 100 1000;
+  font-display: swap;
+  src: url("../fonts/DMSans-Variable.woff2") format("woff2");
 }
 
-@font-face {
-  font-family: "GeistSans";
-  src: url("/fonts/GeistVF.woff2") format("woff2");
-  font-weight: 500 700;
-  font-style: normal;
+/* ── Tokens ── */
+:root {
+  --fg: #111111;
+  --fg-muted: rgba(0, 0, 0, 0.4);
+  --underline: #d9d9d9;
+  --underline-hover: #666666;
+  --bg: #ffffff;
+  /* The measure everything lines up to. This is the *content* width — the
+     gutter is added on top — so the text column, the bottom nav and the tray
+     sheet all end up exactly this wide inside their padding. */
+  --content-width: 360px;
+  --gutter: 24px;
+  --media-width: 760px;
+  --sortcash: #ff5500;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --gutter: 16px;
+  }
+}
+
+* {
+  box-sizing: border-box;
 }
 
 html {
-  background-color: var(--lightberry);
+  background-color: var(--bg);
 }
 
 body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  height: 100vh;
   margin: 0;
-  font-family: "GeistSans", sans-serif;
-  font-weight: 500;
-  line-height: 1.33em;
-  font-style: bold;
-  justify-content: center;
-  align-items: center;
-}
-
-.header-wrapper,
-.nav-wrapper {
-  width: 100%;
-  z-index: 5;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.header-container,
-.nav-container,
-.works-container,
-.hero-container {
-  flex-grow: 1;
-  max-width: 460px !important;
-  box-sizing: border-box;
-  margin: 0;
-}
-
-.header-wrapper {
-  position: sticky;
-  top: 0;
-}
-
-.header-container {
-  border: 1px solid var(--midberry);
-  border-top: none;
-  border-bottom-left-radius: var(--radius);
-  border-bottom-right-radius: var(--radius);
-  background-color: var(--lightberry);
-  padding: var(--space-md);
-}
-
-.hero-container {
-  transition: var(--speed);
-  padding-left: var(--space-sm);
-}
-
-.nav-wrapper {
-  position: fixed;
-  bottom: 0;
-}
-
-.nav-container {
-  flex: 1 1 auto;
-  align-self: center;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-xs);
-  list-style: none;
-  border: 1px solid var(--midberry);
-  border-bottom: none;
-  border-top-left-radius: var(--radius);
-  border-top-right-radius: var(--radius);
-  background-color: var(--lightberry);
-  padding: var(--space-md) var(--space-lg);
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-}
-
-.logo {
-  color: var(--tealberry);
-  max-height: 15px;
-  flex-shrink: 1;
-  justify-content: left;
-  align-self: left;
-  align-items: left;
-  display: block;
+  font-family: "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-feature-settings: "ss03"; /* single-story g */
+  font-weight: 460;
+  letter-spacing: -0.25pt;
+  font-size: 12pt;
+  line-height: 1.6;
+  color: var(--fg);
+  background-color: var(--bg);
+  overflow-x: hidden;
 }
 
 img {
-  max-width: 100%; /* Ensures the image scales down to fit the container */
-  height: auto; /* Maintains the aspect ratio of the image */
-  display: block; /* Removes any extra space below the image */
-}
-
-.works-wrapper {
-  position: relative;
-  max-width: 460px;
-  width: 100%;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0; /* Remove gap to eliminate weird spacing */
-  overflow-y: auto;
-  scrollbar-width: none;
-  flex: 1;
-  min-height: 0;
-  padding-top: var(--space-md);
-  padding-left: var(--space-md);
-  padding-right: var(--space-md);
-  padding-bottom: calc(var(--space-lg) * 5); /* 100px - space for fixed nav */
-  border: 1px solid var(--midberry);
-  border-radius: var(--radius);
-}
-
-.works-wrapper::-webkit-scrollbar {
-  display: none; /* Hide the scrollbar in Chrome, Safari and Edge */
-}
-
-.works-container {
-  position: relative;
-  flex-grow: 0;
-  display: flex;
-  gap: var(--space-sm);
-  border-radius: var(--radius);
-  flex-direction: column;
-  justify-content: flex-start;
-  background-color: var(--lightberry);
-  margin-bottom: var(--space-lg);
-}
-
-.works-info {
-  gap: var(--space-lg);
-  display: flex;
-  padding: var(--space-xs) var(--space-sm);
-  background-color: var(--lightberry);
-  flex-direction: row;
-  justify-content: space-between;
-  border: 1px solid var(--midberry);
-  border-radius: var(--radius);
-}
-
-.works-img {
-  max-width: 460px;
-  height: 200px;
-  object-fit: cover;
-  border-radius: var(--radius);
-  border: 1px solid var(--midberry);
-}
-
-.works-info-text {
-  margin: 0;
-  flex-direction: row;
-}
-
-.works-info-text.year {
-  color: var(--tealberry);
-  font-size: 16px;
-}
-
-.navbutton {
-  border: 1px solid var(--lightberry);
-  border-radius: var(--radius);
-  flex: 1 1 auto;
-  justify-content: center;
-  align-self: center;
-  align-items: center;
-  display: flex;
-  padding: var(--space-sm) var(--space-md);
-  font-size: 1em;
-  font-family: "GeistSans", sans-serif;
-  font-weight: 500;
-  text-decoration: none;
-  color: var(--darkberry);
-  transition: background-color var(--speed), color var(--speed),
-    border-color var(--speed);
-}
-
-.navbutton:hover {
-  background-color: var(--midberry);
-  border-color: var(--midberry);
-  color: var(--darkberry);
-}
-
-.navbutton.mobile-menu {
-  display: none;
-  height: 18px;
-  text-decoration: none;
-}
-
-.cta {
-  background-color: var(--tealberry);
-  border: 1px solid var(--tealberry);
-  color: var(--lightberry);
-  border-radius: var(--radius);
-  padding: var(--space-sm) var(--space-md);
-}
-
-.cta:hover {
-  background-color: var(--darkberry);
-  border-color: var(--darkberry);
-  color: var(--lightberry);
-  transition: background-color var(--speed), color var(--speed),
-    border-color var(--speed);
-}
-
-.navbutton.cta.close-active {
-  background-color: var(--darkberry);
-  border-color: var(--darkberry);
-  color: var(--lightberry);
-}
-
-h1 {
-  font-family: "GeistSans", sans-serif;
-  font-weight: 900;
-  color: var(--tealberry);
-  margin: 0;
-  margin-top: 0 !important;
-  font-size: 2em;
-  line-height: 1em;
-  letter-spacing: -1.5px;
-  margin-bottom: var(--space-xl);
-}
-
-p {
-  color: #333333;
-  font-size: 1em;
-  letter-spacing: -0.25px;
-  margin: var(--space-md) 0;
-  word-wrap: break-word;
-}
-
-.linky {
-  text-decoration: none;
-  background: linear-gradient(to right, var(--lightberry), var(--lightberry)),
-    linear-gradient(to right, var(--tealberry), var(--tealberry));
-  background-size: 100% 1px, 0 1px;
-  background-position: 100% 100%, 0 100%;
-  background-repeat: no-repeat;
-  transition: background-size var(--speed);
-  color: var(--tealberry);
-  font-weight: 900;
-}
-
-.linky:hover {
-  background-size: 0 1px, 100% 1px;
-}
-
-.email {
-  display: inline-block;
-  margin-top: var(--space-xl);
-  color: var(--lightberry);
-  background-color: var(--darkberry);
-  transition: background-color var(--speed), color var(--speed);
-  padding: var(--space-md) var(--space-xl);
-  border-radius: var(--space-xs);
-  stroke-width: 1px;
-  text-decoration: none;
-  font-family: "GeistSans", sans-serif;
-  font-weight: 600;
-  font-style: normal;
-}
-
-.email:hover {
-  background-color: var(--tealberry);
-  color: var(--lightberry);
-}
-
-/* Styles for PWA standalone mode */
-@media (display-mode: standalone) {
-  .nav-container {
-    padding-bottom: calc(var(--space-xl) * 2); /* 40px - space for navbar */
-  }
-  .header-container {
-    background-color: var(--tealberry);
-    padding-top: calc(var(--space-xl) * 2.5); /* 50px - space for headbar */
-  }
-  .logo {
-    color: var(--lightberry);
-  }
-}
-
-/* Media Queries */
-
-@media (max-width: 460px) {
-  .header-container,
-  .nav-container,
-  .works-container,
-  .hero-container {
-    flex-grow: 1;
-    max-width: 460px !important;
-    box-sizing: border-box;
-    margin: 0 var(--space-sm) !important;
-  }
-}
-
-@media (max-width: 600px) {
-  p {
-    font-size: 1em;
-  }
-
-  @media (max-width: 362px) {
-    .navbutton.mobile-menu {
-      display: block;
-    }
-    .navbutton {
-      display: none;
-    }
-  }
-}
-.works-separator {
-  position: relative;
-  width: 100%;
-  height: 1px;
-  background-color: var(--midberry);
-  margin: var(--space-lg) 0; /* Spacing top and bottom */
-  flex-shrink: 0; /* Prevent it from being squashed */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.works-separator::before {
-  content: "START";
-  position: absolute;
-  background-color: var(--lightberry);
-  padding: 0 var(--space-sm);
-  font-size: 8pt;
-  color: var(--midberry);
-  font-family: "GeistSans", sans-serif;
-  font-weight: 500;
-}
-
-.social-separator {
-  margin-top: var(--space-xl);
-  margin-bottom: var(--space-md);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
-}
-
-.social-separator::before {
-  display: none; /* Hide START text for social separator */
-}
-
-.social-icons {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  background-color: var(--lightberry); /* To "break" the line */
-  padding: 0 var(--space-sm);
-  position: relative;
-  z-index: 1;
-}
-
-.social-copyright {
-  font-size: 8pt;
-  font-family: "GeistSans", sans-serif;
-  color: var(--midberry);
-  background-color: var(--lightberry); /* To "break" the line */
-  padding: 0 var(--space-sm);
-  position: relative;
-  z-index: 1;
-}
-
-.social-icon {
-  font-size: 14px;
-  line-height: 1;
-  text-decoration: none;
-  color: var(--midberry);
-  transition: color var(--speed);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-}
-
-.social-icon svg {
-  width: 14px;
-  height: 14px;
+  max-width: 100%;
+  height: auto;
   display: block;
 }
 
-.social-icon:hover {
-  color: var(--tealberry);
+h3 {
+  margin: 0;
+  font-family: inherit;
+  font-size: 12pt;
+}
+
+/* ── Inline links: thin gray underline that darkens on hover, tooltip reveal ── */
+.inline-link {
+  position: relative;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--underline);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.14em;
+  transition: text-decoration-color 0.2s ease;
+}
+
+.inline-link:hover {
+  text-decoration-color: var(--underline-hover);
+}
+
+/* ── Page shell ── */
+.site {
+  max-width: calc(var(--content-width) + var(--gutter) * 2);
+  margin: 0 auto;
+  padding: 32px var(--gutter) 140px;
+}
+
+@media (min-width: 640px) {
+  .site {
+    padding: 80px var(--gutter) 160px;
+  }
+}
+
+/* ── Header: name + role ── */
+.intro-header {
+  margin-bottom: 48px;
+}
+
+.wordmark {
+  display: block;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  height: 13px;
+  width: auto;
+  color: #0060E5;
+}
+
+.wordmark svg {
+  height: 100%;
+  width: auto;
+  display: block;
+}
+
+.identity-text h3 {
+  font-weight: 460;
+  font-style: normal;
+  color: var(--fg-muted);
+  margin-top: 6px;
+}
+
+nav.identity-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.identity-links a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--fg-muted);
+  transition: color 0.15s ease;
+}
+
+.identity-links a:hover {
+  color: var(--fg);
+}
+
+.identity-links svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+/* ── Panels ── */
+.panel[hidden] {
+  display: none;
+}
+
+.panel p {
+  margin: 0 0 20px;
+  color: var(--fg);
+}
+
+.panel p:last-child {
+  margin-bottom: 0;
+}
+
+.section-introduction {
+  color: var(--fg);
+}
+
+/* ── Writing ── */
+#panel-writing .writing-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.writing-item {
+  padding: 16px 0;
+  border-top: 1px solid var(--underline);
+  cursor: pointer;
+}
+
+.writing-item:last-child {
+  border-bottom: 1px solid var(--underline);
+}
+
+.writing-item:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 4px;
+}
+
+.writing-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.writing-item-title {
+  margin: 0;
+  font-size: 12pt;
+  font-weight: 500;
+  color: var(--fg);
+}
+
+#panel-writing .writing-item-summary {
+  margin: 4px 0 0;
+  color: var(--fg-muted);
+  line-height: 1.4;
+}
+
+#panel-writing-detail .post-head {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+#panel-writing-detail .work-detail-title {
+  margin: 0;
+  font-size: 14pt;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--fg);
+}
+
+#panel-writing-detail .post-paragraph {
+  margin: 0 0 16px;
+  color: var(--fg);
+}
+
+#panel-writing-detail .post-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Link rows at the foot of a case study (visit site, read the write-up) */
+#panel-work-detail .detail-link-row {
+  margin: 16px 0 0;
+}
+
+/* ── Writing panel empty state ── */
+#panel-writing .writing-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0 4px;
+}
+
+#panel-writing .writing-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 85, 0, 0.1);
+  color: var(--sortcash);
+  transform: rotate(-8deg);
+}
+
+#panel-writing .writing-empty-icon svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+}
+
+#panel-writing .writing-empty-title {
+  margin: 4px 0 0;
+  font-size: 12pt;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+#panel-writing .writing-empty-subtitle {
+  margin: 0;
+  font-size: 12pt;
+  color: var(--fg-muted);
+}
+
+/* ── Company logos strip ── */
+.company-logos {
+  position: relative;
+  overflow: hidden;
+  margin-top: 12px;
+  width: 100%;
+  max-width: 100%;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+}
+
+.company-logos-track {
+  display: flex;
+  width: max-content;
+  animation: company-logos-scroll 20s linear infinite;
+}
+
+.company-logos-set {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding-right: 32px;
+}
+
+@keyframes company-logos-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.company-logo {
+  height: 20px;
+  width: auto;
+  max-width: 96px;
+  object-fit: contain;
+  filter: grayscale(1) contrast(0.65) brightness(0.75);
+  opacity: 0.75;
+  transition: opacity 0.2s ease, filter 0.2s ease;
+}
+
+.company-logo:hover {
+  filter: grayscale(1) contrast(0.85) brightness(0.6);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .company-logos-track {
+    animation: none;
+  }
+}
+
+/* ── Work list ── */
+.work-list {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+}
+
+.work-card {
+  cursor: pointer;
+}
+
+.work-card:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 6px;
+  border-radius: 4px;
+}
+
+.work-thumb {
+  width: 100%;
+  aspect-ratio: 2.39 / 1;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background: #f5f5f5;
+  transition: opacity 0.2s ease;
+}
+
+.work-card:hover .work-thumb {
+  opacity: 0.9;
+}
+
+/* Brand-orange stand-in thumb for sort.cash, which has no product screenshot.
+   `color` drives the mark's inner path (see SORT_CASH_MARK in site.js) so it
+   reads as a white logo with an orange cutout, not a flat white blob. */
+.sort-cash-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sortcash);
+  color: var(--sortcash);
+}
+
+.sort-cash-tile svg {
+  display: block;
+  width: var(--tile-icon-size, 32px);
+  height: var(--tile-icon-size, 32px);
+}
+
+/* ── Empty-image tiles ──
+   Anything whose image is missing (or 404s) renders as a neutral icon tile
+   instead of a broken-image glyph; sizing comes from the companion class
+   (.work-thumb / .work-detail-image / .company-logo). */
+.image-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f2f2f2;
+  color: #c2c2c2;
+}
+
+.image-empty svg {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+/* Two-class selectors re-assert `display: flex` over `.t-stagger-line`'s
+   forced `display: block` — same fight as `.work-detail-image.sort-cash-tile`. */
+.work-thumb.image-empty {
+  display: flex;
+}
+
+.work-detail-image.image-empty {
+  display: flex;
+  aspect-ratio: 2.39 / 1;
+}
+
+.company-logo.image-empty {
+  width: 44px;
+  height: 20px;
+  border-radius: 4px;
+  filter: none;
+}
+
+.company-logo.image-empty svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Title + chips row: sits on one line when there's room, wraps to two when
+   the column is too narrow for both. */
+.work-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+
+/* Scoped past `.work-list` to beat `.panel p`'s specificity — otherwise its
+   20px bottom margin and default color silently override these. */
+.work-list .work-title {
+  margin: 0;
+  font-size: 12pt;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--fg);
+}
+
+.work-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.work-chip {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.work-chip--year {
+  color: var(--underline-hover);
+}
+
+/* Color and background come inline per-chip (see TYPE_COLORS in site.js) —
+   these are just structural, plus a neutral fallback. */
+.work-chip--type {
+  padding: 4px 7px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--underline-hover);
+}
+
+.work-list .work-description {
+  display: -webkit-box;
+  margin: 6px 0 0;
+  overflow: hidden;
+  color: var(--fg-muted);
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* ── Work case-study detail page (reachable only via a work card) ── */
+.work-detail-back {
+  margin-bottom: 20px;
+}
+
+.work-detail-image {
+  width: 100%;
+  border-radius: 8px;
+  margin: 0 0 20px;
+  background: #f5f5f5;
+}
+
+/* Photos use their own intrinsic ratio; the icon tile has none, so give it one.
+   `display`/`background` are repeated here (as a two-class selector) because this
+   element also gets `.t-stagger-line` from markStagger(), which forces
+   `display: block` and would otherwise silently kill the centering and knock out
+   the orange fill — same specificity fight as `.work-detail-image` below. */
+.work-detail-image.sort-cash-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 2.39 / 1;
+  background: var(--sortcash);
+}
+
+/* Re-asserts flex over `.t-stagger-line`'s forced `display: block` — same
+   fix as elsewhere in this file (see the transitions notes at the bottom). */
+#panel-work-detail .work-head {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+#panel-work-detail .work-detail-title {
+  margin: 0;
+  font-size: 14pt;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+/* ── Store ── */
+
+/* Each product is one tight block — image, title row, one-line blurb — with a
+   clear gap to the next, so the list doesn't read as one continuous column.
+   `display` is re-asserted because `.t-stagger-line` forces `display: block`,
+   which silently drops the row gap if this element ever gets staggered. */
+#panel-store .work-list {
+  display: flex;
+  gap: 44px;
+}
+
+/* Products are shot square-ish on a pale ground, so they'd get badly cropped by
+   the cinematic ratio the work thumbs use. */
+.store-thumb {
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  background: #f6f6f6;
+  margin-bottom: 14px;
+}
+
+/* Product names run long ("Marc Andreessen's The Techno-Optimist Manifesto"),
+   so the title needs room to wrap without shoving the price chip off the row. */
+#panel-store .work-head {
+  display: flex;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-bottom: 0;
+}
+
+#panel-store .work-title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Blurbs are written to fit one line; the clamp is just a guard for products
+   that fall back to their Fourthwall copy. */
+#panel-store .work-description {
+  margin-top: 4px;
+  -webkit-line-clamp: 2;
+}
+
+#panel-store .store-status,
+#cartItems .store-status {
+  margin: 0;
+  color: var(--fg-muted);
+}
+
+.store-gallery {
+  margin-bottom: 20px;
+}
+
+.store-gallery-main {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #f6f6f6;
+}
+
+.store-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.store-thumb-btn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--underline);
+  border-radius: 6px;
+  background: #f6f6f6;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.store-thumb-btn.active {
+  border-color: var(--fg);
+}
+
+.store-thumb-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+#panel-store-detail .work-head {
+  display: flex;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-bottom: 10px;
+}
+
+#panel-store-detail .work-detail-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 14pt;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--fg);
+}
+
+#panel-store-detail .store-desc {
+  color: var(--fg-muted);
+  line-height: 1.5;
+  margin-bottom: 28px;
+}
+
+#panel-store-detail .store-desc p {
+  margin: 0 0 8px;
+  color: var(--fg-muted);
+}
+
+#panel-store-detail .store-desc p:last-child {
+  margin-bottom: 0;
+}
+
+.store-options-label {
+  margin: 0 0 10px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--fg-muted);
+}
+
+.store-swatches,
+.store-sizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.store-swatch {
+  width: 28px;
+  height: 28px;
+  padding: 2px;
+  border: 1px solid var(--underline);
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.store-swatch.active {
+  border-color: var(--fg);
+}
+
+.store-swatch span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.store-size {
+  min-width: 40px;
+  padding: 7px 10px;
+  border: 1px solid var(--underline);
+  border-radius: 6px;
+  background: none;
+  font: inherit;
+  font-size: 10pt;
+  color: var(--fg);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.store-size.active {
+  border-color: var(--fg);
+  font-weight: 600;
+}
+
+.store-size:disabled {
+  color: var(--underline);
+  border-color: #eeeeee;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.store-add {
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--fg);
+  color: #ffffff;
+  font: inherit;
+  font-size: 11pt;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.12s ease;
+}
+
+.store-add:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.store-add:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.store-add:disabled {
+  background: #e6e6e6;
+  color: var(--fg-muted);
+  cursor: not-allowed;
+}
+
+/* ── Tray — shared bottom sheet (cart + message form) ── */
+.tray-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0);
+  transition: background 0.28s ease;
+}
+
+.tray-overlay[hidden] {
+  display: none;
+}
+
+.tray-overlay.open {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.tray-sheet {
+  width: 100%;
+  /* Capped at the measure itself, so the card's outer edges line up with where
+     the page text starts rather than with .site's outer box. */
+  max-width: var(--content-width);
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  /* No side margin: the gutter is the sheet's own padding, so its contents land
+     on the same lines as .site. Below the max-width it goes full-bleed, which is
+     the usual bottom-sheet behaviour on a phone anyway. */
+  margin: 0 0 calc(88px + env(safe-area-inset-bottom, 0px));
+  padding: var(--gutter);
+  border-radius: 18px;
+  background: var(--bg);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18);
+  transform: translateY(16px);
+  opacity: 0;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease;
+}
+
+.tray-overlay.open .tray-sheet {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.tray-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.tray-close {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.tray-close:hover {
+  color: var(--fg);
+}
+
+/* One view (cart or message) is shown at a time. The flex column mirrors the
+   sheet's own layout so .cart-items can keep its scroll-within-sheet behaviour. */
+.tray-view {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tray-view[hidden] {
+  display: none;
+}
+
+.cart-items {
+  flex: 1;
+  /* Without min-height:0 a flex item won't shrink below its content, so a long
+     cart would push the checkout button out past the sheet's max-height. */
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cart-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--underline);
+}
+
+.cart-item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.cart-item-img {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #f6f6f6;
+}
+
+.cart-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cart-item-name {
+  margin: 0;
+  font-size: 11pt;
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.cart-item-variant {
+  margin: 2px 0 0;
+  font-size: 10pt;
+  color: var(--fg-muted);
+}
+
+.cart-qty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.cart-qty-btn {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--underline);
+  border-radius: 50%;
+  background: none;
+  font: inherit;
+  line-height: 1;
+  color: var(--fg);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.cart-qty-btn:hover {
+  border-color: var(--fg);
+}
+
+.cart-qty-num {
+  font-size: 10pt;
+  min-width: 12px;
+  text-align: center;
+}
+
+.cart-item-price {
+  font-size: 11pt;
+  color: var(--fg);
+  white-space: nowrap;
+}
+
+.cart-foot {
+  padding-top: 16px;
+  border-top: 1px solid var(--underline);
+}
+
+.cart-foot[hidden] {
+  display: none;
+}
+
+.cart-total-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.cart-total-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--fg-muted);
+}
+
+.cart-total {
+  font-size: 13pt;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.cart-checkout {
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--fg);
+  color: #ffffff;
+  font: inherit;
+  font-size: 11pt;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.cart-checkout:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.cart-checkout:disabled {
+  background: #e6e6e6;
+  color: var(--fg-muted);
+  cursor: not-allowed;
+}
+
+.cart-note {
+  margin: 10px 0 0;
+  font-size: 9pt;
+  text-align: center;
+  color: var(--fg-muted);
+}
+
+.cart-note--error {
+  color: #ef4444;
+}
+
+.cart-purge {
+  width: 100%;
+  margin-top: 8px;
+  padding: 11px 16px;
+  border: 1px solid var(--underline);
+  border-radius: 12px;
+  background: none;
+  font: inherit;
+  font-size: 10pt;
+  color: var(--fg);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.cart-purge:hover {
+  border-color: var(--fg);
+}
+
+.cart-purge[hidden] {
+  display: none;
+}
+
+/* An item the storefront won't sell — dimmed, but still removable. */
+.cart-item--dead .cart-item-img,
+.cart-item--dead .cart-item-name,
+.cart-item--dead .cart-item-price {
+  opacity: 0.45;
+}
+
+.cart-item-flag {
+  margin: 4px 0 0;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #ef4444;
+}
+
+/* ── Message form (inside the tray) ── */
+.msg-label {
+  display: block;
+  margin: 0 0 10px;
+  font-size: 11pt;
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.msg-input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--underline);
+  border-radius: 12px;
+  background: none;
+  font: inherit;
+  font-size: 11pt;
+  color: var(--fg);
+  transition: border-color 0.15s ease;
+}
+
+.msg-input:focus {
+  outline: none;
+  border-color: var(--fg);
+}
+
+.msg-input::placeholder {
+  color: var(--fg-muted);
+}
+
+.msg-textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+/* Honeypot — parked off-screen rather than display:none so naive bots still
+   treat it as a fillable field. */
+.msg-hp {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* min-height reserves the line so the sheet doesn't jump when an error appears */
+.msg-error {
+  margin: 8px 0 0;
+  min-height: 12pt;
+  font-size: 9pt;
+  color: #ef4444;
+}
+
+.msg-foot {
+  margin-top: 8px;
+}
+
+.msg-foot[hidden] {
+  display: none;
+}
+
+.msg-next {
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--fg);
+  color: #ffffff;
+  font: inherit;
+  font-size: 11pt;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.msg-next:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.msg-next:disabled {
+  background: #e6e6e6;
+  color: var(--fg-muted);
+  cursor: not-allowed;
+}
+
+.msg-foot-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 16px;
+  margin-top: 10px;
+}
+
+.msg-back {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 9pt;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.msg-back:hover {
+  color: var(--fg);
+}
+
+.msg-progress {
+  margin-left: auto;
+  font-size: 9pt;
+  color: var(--fg-muted);
+}
+
+.msg-done {
+  padding: 12px 0 4px;
+  text-align: center;
+}
+
+.msg-done-title {
+  margin: 0;
+  font-size: 12pt;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.msg-done-note {
+  margin: 6px 0 0;
+  font-size: 10pt;
+  color: var(--fg-muted);
+}
+
+.msg-step-in {
+  animation: msg-step-in 0.25s ease both;
+}
+
+@keyframes msg-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tray-overlay,
+  .tray-sheet {
+    transition: none;
+  }
+
+  .msg-step-in {
+    animation: none;
+  }
+}
+
+/* ── Panel heading — shared between the Experience and Resume panels ── */
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  font-family: inherit;
+  font-weight: inherit;
+  font-size: 12pt;
+  color: var(--fg-muted);
+}
+
+/* Sub-section row within a panel (e.g. "Resume" + Download, "Social"), with
+   `display` re-asserted because `.t-stagger-line` forces `display: block`. */
+#panel-contact .panel-subheading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 36px 0 12px;
+}
+
+#panel-contact .panel-subheading .page-title {
+  margin: 0;
+}
+
+/* ── About ── */
+/* Compound selector so the row stays flex even though .t-stagger-line
+   (declared later) forces display: block on staggered elements. */
+.about-portrait-row.t-stagger-line,
+.about-portrait-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.about-portrait {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #f6f6f6;
+}
+
+/* Speech bubble next to the portrait. It pops in on its own springy curve
+   *after* the row's stagger reveal has landed, so the photo arrives first
+   and the greeting reads as a reaction to it. */
+.about-greeting {
+  position: relative;
+  margin: 0;
+  padding: 10px 14px;
+  background: #f6f6f6;
+  border-radius: 14px;
+  border-bottom-left-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  transform: scale(0.5) rotate(-8deg);
+  transform-origin: left bottom;
+  transition:
+    opacity 300ms ease,
+    transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-delay: 350ms;
+}
+
+.t-stagger.is-shown .about-greeting {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+/* Exit joins the panel-wide quiet fade — no reverse pop. */
+.t-stagger.is-hiding .about-greeting {
+  opacity: 0;
+  transform: scale(1) rotate(0deg);
+  transition: opacity 200ms ease, transform 0s linear;
+  transition-delay: 0s;
+}
+
+.about-greeting-wave {
+  display: inline-block;
+  transform-origin: 70% 70%; /* pivot at the wrist */
+}
+
+.t-stagger.is-shown .about-greeting-wave {
+  animation: about-wave 1.2s ease-in-out 900ms 1 both;
+}
+
+@keyframes about-wave {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(18deg); }
+  35% { transform: rotate(-10deg); }
+  55% { transform: rotate(14deg); }
+  75% { transform: rotate(-6deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-greeting {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+  .t-stagger.is-shown .about-greeting-wave {
+    animation: none;
+  }
+}
+
+#panel-contact .about-paragraph {
+  margin: 0 0 16px;
+  color: var(--fg);
+}
+
+#panel-contact .about-paragraph:last-of-type {
+  margin-bottom: 0;
+}
+
+/* Heading action — a download link on Resume, a <button> for the Store's cart.
+   The button resets UA chrome so both render identically. */
+.resume-download {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-weight: inherit;
+  font-size: 12pt;
+  line-height: inherit;
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--underline);
+  text-underline-offset: 0.14em;
+  cursor: pointer;
+  transition: text-decoration-color 0.2s ease;
+}
+
+.resume-download:hover {
+  text-decoration-color: var(--underline-hover);
+}
+
+.resume-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.resume-item {
+  padding: 10px 0;
+  border-top: 1px solid var(--underline);
+}
+
+.resume-item:last-child {
+  border-bottom: 1px solid var(--underline);
+}
+
+.resume-list .resume-title {
+  margin: 0;
+  font-size: 12pt;
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.resume-list .resume-meta {
+  margin: 2px 0 0;
+  font-size: 12pt;
+  color: var(--fg-muted);
+}
+
+@media (max-width: 480px) {
+  .company-logos {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* ── Bottom nav (ported from sort.cash's shared bottom nav — glass pill +
+   sliding indicator + FAB) — fixed, floats outside the content column,
+   same on every breakpoint. Icon assignment pending. ── */
+.navwrap {
+  position: fixed;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  /* Same measure + gutter as .site, so the nav's outer edges line up with the
+     text column even though it's fixed. */
+  width: 100%;
+  max-width: calc(var(--content-width) + var(--gutter) * 2);
+  padding: 0 var(--gutter);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 200;
+}
+
+.nav {
+  flex: 1;
+  position: relative;
+  display: flex;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.75);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.nav-tab {
+  position: relative;
+  flex: 1;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: var(--fg-muted);
+  transition: color 0.18s ease;
+}
+
+.nav-toast {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  padding: 5px 9px;
+  background: var(--fg);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  border-radius: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* Inline text links sit inside a tall line box, so the shared 10px gap reads
+   as floating — pull their tooltip in close to the text. */
+.inline-link .nav-toast {
+  bottom: calc(100% + 2px);
+}
+
+.nav-toast.icon-toast {
+  bottom: calc(100% + 2px);
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  color: var(--sortcash);
+}
+
+.nav-toast.icon-toast svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+@media (hover: hover) {
+  .nav-tab:hover .nav-toast,
+  .fab:hover .nav-toast,
+  .inline-link:hover .nav-toast {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.nav-tab.show-toast .nav-toast,
+.fab.show-toast .nav-toast,
+.inline-link.show-toast .nav-toast {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.nav-tab[aria-selected="true"] {
+  color: var(--fg);
+}
+
+.nav-tab svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.nav-ind {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 22px;
+  background: var(--fg);
+  border-radius: 1px;
+  transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+}
+
+.fab {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  border: 0;
+  border-radius: 18px;
+  cursor: pointer;
+  background: var(--fg);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transition: transform 0.12s ease;
+}
+
+.fab:active {
+  transform: scale(0.94);
+}
+
+/* Transitions.dev — Texts reveal */
+
+/*
+  Usage:
+    <div class="t-stagger">
+      <strong class="t-stagger-line t-stagger-line--1">…</strong>
+      <span class="t-stagger-line t-stagger-line--2">…</span>
+    </div>
+
+  State:
+    - Add `.is-shown` to play the staggered entrance.
+    - Add `.is-hiding` (and remove `.is-shown`) to fade
+      out in place over a short 200ms — independent of the
+      entrance timing so the exit doesn't replay the stagger.
+
+  Add more lines by adding `.t-stagger-line--N` with
+  `transition-delay: calc(var(--stagger-stagger) * (N - 1))`.
+
+  Panel content in this project is staggered via JS instead of the
+  numbered modifier classes above — see markStagger() in js/site.js,
+  which sets transition-delay inline as `calc(var(--stagger-stagger) * i)`
+  so lists of any length (work cards, resume rows) stagger correctly.
+*/
+
+:root {
+  --stagger-dur: 500ms;
+  --stagger-distance: 12px;
+  --stagger-stagger: 40ms;
+  --stagger-blur: 3px;
+  --stagger-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Lines start translated down + blurred + invisible; .is-shown
+   on the parent flips them to their resting state. The second
+   line's transition-delay holds it back by --stagger-stagger
+   so the eye lands on the headline first. */
+.t-stagger-line {
+  display: block;
+  opacity: 0;
+  transform: translateY(var(--stagger-distance));
+  filter: blur(var(--stagger-blur));
+  transition:
+    opacity   var(--stagger-dur) var(--stagger-ease),
+    transform var(--stagger-dur) var(--stagger-ease),
+    filter    var(--stagger-dur) var(--stagger-ease);
+  will-change: transform, opacity, filter;
+}
+.t-stagger-line--2 { transition-delay: var(--stagger-stagger); }
+
+.t-stagger.is-shown .t-stagger-line {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+/* Exit decouples from the stagger: same fade for every line,
+   no Y return, no blur — so the disappearance reads as a
+   single quiet fade instead of a reverse reveal. */
+.t-stagger.is-hiding .t-stagger-line {
+  opacity: 0;
+  transform: translateY(0);
+  filter: blur(0);
+  transition:
+    opacity 200ms ease,
+    transform 0s linear,
+    filter 0s linear;
+  transition-delay: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-stagger-line { transition: none !important; }
 }

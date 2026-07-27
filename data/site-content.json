@@ -1,87 +1,327 @@
 {
-  "hero": {
-    "title": "Pushing pixels and crafting experiences that propel brands.",
-    "description": "Hey, I am Tyler Patterson a.k.a. @tylerpixel. I am a Visual Communication & Digital Designer, based in Brisbane, Australia.",
-    "links": [
+  "profile": {
+    "name": "Tyler Patterson",
+    "role": "Design + Development"
+  },
+  "social": [
+    {
+      "name": "Twitter",
+      "url": "https://x.com/tylerpixel"
+    },
+    {
+      "name": "GitHub",
+      "url": "https://github.com/tylerpixel"
+    },
+    {
+      "name": "LinkedIn",
+      "url": "https://linkedin.com/in/tylerpixel"
+    },
+    {
+      "name": "Instagram",
+      "url": "https://instagram.com/tylerpixel"
+    },
+    {
+      "name": "Mail",
+      "url": "mailto:gm@tylerpixel.com"
+    }
+  ],
+  "tabs": [
+    {
+      "id": "intro",
+      "label": "Intro"
+    },
+    {
+      "id": "work",
+      "label": "Selected Works"
+    },
+    {
+      "id": "store",
+      "label": "Store"
+    },
+    {
+      "id": "writing",
+      "label": "Writing"
+    },
+    {
+      "id": "contact",
+      "label": "About"
+    }
+  ],
+  "intro": {
+    "paragraphs": [
+      "I design and build technology and brands at the intersection of product and design.",
+      "I'm building <a class=\"inline-link\" href=\"https://sort.cash\" target=\"_blank\" rel=\"noopener noreferrer\"><span class=\"nav-toast icon-toast\"><svg viewBox=\"0 0 362 391\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M333.135 28.3222C316.657 11.958 292.975 6.01729 267.285 8.26478L125.586 20.6619C99.8779 22.911 74.8207 33.1327 55.2823 52.7673C35.7648 72.381 25.6099 97.5114 23.3493 123.35L8.26478 295.767C6.01753 321.453 11.9583 345.092 28.1992 361.561C44.4841 378.074 68.0715 384.278 93.9717 382.012L235.671 369.615C261.552 367.351 286.636 356.906 306.164 337.378C325.692 317.85 336.139 292.765 338.403 266.884L353.487 94.4668C355.765 68.4333 349.642 44.7146 333.135 28.3222Z\" fill=\"currentColor\"/><path d=\"M317.687 129.024C317.302 133.425 313.422 137.305 309.02 137.69L204.564 146.829C200.163 147.214 196.907 143.958 197.292 139.557L200.091 107.559C200.568 102.109 197.533 97.4579 191.588 97.9781L186.633 98.4115C180.688 98.9317 176.786 104.19 176.31 109.64L173.463 142.175C172.683 151.093 177.786 154.58 186.079 155.33L202.664 156.829L269.458 163.276C296.77 165.804 313.089 181.584 310.401 212.302L305.373 269.775C302.079 307.43 276.216 333.292 238.562 336.586L96.8619 348.983C59.2074 352.278 38.0017 330.533 41.2961 292.879L44.8901 251.798C45.2752 247.397 49.1555 243.517 53.5569 243.132L157.518 234.036C161.919 233.651 165.175 236.907 164.79 241.308L161.138 283.048C160.661 288.498 163.739 292.654 169.685 292.134L174.639 291.7C180.585 291.18 184.443 286.418 184.92 280.968L188.619 238.69C189.226 231.754 187.269 226.025 178.48 225.319L165.772 224.464L92.1288 217.632C65.3123 215.062 49.7487 196.265 52.046 170.006L56.3807 120.461C59.7184 82.3107 85.042 56.9871 122.696 53.6928L264.396 41.2956C302.051 38.0013 323.795 59.2069 320.458 97.3569L317.687 129.024Z\" fill=\"#ffffff\"/></svg></span>sort.cash</a>, a consumer budgeting app that teaches financial literacy and helps people build an emergency fund."
+    ],
+    "companiesLabel": "Products I've made are used by people at:",
+    "companies": [
       {
-        "text": "@tylerpixel",
-        "url": "https://x.com/tylerpixel"
+        "name": "Y Combinator",
+        "logo": "images/company-logos/y-combinator.svg"
       },
       {
-        "text": "current site",
-        "url": "https://tylerpixel.com"
+        "name": "Extropic",
+        "logo": "images/company-logos/extropic.svg"
       },
       {
-        "text": "GitHub",
-        "url": "https://github.com/tylerpixel/project-upscale"
+        "name": "a16z",
+        "logo": "images/company-logos/a16z.svg"
+      },
+      {
+        "name": "Daylight",
+        "logo": "images/company-logos/daylight.svg"
+      },
+      {
+        "name": "OpenAI",
+        "logo": "images/company-logos/openai.svg"
       }
     ]
   },
-  "nav": {
-    "items": [
-      {
-        "text": "Works",
-        "url": "/index.html"
-      },
-      {
-        "text": "Store",
-        "url": "https://store.tylerpixel.com"
-      },
-      {
-        "text": "NFTs",
-        "url": "https://zora.co/@tylerpixel"
-      },
-      {
-        "text": "Intel",
-        "url": "#"
-      }
-    ],
-    "cta": {
-      "text": "DM Me",
-      "id": "dmMeButton"
-    }
-  },
-  "social": {
-    "links": [
-      {
-        "name": "Twitter",
-        "url": "https://x.com/tylerpixel"
-      },
-      {
-        "name": "Instagram",
-        "url": "https://instagram.com/tylerpixel"
-      },
-      {
-        "name": "LinkedIn",
-        "url": "https://linkedin.com/in/tylerpixel"
-      },
-      {
-        "name": "GitHub",
-        "url": "https://github.com/tylerpixel"
-      }
-    ],
-    "copyright": "© 2025 TYLER PIXEL"
-  },
-  "projects": [
+  "work": [
     {
-      "title": "Pinetree (Formerly Netbox)",
-      "year": "2022-2023",
-      "image": "https://assets-global.website-files.com/5d26cf8c33fe1cfa36115356/65332f2a7ff872a786b1268e_netbox-logo.webp"
+      "slug": "sort-cash",
+      "title": "sort.cash",
+      "year": "2026",
+      "types": [
+        "UX/UI",
+        "Brand"
+      ],
+      "description": "A consumer budgeting app that teaches financial literacy and helps people build an emergency fund.",
+      "image": "images/work/sort-cash/sort-cash-icon.svg",
+      "caseStudy": "sort.cash is the product I'm building now — a consumer budgeting app aimed at the gap between knowing you should save and actually having a buffer when something breaks. The goal isn't another dashboard of charts; it's teaching financial literacy in the flow of using the thing, and getting people to a funded emergency account. I'm designing and building it end to end, which has been the most useful design education I've had: every decision has to survive contact with shipping it.",
+      "link": {
+        "label": "Visit sort.cash",
+        "url": "https://sort.cash"
+      },
+      "writingSlug": "sort-dot-cash"
     },
     {
-      "title": "Hnry (Concept)",
+      "slug": "pinetree",
+      "title": "Pinetree",
       "year": "2022-2023",
-      "image": "https://assets-global.website-files.com/5d26cf8c33fe1cfa36115356/65332f377ff872a786b12c4b_hnry-logoconcept-p-1080.webp"
+      "types": [
+        "UX/UI",
+        "Brand"
+      ],
+      "description": "A refreshed identity for a cloud-native networking company, formerly Netbox — balancing clarity, confidence, and a system built to scale.",
+      "image": "images/work/pinetree/65332f2a7ff872a786b1268e_netbox-logo.webp",
+      "caseStudy": "Netbox was a groundbreaking startup in the web3 space, offering a video-sharing platform in the spirit of YouTube. Brought on for design, I worked across the web app's screens — crafting landing pages, onboarding flows, subscription flows, a trending section, and a live-transcription feature. Each screen was designed to lift engagement and deliver a stronger user experience, blending familiar video-platform conventions with web3-native features."
     },
     {
+      "slug": "hnry",
+      "title": "Hnry",
+      "year": "2022-2023",
+      "types": [
+        "Concept"
+      ],
+      "description": "A concept identity for an accounting product, exploring a more human, approachable way to communicate financial tools.",
+      "image": "images/work/hnry/65332f377ff872a786b12c4b_hnry-logoconcept.webp",
+      "caseStudy": "A redesign of the Hnry brand that respectfully preserves the iconic circular 'H' glyph while maturing it for a more modern feel. The refreshed identity introduces a subtly expanded color palette for a more vibrant, forward-thinking look. On the product side, several app screens were updated to make key flows — like invoicing and expense tracking — more explicit and intuitive, honoring Hnry's evolving brand while staying true to its roots."
+    },
+    {
+      "slug": "engulf-studio",
       "title": "Engulf Studio",
       "year": "2022-2023",
-      "image": "https://assets-global.website-files.com/5d26cf8c33fe1cfa36115356/65332f4bf73c376861f99344_engulfstudio-brand-p-1080.webp"
+      "types": [
+        "Freelance",
+        "Brand"
+      ],
+      "description": "An independent creative practice shaped around expressive visual systems, thoughtful digital experiences, and a distinct point of view.",
+      "image": "images/work/engulf-studio/65332f4bf73c376861f99344_engulfstudio-brand.webp",
+      "caseStudy": "Engulf Studio is my own independent design practice (currently on hiatus) — a web3-centric studio spanning brand identity, art direction, UX/UI, web, and app work. It's where I take on projects that let me push further creatively than client work usually allows."
     },
     {
+      "slug": "vtnz",
       "title": "VTNZ",
       "year": "2020-2021",
-      "image": "https://assets-global.website-files.com/5d26cf8c33fe1cfa36115356/65332f5e96c86a15d025393b_vtnz-logoconcept-p-1080.webp"
+      "types": [
+        "Corporate"
+      ],
+      "description": "A visual identity exploration for vehicle inspection services, bringing a clearer and more modern feel to an everyday essential.",
+      "image": "images/work/vtnz/65332f5e96c86a15d025393b_vtnz-logoconcept.webp",
+      "caseStudy": "Working closely with the Marketing and Product Development leads, I helped create customer-facing marketing materials across print, digital advertising, social media, email, videography, motion graphics, templates, and on-location screen advertising. The accompanying logo redesign shown here was a personal concept explored in my own time, not an official VTNZ rebrand."
+    },
+    {
+      "slug": "healthcar",
+      "title": "healthCar",
+      "year": "2020-2021",
+      "types": [
+        "Brand",
+        "UX/UI",
+        "Corporate"
+      ],
+      "description": "A sub-brand partnership between VTNZ and Provident Insurance, covering brand guidelines, typography, and a logo built through 30+ iterations.",
+      "image": "images/work/healthcar/65332f7ac693127e8fb90c3c_healthcar-logo.webp",
+      "caseStudy": "healthCar is a sub-brand partnership between VTNZ and Provident Insurance. I led the brand identity development — creating brand guidelines, choosing typography, building app and website mockups, and designing a logo from sketches through more than 30 iterations. Collaborating with Catch Design on the website and logo gave me valuable insight into how agencies approach design."
+    },
+    {
+      "slug": "warchest",
+      "title": "Warchest",
+      "year": "2019",
+      "types": [
+        "UX/UI",
+        "Brand",
+        "Concept"
+      ],
+      "description": "A concept financial analytics product inspired by SaaS brands like Baremetrics and Stripe.",
+      "image": "images/work/warchest/65332f8765a382945fefc488_warchest-logo.webp",
+      "caseStudy": "Warchest is a concept financial analytics product, inspired by the UI and brand identity of SaaS companies like Baremetrics, Stripe, and Uphold. A personal exploration in interface and brand design outside of client work."
+    },
+    {
+      "slug": "rebels-and-rebellions",
+      "title": "Rebels And Rebellions",
+      "year": "2019",
+      "types": [
+        "Brand",
+        "Concept"
+      ],
+      "description": "A concept top-shelf liquor brand drawing on the rebellious spirit of the American Revolution.",
+      "image": "images/work/rebels-and-rebellions/65332f9985c00f9b5be78b6f_rebelsandrebellions-logo.webp",
+      "caseStudy": "Rebels And Rebellions is a concept top-shelf liquor brand. Its identity draws on the rebellious American attitude of the American Revolution, the Whiskey Rebellion, and the Boston Tea Party, translated into a contemporary luxury aesthetic."
+    },
+    {
+      "slug": "eight360",
+      "title": "Eight360",
+      "year": "2018-2019",
+      "types": [
+        "Brand",
+        "Corporate"
+      ],
+      "description": "A brand and web overhaul for a virtual reality motion company, including demo content for its flagship platform.",
+      "image": "images/work/eight360/65332faed49a0ebb747a4ee6_eight360-logo.webp",
+      "caseStudy": "Eight360 is a virtual reality motion company founded by Terry Miller and George Heather-Smith. They brought me on to overhaul their brand identity and web design, and eventually to create demo content for their flagship NOVA motion platform."
+    },
+    {
+      "slug": "secret-kings",
+      "title": "Secret Kings",
+      "year": "2015-2019",
+      "types": [
+        "Brand",
+        "Freelance"
+      ],
+      "description": "A personal brand concept grown on Instagram to over 16,000 followers, teaching micro-brand marketing along the way.",
+      "image": "images/work/secret-kings/65332fc2d827f09432f006fe_secretkings-logo.webp",
+      "caseStudy": "Secret Kings is a personal concept I've worked on since May 2015. Built on Instagram, the project grew an audience of over 16,000 followers at its peak. It taught me micro-brand marketing, business strategy, and copywriting — skills well beyond design."
+    },
+    {
+      "slug": "signal",
+      "title": "Signal",
+      "year": "2018",
+      "types": [
+        "Concept"
+      ],
+      "description": "A university art-direction project — a VR storytelling experience blending print, cross-reality multiplayer, and an early-80s aesthetic.",
+      "image": "images/work/signal/65332fd45661f381b6c41698_signal-logo.webp",
+      "caseStudy": "Signal is a virtual reality experience using storytelling to explore mystery, nostalgia, and evolving technology. Combining print and VR, it challenges biased perceptions of VR through cross-reality asymmetrical multiplayer gameplay with an early-80s aesthetic. Within the story, Universe Amalgamation Systems (UAS) makes parallel universes accessible to all lifeforms, and the player group Monarch must take down a corrupt faction within it."
+    },
+    {
+      "slug": "tesla",
+      "title": "Tesla",
+      "year": "2018",
+      "types": [
+        "Concept",
+        "Brand"
+      ],
+      "description": "A university rebrand concept exploring how brand image and identity align with a company's core principles.",
+      "image": "images/work/tesla/653330087ff872a786b1d74e_tesla-logoconcept.webp",
+      "caseStudy": "This Tesla rebrand was an assignment for an Image & Identity class in my final year of university. The project explored the fundamentals of how brands function in terms of image and identity, and how to portray a brand in line with its core principles and aims."
+    },
+    {
+      "slug": "",
+      "title": "SuperCheap Auto",
+      "year": "",
+      "types": [],
+      "description": "",
+      "image": "",
+      "caseStudy": "",
+      "link": {}
     }
-  ]
+  ],
+  "writing": {
+    "disclaimer": "Coming soon",
+    "subtitle": "I'm drafting some posts — check back soon.",
+    "posts": [
+      {
+        "slug": "sort-dot-cash",
+        "title": "Sort Dot Cash",
+        "date": "2026",
+        "summary": "Notes on designing and building a budgeting app that has to teach as well as track.",
+        "body": [
+          "Most budgeting apps assume you already know what you're doing. They hand you categories, charts and a monthly burn rate, and quietly expect financial literacy to be a prerequisite rather than something the product might actually help with.",
+          "sort.cash starts from the opposite assumption. The person opening it may never have held a budget, and the win isn't a beautiful dashboard — it's having a few hundred dollars set aside the first time something breaks. That reframing changes almost every design decision: what you show first, what you're allowed to hide, and how much you explain along the way.",
+          "Building it myself has been the sharpest part. When you design and ship the same screen, you stop being able to hand-wave the hard bits — the empty state, the error, the moment someone connects an account and sees a number they don't like. Those are the screens that decide whether a product teaches anyone anything.",
+          "It's still in progress. More to come as it takes shape."
+        ]
+      }
+    ]
+  },
+  "store": {
+    "_comment": "Short card blurbs keyed by Fourthwall product name. The full product description still comes from Fourthwall and is shown on the detail page; these just keep the listing to one tidy line each. Products without an entry fall back to their Fourthwall copy.",
+    "descriptions": {
+      "DSES Jacket": "Denim jacket for Sphere enjoyers.",
+      "Marc Andreessen's The Techno-Optimist Manifesto (PDF)": "The manifesto, as a 35-page PDF.",
+      "Anti Entropy Entropy Club Tee": "Heavyweight tee, emblem on the chest.",
+      "Anti Entropy Entropy Club Sticker": "Die-cut sticker of the club emblem.",
+      "Cracked e/acc Mug": "Ceramic mug for coffee or cola.",
+      "Cracked e/acc Tumbler": "Steel tumbler that keeps drinks cold.",
+      "Dyson Sphere Enjoyer Society Tee": "Relaxed-fit tee for Sphere enjoyers.",
+      "Dyson Sphere Enjoyer Society Long Sleeve": "Long sleeve for Sphere enjoyers.",
+      "Dyson Sphere Enjoyer Society Sweater": "Crewneck sweater for the Society.",
+      "Dyson Sphere Enjoyer Society Hoodie": "Heavyweight hoodie for the Society.",
+      "Dyson Sphere Enjoyer Society Cap": "Cap for card-carrying Society members."
+    }
+  },
+  "contact": {
+    "email": "gm@tylerpixel.com",
+    "portrait": "images/portrait.jpg",
+    "portraitAlt": "Tyler Patterson",
+    "about": [
+      "I'm Tyler Pixel (legally Tyler Patterson), a brand designer and creative technologist. Nine years in, I still care most about the thing I cared about on day one: context. Why something exists, who it's for, and what it has to do, long before it needs to look like anything.",
+      "I studied Visual Communication Design at Massey University's College of Creative Arts in Wellington, graduating with honours. Since then: identity, interaction, ecommerce, apparel, art direction and packaging. In-house at <a class=\"inline-link\" data-work=\"vtnz\">VTNZ</a>, <a class=\"inline-link\" data-work=\"eight360\">Eight360</a> and Northbound Gear. Agency and freelance at Rise SEO, and through <a class=\"inline-link\" data-work=\"engulf-studio\">my own studio</a>. Between them I learned both halves of the job: the craft and the constraints.",
+      "These days I'm in Brisbane, designing and building <a class=\"inline-link\" data-work=\"sort-cash\">sort.cash</a>, a budgeting app that teaches financial literacy by getting people to an emergency fund. Building my own product has made me better at designing other people's: it's much harder to hand-wave a decision when you're the one shipping it.",
+      "Away from that I make synthwave-leaning music and art as Timecodec, fly FPV drones, and 3D print things I probably don't need."
+    ],
+    "resumeFile": "00-TylerPatterson-CreativeResume.pdf",
+    "resume": [
+      {
+        "title": "Trade Digital Design Specialist",
+        "place": "Supercheap Auto",
+        "date": "Jan 2026 – Jun 2026"
+      },
+      {
+        "title": "Graphic Designer",
+        "place": "Caden Office Leasing",
+        "date": "Oct 2024 – Oct 2025"
+      },
+      {
+        "title": "Web Designer",
+        "place": "Rise SEO",
+        "date": "Aug 2024 – Sept 2024"
+      },
+      {
+        "title": "Flooring Team Member",
+        "place": "Mitre 10 Mega",
+        "date": "Oct 2023 – Jun 2024"
+      },
+      {
+        "title": "Founder/Designer",
+        "place": "Engulf Studio",
+        "date": "Mar 2022 – Feb 2023"
+      },
+      {
+        "title": "Graphic Designer",
+        "place": "Northbound Gear",
+        "date": "Oct 2021 – Mar 2022"
+      },
+      {
+        "title": "Graphic Designer",
+        "place": "VTNZ",
+        "date": "Jan 2020 – Oct 2021"
+      },
+      {
+        "title": "Web/Graphic Designer",
+        "place": "Eight360",
+        "date": "Oct 2018 – Sept 2019"
+      }
+    ]
+  }
 }
