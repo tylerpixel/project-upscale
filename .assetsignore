@@ -8,5 +8,6 @@
 node_modules
 worker
 admin
+data/.backups
 README.md
 wrangler.jsonc
