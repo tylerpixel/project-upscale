@@ -311,7 +311,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderIntro(content.intro);
   renderWork(content.work, tabLabel("work", "Selected Works"));
   renderWriting(content.writing, tabLabel("writing", "Writing"));
-  renderContact(content.contact, tabLabel("contact", "About"), content.social);
+  renderContact(content.contact, tabLabel("contact", "About"), content.social, content.version);
   initNav(content.tabs);
   initFab(content.contact);
 
@@ -389,6 +389,7 @@ function initFab(contact) {
 
 function renderIdentity(profile) {
   if (!profile) return;
+  authorName = profile.name || authorName;
   document.getElementById("profileRole").textContent = profile.role || "";
 }
 
@@ -678,6 +679,9 @@ function renderWriting(writing, label) {
   panel.appendChild(list);
 }
 
+// Byline shown on writing posts — filled from profile.name in site-content.json.
+let authorName = "Tyler Patterson";
+
 // Post page — not a nav tab, reachable from the Writing list or a work case study.
 function openPost(post) {
   const panel = document.getElementById("panel-writing-detail");
@@ -697,10 +701,10 @@ function openPost(post) {
   panel.appendChild(back);
 
   const head = document.createElement("div");
-  head.className = "writing-item-head post-head";
+  head.className = "post-head";
   head.innerHTML = `
     <p class="work-title work-detail-title">${post.title}</p>
-    ${post.date ? `<span class="work-chip work-chip--year">${post.date}</span>` : ""}
+    <p class="post-meta">By ${authorName}${post.date ? ` · ${post.date}` : ""}</p>
   `;
   markStagger(head, 1);
   panel.appendChild(head);
@@ -742,7 +746,7 @@ function renderSubheading(panel, text, actionHref, actionText, index) {
   panel.appendChild(row);
 }
 
-function renderContact(contact, label, social) {
+function renderContact(contact, label, social, version) {
   const panel = document.getElementById("panel-contact");
   if (!contact || !panel) return;
   panel.innerHTML = "";
@@ -830,6 +834,14 @@ function renderContact(contact, label, social) {
     markStagger(socialRow, idx++);
     renderSocialRow(socialRow, social);
     panel.appendChild(socialRow);
+  }
+
+  if (version) {
+    const chip = document.createElement("p");
+    chip.className = "about-version";
+    chip.innerHTML = `<span class="about-version-chip">v${version}</span>`;
+    markStagger(chip, idx++);
+    panel.appendChild(chip);
   }
 
   initInlineLinkTooltips(panel);

@@ -1,4 +1,5 @@
 {
+  "version": "1.0.1",
   "profile": {
     "name": "Tyler Patterson",
     "role": "Design + Development"
@@ -243,7 +244,7 @@
       {
         "slug": "sort-dot-cash",
         "title": "Sort Dot Cash",
-        "date": "2026",
+        "date": "July 28th, 2026",
         "summary": "Notes on designing and building a budgeting app that has to teach as well as track.",
         "body": [
           "Most budgeting apps assume you already know what you're doing. They hand you categories, charts and a monthly burn rate, and quietly expect financial literacy to be a prerequisite rather than something the product might actually help with.",

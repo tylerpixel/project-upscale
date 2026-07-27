@@ -172,7 +172,7 @@ nav.identity-links {
 }
 
 .writing-item {
-  padding: 16px 0;
+  padding: 14px 0;
   border-top: 1px solid var(--underline);
   cursor: pointer;
 }
@@ -197,30 +197,44 @@ nav.identity-links {
   margin: 0;
   font-size: 12pt;
   font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.3pt;
   color: var(--fg);
 }
 
 #panel-writing .writing-item-summary {
-  margin: 4px 0 0;
+  margin: 3px 0 0;
+  font-size: 11pt;
   color: var(--fg-muted);
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 #panel-writing-detail .post-head {
   display: flex;
-  margin-bottom: 20px;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 16px;
 }
 
 #panel-writing-detail .work-detail-title {
   margin: 0;
   font-size: 14pt;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.2;
+  letter-spacing: -0.4pt;
   color: var(--fg);
 }
 
+#panel-writing-detail .post-meta {
+  margin: 0;
+  font-size: 9.5pt;
+  color: var(--fg-muted);
+}
+
 #panel-writing-detail .post-paragraph {
-  margin: 0 0 16px;
+  margin: 0 0 14px;
+  font-size: 11pt;
+  line-height: 1.55;
   color: var(--fg);
 }
 
@@ -270,6 +284,23 @@ nav.identity-links {
 #panel-writing .writing-empty-subtitle {
   margin: 0;
   font-size: 12pt;
+  color: var(--fg-muted);
+}
+
+/* ── About page version chip ── */
+.about-version {
+  margin: 24px 0 0;
+}
+
+.about-version-chip {
+  display: inline-block;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.05);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
   color: var(--fg-muted);
 }
 
