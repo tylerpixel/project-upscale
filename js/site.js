@@ -972,7 +972,13 @@ function renderIntro(intro) {
           el.className = "company-logo";
           el.src = c.logo;
           el.alt = isDuplicate ? "" : c.name || "";
-          el.loading = "lazy";
+          // Deliberately eager. The strip is above the fold, and the marquee
+          // is wider than the viewport by design — so under loading="lazy"
+          // the off-screen half only starts fetching when the animation drags
+          // it into view, and each logo visibly pops in mid-scroll. It's five
+          // SVGs and ~15 KB (both sets share the same URLs, so it's five
+          // requests, not ten); there is nothing here worth deferring.
+          el.loading = "eager";
           // The logos are all different shapes, and CSS can only pin the
           // height (the width has to stay auto), so the intrinsic size rides
           // along in the content file — that's what lets the browser reserve
