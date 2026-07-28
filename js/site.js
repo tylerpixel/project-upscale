@@ -92,7 +92,7 @@ const ALLOWED_TAGS = new Set([
 // HTML attributes each tag may keep. SVG is governed by the rule below
 // instead: its geometry attributes are many, and none of them can execute.
 const ALLOWED_ATTRS = {
-  a: ["href", "target", "rel", "class", "data-work"],
+  a: ["href", "target", "rel", "class", "data-work", "data-legal"],
   span: ["class"],
   p: ["class"],
   li: ["class"],
@@ -238,9 +238,32 @@ function revealPanel(panel) {
   panel.classList.remove("is-hiding");
   panel.classList.remove("is-shown");
   void panel.offsetWidth; // force reflow so the "hidden" state is registered before flipping it on
-  requestAnimationFrame(() => {
-    panel.classList.add("is-shown");
-  });
+  showAfterReflow(panel);
+}
+
+// Replays the entrance on a panel that's already on screen. Rebuilding a
+// visible panel's contents in place (the Store does this on a currency change)
+// inserts the new nodes at their resting state, so they simply appear — CSS
+// transitions don't run for freshly inserted elements. Toggling .is-shown off
+// and on around a reflow gives them a state to animate from.
+function replayReveal(panel) {
+  if (!panel || panel.hidden) return;
+  panel.classList.remove("is-shown");
+  void panel.offsetWidth;
+  showAfterReflow(panel);
+}
+
+// Adds .is-shown on the next frame so the transition has a state to animate
+// from. requestAnimationFrame is paused in a backgrounded tab, though — and
+// this class controls *visibility*, not just motion, so relying on it alone
+// can strand a panel at opacity 0 for anyone who opens the site in a
+// background tab or switches away mid-rebuild. The timer is the guarantee;
+// the frame callback is just what makes it look right. Adding the class twice
+// is harmless.
+function showAfterReflow(panel) {
+  const show = () => panel.classList.add("is-shown");
+  requestAnimationFrame(show);
+  setTimeout(show, 120);
 }
 
 function transitionPanels(current, next) {
@@ -629,6 +652,12 @@ function applyRoute(pathname) {
     }
   }
 
+  const legalSlug = LEGAL_SLUGS[`/${head}`];
+  if (legalSlug && !slug) {
+    openLegal(legalSlug);
+    return;
+  }
+
   const tab = PATH_TABS[`/${head}`];
   if (tab) {
     selectTab(tab);
@@ -652,6 +681,106 @@ function showNotFound() {
   syncNavSelection(null); // no tab owns this page
   updateWorkNav(null);
   transitionPanels(document.querySelector(".panel:not([hidden])"), panel);
+}
+
+// ── Legal pages ──
+//
+// Terms, Privacy and Returns are long and almost never read, so they live in
+// their own file and are fetched the first time one is opened rather than
+// riding along in site-content.json on every page load.
+
+const LEGAL_PATHS = { terms: "/terms", privacy: "/privacy", returns: "/returns" };
+const LEGAL_SLUGS = Object.fromEntries(
+  Object.entries(LEGAL_PATHS).map(([slug, path]) => [path, slug])
+);
+
+// Used for the tooltip on cross-links between the documents.
+const LEGAL_TITLES = {
+  terms: "Terms of Service",
+  privacy: "Privacy Policy",
+  returns: "Returns & FAQ",
+};
+
+let legalReady = null;
+
+function loadLegal() {
+  if (!legalReady) {
+    legalReady = fetch("/data/legal.json", { credentials: "omit" })
+      .then((res) => (res.ok ? res.json() : null))
+      .catch(() => null);
+  }
+  return legalReady;
+}
+
+async function openLegal(slug) {
+  const panel = document.getElementById("panel-legal");
+  if (!panel) return;
+  const docs = await loadLegal();
+  const doc = docs && docs[slug];
+  if (!doc) {
+    showNotFound();
+    return;
+  }
+
+  setRoute(LEGAL_PATHS[slug], doc.title);
+  panel.replaceChildren();
+  panel.dataset.slug = slug;
+
+  const back = document.createElement("a");
+  back.className = "inline-link work-detail-back";
+  back.href = TAB_PATHS.store;
+  back.textContent = "\u2190 Back to Store";
+  back.addEventListener("click", (e) => {
+    e.preventDefault();
+    selectTab("store");
+  });
+  markStagger(back, 0);
+  panel.appendChild(back);
+
+  const title = document.createElement("h1");
+  title.className = "page-title legal-title";
+  title.textContent = doc.title;
+  markStagger(title, 1);
+  panel.appendChild(title);
+
+  if (doc.updated) {
+    const updated = document.createElement("p");
+    updated.className = "legal-updated";
+    updated.textContent = `Last updated: ${doc.updated}`;
+    markStagger(updated, 2);
+    panel.appendChild(updated);
+  }
+
+  // One sanitised block rather than one per paragraph: the privacy policy runs
+  // to a hundred of them, and staggering each would take most of a minute to
+  // finish revealing.
+  const body = document.createElement("div");
+  body.className = "legal-body";
+  setHtml(body, (doc.body || []).join(""));
+  // Cross-links between the documents are real hrefs in the content, so they
+  // work without JS — intercept them for in-page navigation.
+  body.querySelectorAll("a[data-legal]").forEach((a) => {
+    // Name the destination before initInlineLinkTooltips falls back to a
+    // "Visit <hostname>" label, which is meaningless for an internal link.
+    const target = LEGAL_TITLES[a.dataset.legal];
+    if (target && !a.querySelector(".nav-toast")) {
+      const tip = document.createElement("span");
+      tip.className = "nav-toast";
+      tip.textContent = `Read the ${target}`;
+      a.appendChild(tip);
+    }
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      openLegal(a.dataset.legal);
+    });
+  });
+  markStagger(body, 3);
+  panel.appendChild(body);
+
+  syncNavSelection(null); // no tab owns these
+  updateWorkNav(null);
+  transitionPanels(document.querySelector(".panel:not([hidden])"), panel);
+  initInlineLinkTooltips(panel);
 }
 
 window.addEventListener("popstate", () => applyRoute(location.pathname));
@@ -1357,7 +1486,7 @@ function renderContact(contact, label, social, version) {
 
   const copyright = document.createElement("p");
   copyright.className = "about-copyright";
-  copyright.textContent = `© ${new Date().getFullYear()} Tyler Pixel`;
+  copyright.textContent = `${new Date().getFullYear()} © Tyler Pixel`;
   footer.appendChild(copyright);
 
   if (version) {

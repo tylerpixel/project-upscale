@@ -13,6 +13,11 @@ const FW_API = "https://storefront-api.fourthwall.com/v1";
 const FW_STORE = "https://store.tylerpixel.com";
 const CART_KEY = "tp_shop_cart";
 const CURRENCY_KEY = "tp_shop_currency";
+// The location hint is cached per session, not per page load: store.js runs on
+// every route, so without this every navigation that reloads the document would
+// re-ask the edge. sessionStorage rather than localStorage keeps it a *session*
+// default — a new visit re-evaluates, so travelling still works.
+const GEO_KEY = "tp_shop_geo_currency";
 
 // Fourthwall converts prices server-side when the catalogue is requested with
 // a currency, and its hosted checkout takes the same code — so this is a real
@@ -52,13 +57,37 @@ const storeReady = new Promise((resolve) => {
   markStoreReady = resolve;
 });
 
-// The visitor's likely currency, from the edge's view of where the request
-// came from. Started at parse time so it's in flight during page load, and
-// only ever consulted when they haven't chosen one for themselves.
-const geoCurrency = fetch("/api/geo", { credentials: "omit" })
-  .then((res) => (res.ok ? res.json() : null))
-  .then((data) => (data && CURRENCIES.includes(data.currency) ? data.currency : null))
-  .catch(() => null);
+function cachedGeoCurrency() {
+  try {
+    const cached = sessionStorage.getItem(GEO_KEY);
+    return CURRENCIES.includes(cached) ? cached : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+// The visitor's likely currency, from the edge's view of where the request came
+// from. Started at parse time — on every page, not just the Store — so it's in
+// flight during load and already settled by the time anything needs a price.
+// Only consulted when they haven't chosen a currency for themselves.
+const geoCurrency = (() => {
+  const cached = cachedGeoCurrency();
+  if (cached) return Promise.resolve(cached);
+  return fetch("/api/geo", { credentials: "omit" })
+    .then((res) => (res.ok ? res.json() : null))
+    .then((data) => {
+      const code = data && CURRENCIES.includes(data.currency) ? data.currency : null;
+      if (code) {
+        try {
+          sessionStorage.setItem(GEO_KEY, code);
+        } catch (err) {
+          // Session-only caching is an optimisation, not a requirement.
+        }
+      }
+      return code;
+    })
+    .catch(() => null);
+})();
 
 // ── Helpers ──
 
@@ -307,6 +336,10 @@ function buildCurrencyPicker(panel) {
   select.addEventListener("change", () => {
     if (select.value === store.currency) return;
     saveCurrency(select.value);
+    // Fade the old prices out now; renderStore fades the new ones back in once
+    // the re-priced catalogue lands, so the swap reads as a crossfade rather
+    // than a snap.
+    panel.classList.remove("is-shown");
     // Re-fetch at the new currency. Anything open at the time is restored
     // below once the fresh catalogue lands.
     const openSlug = document.getElementById("panel-store-detail").hidden
@@ -317,6 +350,19 @@ function buildCurrencyPicker(panel) {
 
   wrap.appendChild(select);
   actions.appendChild(wrap);
+
+  const dot = document.createElement("span");
+  dot.className = "store-heading-sep";
+  dot.setAttribute("aria-hidden", "true");
+  dot.textContent = "·";
+  actions.appendChild(dot);
+
+  // renderHeading staggers the Cart button at index 0; these are appended
+  // afterwards, so they need marking too or they'd sit outside the panel's
+  // reveal and simply appear while Cart fades in beside them.
+  markStagger(wrap, 0);
+  markStagger(dot, 0);
+
   // Move the Cart button in beside it rather than leaving it a sibling, so
   // .panel-heading keeps its two-child space-between layout.
   actions.appendChild(store.cartAction);
@@ -343,6 +389,34 @@ function renderStore(label, reopenSlug) {
   // matching how Selected Works reveals.
   panel.appendChild(list);
 
+  // Appended before the catalogue resolves, so the policies stay reachable
+  // even if the storefront is down.
+  const footer = document.createElement("div");
+  footer.className = "store-footer";
+  [
+    ["Terms of Service", "terms"],
+    ["Privacy Policy", "privacy"],
+    ["Returns & FAQ", "returns"],
+  ].forEach(([label, slug], i) => {
+    if (i) {
+      const dot = document.createElement("span");
+      dot.className = "store-footer-sep";
+      dot.setAttribute("aria-hidden", "true");
+      dot.textContent = "·";
+      footer.appendChild(dot);
+    }
+    const link = document.createElement("a");
+    link.className = "light-link";
+    link.href = `/${slug}`;
+    link.textContent = label;
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      openLegal(slug);
+    });
+    footer.appendChild(link);
+  });
+  panel.appendChild(footer);
+
   const status = document.createElement("p");
   status.className = "store-status";
   status.textContent = "Loading products…";
@@ -367,6 +441,8 @@ function renderStore(label, reopenSlug) {
       if (reopenSlug) {
         const reopen = products.find((p) => p.slug === reopenSlug);
         if (reopen) openProductDetail(reopen);
+      } else {
+        replayReveal(panel);
       }
       // The tray may be open on the cart while prices changed underneath it.
       if (!document.getElementById("trayOverlay").hidden) renderCart();
@@ -393,6 +469,7 @@ function renderStore(label, reopenSlug) {
     .catch((err) => {
       console.error("Could not load products:", err);
       status.textContent = "Couldn't load the store right now. Please try again later.";
+      replayReveal(panel);
     })
     .finally(() => markStoreReady());
 }
@@ -851,10 +928,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   // on it. The guess is a default only: it isn't written to storage, so it
   // re-evaluates each visit and an explicit pick still wins permanently.
   if (!chosen) {
-    const guess = await Promise.race([
-      geoCurrency,
-      new Promise((resolve) => setTimeout(() => resolve(null), 1200)),
-    ]);
+    const cached = cachedGeoCurrency();
+    const guess =
+      cached ||
+      (await Promise.race([
+        geoCurrency,
+        new Promise((resolve) => setTimeout(() => resolve(null), 1200)),
+      ]));
     if (guess) store.currency = guess;
   }
 

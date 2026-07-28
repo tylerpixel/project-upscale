@@ -718,9 +718,18 @@ nav.identity-links {
 .store-heading-actions {
   display: flex;
   align-items: baseline;
-  gap: 14px;
+  gap: 7px;
 }
 
+.store-heading-sep {
+  color: var(--underline);
+  line-height: 1;
+}
+
+/* Compound selector so the wrapper stays inline-flex even though
+   .t-stagger-line (declared later) forces display: block on staggered
+   elements — the chevron is positioned against this box. */
+.store-currency-wrap.t-stagger-line,
 .store-currency-wrap {
   position: relative;
   display: inline-flex;
@@ -732,10 +741,10 @@ nav.identity-links {
 .store-currency-wrap::after {
   content: "";
   position: absolute;
-  right: 1px;
+  right: 0;
   top: 50%;
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   border-right: 1.5px solid var(--fg-muted);
   border-bottom: 1.5px solid var(--fg-muted);
   transform: translateY(-75%) rotate(45deg);
@@ -746,12 +755,12 @@ nav.identity-links {
   appearance: none;
   -webkit-appearance: none;
   margin: 0;
-  padding: 0 14px 0 0;
+  padding: 0 9px 0 0;
   border: 0;
   border-radius: 0;
   background: none;
   font: inherit;
-  font-size: 12pt;
+  font-size: 9pt;
   line-height: inherit;
   color: var(--fg-muted);
   cursor: pointer;
@@ -943,6 +952,88 @@ nav.identity-links {
 
 .store-add:active:not(:disabled) {
   transform: scale(0.99);
+}
+
+/* ── Store footer — policy links below the product list ── */
+.store-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 44px;
+  padding-top: 20px;
+  border-top: 1px solid var(--underline);
+  font-size: 9.5pt;
+  color: var(--fg-muted);
+}
+
+.store-footer-sep {
+  color: var(--underline);
+}
+
+/* ── Legal documents (Terms, Privacy, Returns) ── */
+#panel-legal .legal-title {
+  margin: 0 0 2px;
+  color: var(--fg);
+}
+
+#panel-legal .legal-updated {
+  margin: 0 0 24px;
+  font-size: 9.5pt;
+  color: var(--fg-muted);
+}
+
+/* These run to tens of thousands of words, so they get a slightly smaller,
+   tighter setting than the site's body copy. */
+#panel-legal .legal-body {
+  font-size: 10.5pt;
+  line-height: 1.55;
+}
+
+#panel-legal .legal-body p {
+  margin: 0 0 12px;
+  color: var(--fg-muted);
+}
+
+#panel-legal .legal-body .legal-heading {
+  margin: 28px 0 8px;
+  font-size: 12pt;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--fg);
+}
+
+#panel-legal .legal-body .legal-subheading {
+  margin: 18px 0 6px;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+#panel-legal .legal-body strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+#panel-legal .legal-body ul,
+#panel-legal .legal-body ol {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  color: var(--fg-muted);
+}
+
+#panel-legal .legal-body li {
+  margin-bottom: 8px;
+}
+
+/* The Terms are one long numbered list whose items carry their own nested
+   lists; give the nesting room to breathe. */
+#panel-legal .legal-body li > ol,
+#panel-legal .legal-body li > ul {
+  margin-top: 8px;
+}
+
+#panel-legal .legal-body li:last-child {
+  margin-bottom: 0;
 }
 
 /* ── Tray — shared bottom sheet (cart + message form) ── */
