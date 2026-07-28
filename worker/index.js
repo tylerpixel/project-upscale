@@ -141,7 +141,7 @@ function handleGeo(request) {
 // ── Message form ──
 
 const MSG_FROM = "message@tylerpixel.com";
-const MSG_TO = "gm@tylerpixel.com";
+const MSG_TO = "dm@tylerpixel.com";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Caps well above anything a real message needs — they only exist so the

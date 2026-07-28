@@ -1,5 +1,5 @@
 {
-  "version": "1.0.9",
+  "version": "1.0.10",
   "profile": {
     "name": "Tyler Patterson",
     "role": "Design Engineer"
@@ -23,7 +23,7 @@
     },
     {
       "name": "Mail",
-      "url": "mailto:gm@tylerpixel.com"
+      "url": "mailto:dm@tylerpixel.com"
     }
   ],
   "tabs": [
@@ -419,7 +419,7 @@
     }
   },
   "contact": {
-    "email": "gm@tylerpixel.com",
+    "email": "dm@tylerpixel.com",
     "portrait": "images/portrait.webp",
     "portraitAlt": "Tyler Patterson",
     "about": [
