@@ -973,6 +973,15 @@ function renderIntro(intro) {
           el.src = c.logo;
           el.alt = isDuplicate ? "" : c.name || "";
           el.loading = "lazy";
+          // The logos are all different shapes, and CSS can only pin the
+          // height (the width has to stay auto), so the intrinsic size rides
+          // along in the content file — that's what lets the browser reserve
+          // the right box before the SVG arrives. Optional: a logo added
+          // through the CMS without them just renders unsized, as before.
+          if (c.width && c.height) {
+            el.width = c.width;
+            el.height = c.height;
+          }
           attachImageFallback(el, "company-logo");
         } else {
           el = emptyImageTile("company-logo");

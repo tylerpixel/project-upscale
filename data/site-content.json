@@ -1,5 +1,5 @@
 {
-  "version": "1.0.5",
+  "version": "1.0.6",
   "profile": {
     "name": "Tyler Patterson",
     "role": "Design Engineer"
@@ -57,23 +57,33 @@
     "companies": [
       {
         "name": "Y Combinator",
-        "logo": "images/company-logos/y-combinator.svg"
+        "logo": "images/company-logos/y-combinator.svg",
+        "width": 233,
+        "height": 47
       },
       {
         "name": "Extropic",
-        "logo": "images/company-logos/extropic.svg"
+        "logo": "images/company-logos/extropic.svg",
+        "width": 160,
+        "height": 15
       },
       {
         "name": "a16z",
-        "logo": "images/company-logos/a16z.svg"
+        "logo": "images/company-logos/a16z.svg",
+        "width": 76,
+        "height": 24
       },
       {
         "name": "Daylight",
-        "logo": "images/company-logos/daylight.svg"
+        "logo": "images/company-logos/daylight.svg",
+        "width": 489,
+        "height": 126
       },
       {
         "name": "OpenAI",
-        "logo": "images/company-logos/openai.svg"
+        "logo": "images/company-logos/openai.svg",
+        "width": 288,
+        "height": 78
       }
     ]
   },

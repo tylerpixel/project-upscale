@@ -1,0 +1,6 @@
+# The site is a single-page app with SPA fallback routing, so any path that
+# isn't a real file returns index.html. Without this file /robots.txt would
+# serve the HTML document and crawlers would read it as a malformed ruleset.
+User-agent: *
+Allow: /
+Disallow: /api/

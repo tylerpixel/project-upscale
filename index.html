@@ -37,6 +37,10 @@
     <!-- Fonts -->
     <link rel="preload" href="/fonts/DMSans-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/data/site-content.json" as="fetch" crossorigin />
+    <!-- store.js queries the catalogue on every page load, not just on the
+         store panel, so the TLS handshake is worth starting now rather than
+         letting it land in the middle of the first paint. -->
+    <link rel="preconnect" href="https://storefront-api.fourthwall.com" crossorigin />
     <!-- File Links-->
     <link rel="stylesheet" href="/styles/main.css" type="text/css" />
     <link rel="apple-touch-icon" href="/images/webclip.png" />
@@ -60,7 +64,12 @@
               />
             </svg>
           </h1>
-          <h3 id="profileRole"></h3>
+          <!-- Seeded with the value site-content.json holds so it paints with
+               the first frame rather than a second after it — this line is the
+               LCP element, and rendering it from JS put a ~1s render delay on
+               the whole page. renderIdentity() still overwrites it, so the JSON
+               stays the source of truth. Kept in sync by scripts/ship.sh. -->
+          <h2 id="profileRole">Design Engineer</h2>
         </div>
       </header>
 
@@ -81,7 +90,12 @@
              reuses .work-thumb so it sits in the same frame as a Selected
              Works thumbnail. -->
         <section class="panel t-stagger" data-panel="notfound" id="panel-404" hidden>
-          <img class="work-thumb notfound-thumb" src="/images/404.gif" alt="A lone figure walking away across an empty desert" />
+          <!-- loading="lazy" matters more here than anywhere else on the site:
+               this GIF is 669 KiB, and a hidden panel is still eager-loaded, so
+               without it every visitor downloaded two thirds of the page weight
+               for a panel almost none of them will ever see — mid-flight
+               against the CSS, the fonts and the content JSON. -->
+          <img class="work-thumb notfound-thumb" src="/images/404.gif" alt="A lone figure walking away across an empty desert" loading="lazy" decoding="async" width="453" height="255" />
           <p class="notfound-title">404 Error</p>
           <p class="notfound-message">This page does not exist.</p>
           <a class="notfound-home" href="/">

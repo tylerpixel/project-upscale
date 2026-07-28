@@ -30,3 +30,6 @@ data/.backups/
 # Wrangler local state
 .wrangler/
 
+# Lighthouse reports (local audit output)
+lighthouse/
+

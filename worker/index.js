@@ -10,21 +10,25 @@ const ROOT_DOMAIN = "tylerpixel.com";
 // ── Security headers ──
 // Applied to every response this worker returns, including static assets.
 //
-// The CSP is deliberately tight on script: there is no inline <script> and no
-// eval anywhere in the site, so 'self' alone holds. 'unsafe-inline' is needed
-// for style only — markStagger()/typeChip() and the panel transitions set
-// style attributes on elements, which style-src governs.
+// The CSP is deliberately tight on script: the site itself has no inline
+// <script> and no eval, so the only script origin beyond 'self' is the
+// Cloudflare Web Analytics beacon, which the edge injects into the HTML on the
+// way out. Leaving it out doesn't disable analytics — it just gets blocked and
+// logs a CSP violation on every page load. 'unsafe-inline' is needed for style
+// only — markStagger()/typeChip() and the panel transitions set style
+// attributes on elements, which style-src governs.
 //
 // The external origins are the storefront's: the Fourthwall catalogue API is
 // read over fetch, and its product photos are served from its image proxy and
-// (for older uploads) Firebase storage.
+// (for older uploads) Firebase storage. The beacon reports back to
+// cloudflareinsights.com, a different host from the one it's served off.
 const CSP = [
   "default-src 'self'",
-  "script-src 'self'",
+  "script-src 'self' https://static.cloudflareinsights.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https://imgproxy.fourthwall.dev https://firebasestorage.googleapis.com",
   "font-src 'self'",
-  "connect-src 'self' https://storefront-api.fourthwall.com",
+  "connect-src 'self' https://storefront-api.fourthwall.com https://cloudflareinsights.com",
   "form-action 'self'",
   "frame-ancestors 'none'",
   // 'self', not 'none': the document sets <base href="/"> so that nested

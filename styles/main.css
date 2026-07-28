@@ -13,7 +13,10 @@
 /* ── Tokens ── */
 :root {
   --fg: #111111;
-  --fg-muted: rgba(0, 0, 0, 0.4);
+  /* 55%, not 40%: over --bg this lands at 4.76:1, just clear of the 4.5:1
+     floor for body text. At 40% it was 2.84:1 and failed WCAG AA everywhere
+     it was used. */
+  --fg-muted: rgba(0, 0, 0, 0.55);
   --underline: #d9d9d9;
   --underline-hover: #666666;
   --bg: #ffffff;
@@ -72,6 +75,7 @@ select {
   font-family: inherit;
 }
 
+h2,
 h3 {
   margin: 0;
   font-family: inherit;
@@ -130,7 +134,9 @@ h3 {
   display: block;
 }
 
-.identity-text h3 {
+/* The role line under the wordmark. h2 rather than h3 — the wordmark is the
+   page's h1, and skipping a level breaks the outline for screen readers. */
+.identity-text h2 {
   font-weight: 460;
   font-style: normal;
   color: var(--fg-muted);

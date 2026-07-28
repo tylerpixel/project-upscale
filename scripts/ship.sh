@@ -86,6 +86,26 @@ node -e "
   fs.writeFileSync(path, JSON.stringify(content, null, 2) + '\n');
 "
 
+# index.html seeds the role line with profile.role so it paints in the first
+# frame instead of waiting on site-content.json — it's the LCP element. JS
+# overwrites it either way, so a stale value is invisible in the browser and
+# would only ever show up in the HTML source and to crawlers. Re-stamp it here
+# so editing the role in the CMS can't leave the two out of step.
+node -e "
+  const fs = require('fs');
+  const role = JSON.parse(fs.readFileSync('$CONTENT', 'utf8')).profile?.role || '';
+  const html = fs.readFileSync('index.html', 'utf8');
+  const escaped = role.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const next = html.replace(
+    /(<h2 id=\"profileRole\">)[^<]*(<\/h2>)/,
+    (match, open, close) => open + escaped + close
+  );
+  if (next !== html) {
+    fs.writeFileSync('index.html', next);
+    console.log('Re-stamped the seeded role in index.html: ' + role);
+  }
+"
+
 # Everything outstanding ships together, so the tag names exactly the tree
 # that gets deployed a few lines below.
 git add -A
