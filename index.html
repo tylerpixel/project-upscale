@@ -34,12 +34,17 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <!-- Fonts -->
     <link rel="preload" href="fonts/DMSans-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="data/site-content.json" as="fetch" crossorigin />
     <!-- File Links-->
     <link rel="stylesheet" href="styles/main.css" type="text/css" />
     <link rel="apple-touch-icon" href="/images/webclip.png" />
     <link rel="manifest" href="manifest.json" />
+    <!-- Javascript — deferred so both download during parse but still run in
+         order, with store.js seeing site.js's helpers already defined. -->
+    <script src="js/site.js" defer></script>
+    <script src="js/store.js" defer></script>
     <!-- Favicon Handling -->
-    <link id="favicon" rel="icon" href="/images/favicon.png" type="image/x-icon" />
+    <link rel="icon" href="/images/favicon.png" type="image/png" />
   </head>
   <body>
     <main class="site">
@@ -72,16 +77,30 @@
     </main>
 
     <!-- Bottom nav — fixed overlay, sits outside .site so it never shifts with content -->
-    <div class="navwrap" id="bottomNav">
-      <nav class="nav" role="tablist" aria-label="Sections" id="navTabs">
-        <span class="nav-ind" id="navInd"></span>
-      </nav>
-      <a class="fab" id="navFab" aria-label="Message">
-        <svg width="22" height="22" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M128,24A104,104,0,0,0,36.18,176.88L24.83,210.93a16,16,0,0,0,20.24,20.24l34.05-11.35A104,104,0,1,0,128,24Zm0,192a87.87,87.87,0,0,1-44.06-11.81,8,8,0,0,0-6.54-.67L40,216,52.47,178.6a8,8,0,0,0-.66-6.54A88,88,0,1,1,128,216Z" />
-        </svg>
-        <span class="nav-toast">Message</span>
-      </a>
+    <div class="navwrap">
+      <!-- Only shown on a work item's case study — jumps straight to the
+           neighboring project. Hidden elsewhere (see updateWorkNav in site.js). -->
+      <div class="work-nav-row" id="workNavRow" hidden>
+        <button class="work-nav-btn work-nav-prev" id="workPrevBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+          <span class="work-nav-label"></span>
+        </button>
+        <button class="work-nav-btn work-nav-next" id="workNextBtn" type="button">
+          <span class="work-nav-label"></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+        </button>
+      </div>
+      <div class="navwrap-row">
+        <nav class="nav" role="tablist" aria-label="Sections" id="navTabs">
+          <span class="nav-ind" id="navInd"></span>
+        </nav>
+        <a class="fab" id="navFab" aria-label="Message">
+          <svg width="22" height="22" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M128,24A104,104,0,0,0,36.18,176.88L24.83,210.93a16,16,0,0,0,20.24,20.24l34.05-11.35A104,104,0,1,0,128,24Zm0,192a87.87,87.87,0,0,1-44.06-11.81,8,8,0,0,0-6.54-.67L40,216,52.47,178.6a8,8,0,0,0-.66-6.54A88,88,0,1,1,128,216Z" />
+          </svg>
+          <span class="nav-toast">Message</span>
+        </a>
+      </div>
     </div>
 
     <!-- Tray — fixed bottom sheet shared by the cart and the message form.
@@ -148,8 +167,27 @@
       </div>
     </div>
 
-    <!-- Javascript -->
-    <script src="js/site.js"></script>
-    <script src="js/store.js"></script>
+    <!-- Lightbox — full-size image viewer opened from a work item's gallery.
+         Cycles through that project's images via the arrows, arrow keys, or
+         Escape to close. -->
+    <div class="lightbox-overlay" id="lightboxOverlay" hidden>
+      <button class="lightbox-close" id="lightboxClose" type="button" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z" />
+        </svg>
+      </button>
+      <button class="lightbox-arrow lightbox-prev" id="lightboxPrev" type="button" aria-label="Previous image">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
+      </button>
+      <figure class="lightbox-figure">
+        <img class="lightbox-image" id="lightboxImage" alt="" />
+        <figcaption class="lightbox-caption" id="lightboxCaption"></figcaption>
+      </figure>
+      <button class="lightbox-arrow lightbox-next" id="lightboxNext" type="button" aria-label="Next image">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+      </button>
+      <span class="lightbox-counter" id="lightboxCounter"></span>
+    </div>
+
   </body>
 </html>

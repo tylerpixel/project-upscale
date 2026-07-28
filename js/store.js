@@ -2,9 +2,9 @@
 // Selected Works, a product detail page reachable only from a product card,
 // and a localStorage cart that hands off to Fourthwall's hosted checkout.
 //
-// Relies on helpers declared in site.js (renderPanelHeading, markStagger,
-// transitionPanels) — both are classic scripts sharing global scope, and
-// site.js is loaded first.
+// Relies on helpers declared in site.js (esc, setHtml, safeUrl, markStagger,
+// renderPanelHeading, transitionPanels, makeActivatable, openTray) — both are
+// classic scripts sharing global scope, and site.js is loaded first.
 
 // Public read-only storefront token. Fourthwall issues these specifically to be
 // embedded in client-side code; it can only read the catalogue and create carts.
@@ -12,6 +12,10 @@ const FW_TOKEN = "ptkn_be80840a-63bb-4229-a898-f8ed4a14dbc3";
 const FW_API = "https://storefront-api.fourthwall.com/v1";
 const FW_STORE = "https://store.tylerpixel.com";
 const CART_KEY = "tp_shop_cart";
+
+// Per-line cap. Nothing here is bought in bulk, and it keeps a corrupted or
+// hand-edited localStorage entry from rendering an absurd total.
+const MAX_QTY = 99;
 
 const store = {
   products: [],
@@ -29,13 +33,6 @@ const store = {
 const CART_NOTE_DEFAULT = "Secure checkout is handled by Fourthwall.";
 
 // ── Helpers ──
-
-function esc(value) {
-  return String(value == null ? "" : value).replace(
-    /[&<>"']/g,
-    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
-  );
-}
 
 // Fourthwall descriptions are HTML with entities (&#39;, &nbsp;). Stripping tags
 // with a regex leaves those entities showing literally, so parse properly.
@@ -62,10 +59,29 @@ function fmt(value, currency) {
   }).format(value);
 }
 
+// localStorage is user-writable, so what comes back out is input, not state.
+// Anything that doesn't look like a line this code wrote is dropped rather
+// than rendered or sent to the checkout endpoint.
+function validCartItem(item) {
+  return (
+    item &&
+    typeof item === "object" &&
+    typeof item.variantId === "string" &&
+    item.variantId.length > 0 &&
+    item.variantId.length <= 128 &&
+    Number.isInteger(item.quantity) &&
+    item.quantity > 0 &&
+    item.quantity <= MAX_QTY &&
+    Number.isFinite(item.price) &&
+    item.price >= 0 &&
+    typeof item.currency === "string"
+  );
+}
+
 function loadCart() {
   try {
     const raw = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
-    store.cart = Array.isArray(raw) ? raw : [];
+    store.cart = Array.isArray(raw) ? raw.filter(validCartItem) : [];
   } catch (err) {
     store.cart = [];
   }
@@ -98,33 +114,26 @@ function syncCartAction() {
 
 // ── Variants ──
 
-function uniqueColors(variants) {
+// Colour and size are the same shape of lookup — a de-duplicated list of one
+// attribute across a product's variants, in catalogue order.
+function uniqueAttr(variants, key) {
   const seen = new Set();
   const out = [];
-  variants.forEach((v) => {
-    const c = v.attributes && v.attributes.color;
-    if (!c || seen.has(c.name)) return;
-    seen.add(c.name);
-    out.push({ name: c.name, swatch: c.swatch || "#cccccc" });
+  (variants || []).forEach((v) => {
+    const attr = v.attributes && v.attributes[key];
+    if (!attr || !attr.name || seen.has(attr.name)) return;
+    seen.add(attr.name);
+    out.push(key === "color" ? { name: attr.name, swatch: attr.swatch || "#cccccc" } : attr.name);
   });
   return out;
 }
 
-function uniqueSizes(variants) {
-  const seen = new Set();
-  const out = [];
-  variants.forEach((v) => {
-    const s = v.attributes && v.attributes.size;
-    if (!s || seen.has(s.name)) return;
-    seen.add(s.name);
-    out.push(s.name);
-  });
-  return out;
-}
+const uniqueColors = (variants) => uniqueAttr(variants, "color");
+const uniqueSizes = (variants) => uniqueAttr(variants, "size");
 
 function findVariant(variants, color, size) {
   return (
-    variants.find((v) => {
+    (variants || []).find((v) => {
       const a = v.attributes || {};
       const colorOk = !color || (a.color && a.color.name === color);
       const sizeOk = !size || (a.size && a.size.name === size);
@@ -135,7 +144,7 @@ function findVariant(variants, color, size) {
 
 function sizesForColor(product, color) {
   if (!color) return uniqueSizes(product.variants);
-  return product.variants
+  return (product.variants || [])
     .filter((v) => v.attributes && v.attributes.color && v.attributes.color.name === color)
     .map((v) => (v.attributes.size ? v.attributes.size.name : null))
     .filter(Boolean);
@@ -144,18 +153,21 @@ function sizesForColor(product, color) {
 // ── Product list ──
 
 async function fetchProducts() {
-  const res = await fetch(`${FW_API}/collections/all/products?storefront_token=${FW_TOKEN}&limit=50`);
+  const url = new URL(`${FW_API}/collections/all/products`);
+  url.searchParams.set("storefront_token", FW_TOKEN);
+  url.searchParams.set("limit", "50");
+  const res = await fetch(url, { credentials: "omit" });
   if (!res.ok) throw new Error(`Storefront responded ${res.status}`);
   const data = await res.json();
   return data.results || [];
 }
 
 // Card blurbs live in site-content.json alongside the rest of the site's copy.
-// site.js has already requested this file, so it comes from cache.
+// site.js already has that file in flight — awaiting its promise reuses the
+// one request instead of issuing a second.
 async function fetchBlurbs() {
   try {
-    const res = await fetch("data/site-content.json");
-    const data = await res.json();
+    const data = await window.__contentReady;
     return (data.store && data.store.descriptions) || {};
   } catch (err) {
     return {};
@@ -174,10 +186,23 @@ function priceChips(product) {
   `;
 }
 
+// Catalogue photos come from Fourthwall's CDN. safeUrl keeps anything with an
+// unexpected scheme out of a src, and matches what the CSP will allow anyway.
+function imageUrl(image) {
+  return safeUrl((image || {}).url);
+}
+
+// An empty `src=""` resolves to the current page, so the browser re-requests
+// the document as an image. Leaving the attribute off entirely is the correct
+// no-image state.
+function srcAttr(url) {
+  return url ? ` src="${esc(url)}"` : "";
+}
+
 function renderStore(label) {
   const panel = document.getElementById("panel-store");
   if (!panel) return;
-  panel.innerHTML = "";
+  panel.replaceChildren();
 
   store.cartAction = renderPanelHeading(panel, label || "Store", null, "Cart", openCart);
   syncCartAction();
@@ -210,28 +235,18 @@ function renderStore(label) {
       products.forEach((product, i) => {
         const card = document.createElement("div");
         card.className = "work-card";
-        card.setAttribute("role", "button");
-        card.setAttribute("tabindex", "0");
-        card.setAttribute("aria-label", `View ${product.name}`);
-        const img = (product.images || [])[0] || {};
         // Prefer the hand-written one-liner; fall back to the store's own copy
         // so a newly added product still reads sensibly.
         const desc = blurbs[product.name] || truncate(plainText(product.description), 90);
         card.innerHTML = `
-          <img class="work-thumb store-thumb" src="${esc(img.url)}" alt="${esc(product.name)}" loading="lazy" />
+          <img class="work-thumb store-thumb"${srcAttr(imageUrl((product.images || [])[0]))} alt="${esc(product.name)}" loading="lazy" />
           <div class="work-head">
             <p class="work-title">${esc(product.name)}</p>
             <div class="work-chips">${priceChips(product)}</div>
           </div>
           ${desc ? `<p class="work-description">${esc(desc)}</p>` : ""}
         `;
-        card.addEventListener("click", () => openProductDetail(product));
-        card.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            openProductDetail(product);
-          }
-        });
+        makeActivatable(card, `View ${product.name}`, () => openProductDetail(product));
         markStagger(card, i + 1);
         list.appendChild(card);
       });
@@ -255,7 +270,7 @@ function openProductDetail(product) {
   store.color = colors.length === 1 ? colors[0].name : null;
   store.size = sizes.length === 1 ? sizes[0] : null;
 
-  panel.innerHTML = "";
+  panel.replaceChildren();
 
   const back = document.createElement("a");
   back.className = "inline-link work-detail-back";
@@ -272,13 +287,13 @@ function openProductDetail(product) {
   const gallery = document.createElement("div");
   gallery.className = "store-gallery";
   gallery.innerHTML = `
-    <img class="store-gallery-main" id="storeMainImg" src="${esc((images[0] || {}).url)}" alt="${esc(product.name)}" />
+    <img class="store-gallery-main" id="storeMainImg"${srcAttr(imageUrl(images[0]))} alt="${esc(product.name)}" />
     ${
       images.length > 1
         ? `<div class="store-thumbs">${images
             .map(
               (img, i) =>
-                `<button class="store-thumb-btn${i === 0 ? " active" : ""}" type="button" data-idx="${i}" aria-label="View image ${i + 1}"><img src="${esc(img.url)}" alt="" /></button>`
+                `<button class="store-thumb-btn${i === 0 ? " active" : ""}" type="button" data-idx="${i}" aria-label="View image ${i + 1}"><img${srcAttr(imageUrl(img))} alt="" /></button>`
             )
             .join("")}</div>`
         : ""
@@ -290,7 +305,8 @@ function openProductDetail(product) {
   gallery.querySelectorAll(".store-thumb-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const idx = Number(btn.dataset.idx);
-      document.getElementById("storeMainImg").src = images[idx].url;
+      const url = imageUrl(images[idx]);
+      if (url) document.getElementById("storeMainImg").src = url;
       gallery.querySelectorAll(".store-thumb-btn").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
     });
@@ -308,8 +324,10 @@ function openProductDetail(product) {
   if (product.description) {
     const desc = document.createElement("div");
     desc.className = "store-desc";
-    // Fourthwall stores the description as rich text authored in the store admin.
-    desc.innerHTML = product.description;
+    // Fourthwall stores the description as rich text authored in the store
+    // admin — third-party markup, so it goes through the same allowlist the
+    // site's own rich content does rather than straight into innerHTML.
+    setHtml(desc, product.description);
     markStagger(desc, 3);
     panel.appendChild(desc);
   }
@@ -415,9 +433,12 @@ function syncDetail(product) {
 // `state`/`stock` fields aren't sufficient — a discontinued product still reports
 // AVAILABLE/UNLIMITED there but is refused by the cart endpoint.
 async function createCart(items) {
-  const res = await fetch(`${FW_API}/carts?storefront_token=${FW_TOKEN}`, {
+  const url = new URL(`${FW_API}/carts`);
+  url.searchParams.set("storefront_token", FW_TOKEN);
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "omit",
     body: JSON.stringify({
       items: items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })),
     }),
@@ -461,7 +482,7 @@ async function addToCart(product) {
 
   const existing = store.cart.find((item) => item.variantId === variant.id);
   if (existing) {
-    existing.quantity++;
+    existing.quantity = Math.min(MAX_QTY, existing.quantity + 1);
   } else {
     store.cart.push({
       variantId: variant.id,
@@ -470,7 +491,7 @@ async function addToCart(product) {
       variantName: (variant.attributes || {}).description || variant.name,
       price: (variant.unitPrice || {}).value || 0,
       currency: (variant.unitPrice || {}).currency || "USD",
-      image: ((variant.images || [])[0] || (product.images || [])[0] || {}).url || "",
+      image: imageUrl((variant.images || [])[0] || (product.images || [])[0]),
     });
   }
 
@@ -493,7 +514,14 @@ function renderCart() {
   if (!items || !foot) return;
 
   if (!store.cart.length) {
-    items.innerHTML = `<p class="store-status">Your cart is empty.</p>`;
+    // Centred icon over a title, same shape as the Writing panel's empty
+    // state. The glyph is the Store tab's own icon from site.js's constant
+    // map — never content — so innerHTML is safe here.
+    items.innerHTML = `
+      <div class="cart-empty">
+        <span class="cart-empty-icon">${NAV_ICONS.store}</span>
+        <p class="cart-empty-title">Your cart is empty</p>
+      </div>`;
     foot.hidden = true;
     return;
   }
@@ -504,7 +532,7 @@ function renderCart() {
       const dead = store.unavailable.has(item.variantId);
       return `
       <div class="cart-item${dead ? " cart-item--dead" : ""}">
-        <img class="cart-item-img" src="${esc(item.image)}" alt="${esc(item.productName)}" />
+        <img class="cart-item-img"${srcAttr(safeUrl(item.image))} alt="${esc(item.productName)}" />
         <div class="cart-item-info">
           <p class="cart-item-name">${esc(item.productName)}</p>
           <p class="cart-item-variant">${esc(item.variantName)}</p>
@@ -539,7 +567,7 @@ function renderCart() {
       const item = store.cart[i];
       if (!item) return;
       if (btn.dataset.action === "inc") {
-        item.quantity++;
+        item.quantity = Math.min(MAX_QTY, item.quantity + 1);
       } else if (--item.quantity <= 0) {
         store.cart.splice(i, 1);
       }
@@ -585,8 +613,12 @@ async function checkout() {
   try {
     const { ok, data } = await createCart(store.cart);
     if (ok && data.id) {
-      const currency = store.cart[0].currency || "USD";
-      window.location.href = `${FW_STORE}/checkout/?cartCurrency=${currency}&cartId=${data.id}`;
+      // Built through URL rather than string concatenation so the cart id and
+      // currency are encoded, whatever the API hands back.
+      const checkoutUrl = new URL("/checkout/", FW_STORE);
+      checkoutUrl.searchParams.set("cartCurrency", store.cart[0].currency || "USD");
+      checkoutUrl.searchParams.set("cartId", data.id);
+      window.location.href = checkoutUrl.href;
       return;
     }
 
@@ -617,10 +649,7 @@ async function checkout() {
 
 document.addEventListener("DOMContentLoaded", () => {
   loadCart();
-
-  // site.js renders its panels on the same event; defer so `renderPanelHeading`
-  // and the nav tabs exist before the Store panel is built.
-  setTimeout(() => renderStore("Store"), 0);
+  renderStore("Store");
 
   const pay = document.getElementById("cartCheckout");
   if (pay) pay.addEventListener("click", checkout);

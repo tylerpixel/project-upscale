@@ -10,11 +10,19 @@
 - 🧑‍🎨 **Aesthetic** -  Looks nice and has precise UX/UI that aren't distracting.
 
 ### 🏗️ Tech Stack
-- **Languages**: HTML, CSS, and JS
-- **LLM AI**: GPT-4 Omni via Perplexity
+- **Languages**: HTML, CSS, and JS — no framework, no build step
 - **Editor**: VS Code
-- **Hosting**: Vercel
+- **Hosting**: Cloudflare Workers (static assets + a worker for the message
+  form and the vanity-subdomain redirects — see `worker/index.js`)
+- **Content**: `data/site-content.json`, edited in place by the local CMS
+  (`node admin/server.js`, loopback only)
 - **Version Control**: GitHub
+
+### Shipping
+`./scripts/ship.sh` bumps the version in `data/site-content.json`, commits and
+tags it, deploys to Cloudflare, and pushes — so the version chip on the About
+page always names the build that's actually live. Pass `minor` or `major` to
+bump those instead of the patch, or `--dry-run` to preview.
 
 ### Links
 [Figma File](https://www.figma.com/design/BHYeizEnUXlrv3Hf82ce19/Project-Upscale?node-id=0%3A1&t=5VoSTA0YajevcYPG-1)

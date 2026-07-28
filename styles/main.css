@@ -21,8 +21,10 @@
      gutter is added on top — so the text column, the bottom nav and the tray
      sheet all end up exactly this wide inside their padding. */
   --content-width: 360px;
+  /* Drives the shell's side AND top padding, so the space above the column
+     reads the same as the space beside it. The bottom nav shares this token,
+     which is what keeps its outer edges on the text column's lines. */
   --gutter: 24px;
-  --media-width: 760px;
   --sortcash: #ff5500;
 }
 
@@ -38,11 +40,15 @@
 
 html {
   background-color: var(--bg);
+  /* Site-wide default typeface — set here (not just on body) so it's the
+     true page default, with `button`/`input`/etc. explicitly opted back
+     into inheriting it below, since form controls don't by default. */
+  font-family: "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 body {
   margin: 0;
-  font-family: "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-family: inherit;
   font-feature-settings: "ss03"; /* single-story g */
   font-weight: 460;
   letter-spacing: -0.25pt;
@@ -57,6 +63,13 @@ img {
   max-width: 100%;
   height: auto;
   display: block;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
 }
 
 h3 {
@@ -80,7 +93,10 @@ h3 {
   text-decoration-color: var(--underline-hover);
 }
 
-/* ── Page shell ── */
+/* ── Page shell ──
+   A flat 32px above the wordmark at every breakpoint; the sides stay on
+   --gutter so they keep tracking the bottom nav. Only the bottom is
+   deliberately deep, to clear that nav. */
 .site {
   max-width: calc(var(--content-width) + var(--gutter) * 2);
   margin: 0 auto;
@@ -89,7 +105,7 @@ h3 {
 
 @media (min-width: 640px) {
   .site {
-    padding: 80px var(--gutter) 160px;
+    padding-bottom: 160px;
   }
 }
 
@@ -193,7 +209,10 @@ nav.identity-links {
   gap: 12px;
 }
 
-.writing-item-title {
+/* Scoped past `.writing-list` to beat `.panel p`'s specificity — otherwise
+   its 20px bottom margin silently overrides this, same issue documented at
+   `.work-list .work-title` below. */
+.writing-list .writing-item-title {
   margin: 0;
   font-size: 12pt;
   font-weight: 500;
@@ -287,9 +306,25 @@ nav.identity-links {
   color: var(--fg-muted);
 }
 
-/* ── About page version chip ── */
-.about-version {
-  margin: 24px 0 0;
+/* ── About page footer — copyright on the left, build version on the right.
+   The compound selector keeps the row flex even though .t-stagger-line
+   (declared later) forces display: block on staggered elements. ── */
+.about-footer.t-stagger-line,
+.about-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 36px 0 0;
+}
+
+/* Scoped past `.about-footer` to beat `.panel p`'s specificity — otherwise its
+   20px bottom margin survives into the flex item's margin box and pushes the
+   text visibly above the chip it's supposed to sit level with. */
+.about-footer .about-copyright {
+  margin: 0;
+  font-size: 9.5pt;
+  color: var(--fg-muted);
 }
 
 .about-version-chip {
@@ -503,6 +538,12 @@ nav.identity-links {
   line-height: 1.4;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
+  /* Asks the browser to rebalance the last line rather than leaving a single
+     word stranded on it. Where a project's copy breaks depends on the column
+     width, so this holds across breakpoints in a way hand-tuned copy can't.
+     Ignored by browsers that don't support it, hence the copy is written to
+     sit comfortably regardless. */
+  text-wrap: pretty;
 }
 
 /* ── Work case-study detail page (reachable only via a work card) ── */
@@ -544,6 +585,44 @@ nav.identity-links {
   color: var(--fg);
 }
 
+/* Supporting images for the case study, each with a one-line caption below —
+   stacked full-width since the whole site runs at a fixed narrow measure
+   (see --content-width) rather than laid out as a multi-column grid. */
+.work-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 4px;
+}
+
+.work-gallery-item {
+  margin: 0;
+}
+
+.work-gallery-image {
+  width: 100%;
+  border-radius: 8px;
+  background: #f5f5f5;
+  cursor: zoom-in;
+  transition: opacity 0.2s ease;
+}
+
+.work-gallery-image:hover {
+  opacity: 0.9;
+}
+
+.work-gallery-image.image-empty {
+  aspect-ratio: 4 / 3;
+  cursor: default;
+}
+
+.work-gallery-caption {
+  margin: 8px 0 0;
+  font-size: 10pt;
+  line-height: 1.4;
+  color: var(--fg-muted);
+}
+
 /* ── Store ── */
 
 /* Each product is one tight block — image, title row, one-line blurb — with a
@@ -555,11 +634,14 @@ nav.identity-links {
   gap: 44px;
 }
 
-/* Products are shot square-ish on a pale ground, so they'd get badly cropped by
-   the cinematic ratio the work thumbs use. */
+/* Every product is shot 3:4 portrait, so the card matches that ratio and the
+   photo fills it edge to edge — full column width, full height, no pale
+   letterbox bars either side. `cover` rather than `contain` so a future
+   product shot at some other ratio still fills the card instead of
+   reintroducing them; at 3:4 it crops nothing. */
 .store-thumb {
-  aspect-ratio: 4 / 3;
-  object-fit: contain;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
   background: #f6f6f6;
   margin-bottom: 14px;
 }
@@ -585,10 +667,51 @@ nav.identity-links {
   -webkit-line-clamp: 2;
 }
 
-#panel-store .store-status,
-#cartItems .store-status {
+#panel-store .store-status {
   margin: 0;
   color: var(--fg-muted);
+}
+
+/* Empty cart — centred icon tile over a title, the same shape as the Writing
+   panel's empty state. */
+/* The tray head already contributes its own 12px margin above this block, so
+   the top padding is that much smaller than the bottom — 12 + 16 above, 28
+   below — which is what actually lands the icon and title optically centred
+   in the sheet rather than sitting low in it. */
+.cart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0 28px;
+  text-align: center;
+}
+
+.cart-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--fg-muted);
+}
+
+.cart-empty-icon svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+}
+
+/* Tighter than the body's 1.6 so the line box doesn't carry stray leading
+   under the text, which would read as extra space below the title. */
+.cart-empty-title {
+  margin: 0;
+  font-size: 12pt;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--fg);
 }
 
 .store-gallery {
@@ -597,8 +720,8 @@ nav.identity-links {
 
 .store-gallery-main {
   width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: contain;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
   border-radius: 8px;
   background: #f6f6f6;
 }
@@ -629,7 +752,7 @@ nav.identity-links {
 .store-thumb-btn img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 #panel-store-detail .work-head {
@@ -728,7 +851,12 @@ nav.identity-links {
   text-decoration: line-through;
 }
 
-.store-add {
+/* ── Primary action button ──
+   One appearance shared by Add to Cart, Checkout and the message form's
+   Next/Send. Only Add to Cart dips on press (see below). */
+.store-add,
+.cart-checkout,
+.msg-next {
   width: 100%;
   padding: 14px 16px;
   border: 0;
@@ -739,21 +867,29 @@ nav.identity-links {
   font-size: 11pt;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.12s ease;
+  transition: opacity 0.15s ease;
 }
 
-.store-add:hover:not(:disabled) {
+.store-add:hover:not(:disabled),
+.cart-checkout:hover:not(:disabled),
+.msg-next:hover:not(:disabled) {
   opacity: 0.88;
+}
+
+.store-add:disabled,
+.cart-checkout:disabled,
+.msg-next:disabled {
+  background: #e6e6e6;
+  color: var(--fg-muted);
+  cursor: not-allowed;
+}
+
+.store-add {
+  transition: opacity 0.15s ease, transform 0.12s ease;
 }
 
 .store-add:active:not(:disabled) {
   transform: scale(0.99);
-}
-
-.store-add:disabled {
-  background: #e6e6e6;
-  color: var(--fg-muted);
-  cursor: not-allowed;
 }
 
 /* ── Tray — shared bottom sheet (cart + message form) ── */
@@ -788,7 +924,7 @@ nav.identity-links {
      on the same lines as .site. Below the max-width it goes full-bleed, which is
      the usual bottom-sheet behaviour on a phone anyway. */
   margin: 0 0 calc(88px + env(safe-area-inset-bottom, 0px));
-  padding: var(--gutter);
+  padding: 16px;
   border-radius: 18px;
   background: var(--bg);
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18);
@@ -807,7 +943,7 @@ nav.identity-links {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .tray-close {
@@ -929,7 +1065,7 @@ nav.identity-links {
 }
 
 .cart-foot {
-  padding-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid var(--underline);
 }
 
@@ -958,32 +1094,8 @@ nav.identity-links {
   color: var(--fg);
 }
 
-.cart-checkout {
-  width: 100%;
-  padding: 14px 16px;
-  border: 0;
-  border-radius: 12px;
-  background: var(--fg);
-  color: #ffffff;
-  font: inherit;
-  font-size: 11pt;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-}
-
-.cart-checkout:hover:not(:disabled) {
-  opacity: 0.88;
-}
-
-.cart-checkout:disabled {
-  background: #e6e6e6;
-  color: var(--fg-muted);
-  cursor: not-allowed;
-}
-
 .cart-note {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   font-size: 9pt;
   text-align: center;
   color: var(--fg-muted);
@@ -1034,7 +1146,7 @@ nav.identity-links {
 /* ── Message form (inside the tray) ── */
 .msg-label {
   display: block;
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   font-size: 11pt;
   font-weight: 500;
   color: var(--fg);
@@ -1076,52 +1188,30 @@ nav.identity-links {
   clip-path: inset(50%);
 }
 
-/* min-height reserves the line so the sheet doesn't jump when an error appears */
+/* min-height reserves the line so the sheet doesn't jump when an error
+   appears — just the text's own height, with no extra padding around it. */
 .msg-error {
-  margin: 8px 0 0;
-  min-height: 12pt;
+  margin: 6px 0 0;
+  min-height: 11px;
   font-size: 9pt;
+  line-height: 11px;
   color: #ef4444;
 }
 
 .msg-foot {
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 .msg-foot[hidden] {
   display: none;
 }
 
-.msg-next {
-  width: 100%;
-  padding: 14px 16px;
-  border: 0;
-  border-radius: 12px;
-  background: var(--fg);
-  color: #ffffff;
-  font: inherit;
-  font-size: 11pt;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-}
-
-.msg-next:hover:not(:disabled) {
-  opacity: 0.88;
-}
-
-.msg-next:disabled {
-  background: #e6e6e6;
-  color: var(--fg-muted);
-  cursor: not-allowed;
-}
-
 .msg-foot-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 16px;
-  margin-top: 10px;
+  min-height: 14px;
+  margin-top: 8px;
 }
 
 .msg-back {
@@ -1362,10 +1452,148 @@ nav.identity-links {
   color: var(--fg-muted);
 }
 
+/* ── Lightbox — full-size viewer for a work item's gallery images ── */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 20px;
+  background: rgba(0, 0, 0, 0);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.lightbox-overlay[hidden] {
+  display: none;
+}
+
+.lightbox-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.lightbox-figure {
+  margin: 0;
+  max-width: min(100%, 900px);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.lightbox-image {
+  max-width: 100%;
+  max-height: calc(100vh - 160px);
+  width: auto;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+.lightbox-caption {
+  margin: 14px 0 0;
+  max-width: 60ch;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 10pt;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s ease;
+}
+
+.lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.lightbox-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s ease;
+}
+
+.lightbox-arrow:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.lightbox-arrow[hidden] {
+  display: none;
+}
+
+.lightbox-arrow svg {
+  width: 22px;
+  height: 22px;
+}
+
+.lightbox-prev {
+  left: 16px;
+}
+
+.lightbox-next {
+  right: 16px;
+}
+
+.lightbox-counter {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 @media (max-width: 480px) {
-  .company-logos {
-    width: 100%;
-    max-width: 100%;
+  .lightbox-overlay {
+    padding: 48px 12px;
+  }
+
+  .lightbox-arrow {
+    width: 38px;
+    height: 38px;
+  }
+
+  .lightbox-prev {
+    left: 8px;
+  }
+
+  .lightbox-next {
+    right: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox-overlay {
+    transition: none;
   }
 }
 
@@ -1383,9 +1611,80 @@ nav.identity-links {
   max-width: calc(var(--content-width) + var(--gutter) * 2);
   padding: 0 var(--gutter);
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 200;
+}
+
+.navwrap-row {
+  display: flex;
   align-items: center;
   gap: 12px;
-  z-index: 200;
+}
+
+/* Next/Previous project row — sits above the nav pill, only shown on a work
+   item's case study (see updateWorkNav in site.js). */
+.work-nav-row {
+  display: flex;
+  gap: 10px;
+  transition: opacity 180ms ease;
+}
+
+/* While Next/Previous rebuilds the panel, the row cross-fades instead of the
+   labels instantly popping to the new project's name (see openWorkDetail). */
+.work-nav-row--fading {
+  opacity: 0;
+}
+
+.work-nav-row[hidden] {
+  display: none;
+}
+
+.work-nav-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  background: var(--bg);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: color 0.18s ease, transform 0.12s ease;
+}
+
+.work-nav-btn:hover {
+  color: var(--fg);
+}
+
+.work-nav-btn:active {
+  transform: scale(0.98);
+}
+
+.work-nav-btn svg {
+  flex: 0 0 auto;
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.work-nav-next {
+  justify-content: flex-end;
+}
+
+.work-nav-label {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--fg);
 }
 
 .nav {
@@ -1393,9 +1692,7 @@ nav.identity-links {
   position: relative;
   display: flex;
   height: 56px;
-  background: rgba(255, 255, 255, 0.75);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  backdrop-filter: blur(20px) saturate(160%);
+  background: var(--bg);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 18px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -1517,8 +1814,8 @@ nav.identity-links {
 /*
   Usage:
     <div class="t-stagger">
-      <strong class="t-stagger-line t-stagger-line--1">…</strong>
-      <span class="t-stagger-line t-stagger-line--2">…</span>
+      <strong class="t-stagger-line">…</strong>
+      <span class="t-stagger-line">…</span>
     </div>
 
   State:
@@ -1527,13 +1824,10 @@ nav.identity-links {
       out in place over a short 200ms — independent of the
       entrance timing so the exit doesn't replay the stagger.
 
-  Add more lines by adding `.t-stagger-line--N` with
-  `transition-delay: calc(var(--stagger-stagger) * (N - 1))`.
-
-  Panel content in this project is staggered via JS instead of the
-  numbered modifier classes above — see markStagger() in js/site.js,
-  which sets transition-delay inline as `calc(var(--stagger-stagger) * i)`
-  so lists of any length (work cards, resume rows) stagger correctly.
+  Order comes from markStagger() in js/site.js, which sets each line's
+  transition-delay inline as `calc(var(--stagger-stagger) * i)` — so lists
+  of any length (work cards, resume rows) stagger correctly without needing
+  a numbered CSS class per line.
 */
 
 :root {
@@ -1548,10 +1842,14 @@ nav.identity-links {
    on the parent flips them to their resting state. The second
    line's transition-delay holds it back by --stagger-stagger
    so the eye lands on the headline first. */
+/* --stagger-slide-x defaults to 0px so normal reveals are untouched; the
+   Next/Previous project transition (see openWorkDetail in site.js) sets it
+   on the panel to add a horizontal component alongside the usual vertical
+   rise + blur. */
 .t-stagger-line {
   display: block;
   opacity: 0;
-  transform: translateY(var(--stagger-distance));
+  transform: translate(var(--stagger-slide-x, 0px), var(--stagger-distance));
   filter: blur(var(--stagger-blur));
   transition:
     opacity   var(--stagger-dur) var(--stagger-ease),
@@ -1559,11 +1857,10 @@ nav.identity-links {
     filter    var(--stagger-dur) var(--stagger-ease);
   will-change: transform, opacity, filter;
 }
-.t-stagger-line--2 { transition-delay: var(--stagger-stagger); }
 
 .t-stagger.is-shown .t-stagger-line {
   opacity: 1;
-  transform: translateY(0);
+  transform: translate(0, 0);
   filter: blur(0);
 }
 /* Exit decouples from the stagger: same fade for every line,
@@ -1578,6 +1875,30 @@ nav.identity-links {
     transform 0s linear,
     filter 0s linear;
   transition-delay: 0s;
+}
+
+/* Directional variant used only for Next/Previous project navigation.
+   Unlike `.is-hiding` above, this keeps each line's own inline stagger
+   delay (set by markStagger) so the exit cascades in the same order as an
+   entrance instead of fading everything at once — it slides out toward
+   --stagger-slide-x rather than snapping back to center. */
+.t-stagger.is-hiding-slide .t-stagger-line {
+  opacity: 0;
+  transform: translate(var(--stagger-slide-x, 0px), 0);
+  transition:
+    opacity   var(--stagger-dur) var(--stagger-ease),
+    transform var(--stagger-dur) var(--stagger-ease);
+}
+
+/* Pairs with is-hiding-slide/--stagger-slide-x — suppresses the normal
+   vertical rise + blur so a Next/Previous project transition reads as pure
+   left/right motion instead of the usual diagonal-looking entrance.
+   Specificity (2 classes) beats the base `.t-stagger-line` rule (1 class)
+   but loses to `.is-shown`/`.is-hiding-slide` (3 classes each), which still
+   set the resting/exiting transform values as normal. */
+.t-stagger--h-only .t-stagger-line {
+  transform: translate(var(--stagger-slide-x, 0px), 0);
+  filter: blur(0);
 }
 
 @media (prefers-reduced-motion: reduce) {

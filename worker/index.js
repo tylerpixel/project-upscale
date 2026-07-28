@@ -7,6 +7,52 @@
 
 const ROOT_DOMAIN = "tylerpixel.com";
 
+// ── Security headers ──
+// Applied to every response this worker returns, including static assets.
+//
+// The CSP is deliberately tight on script: there is no inline <script> and no
+// eval anywhere in the site, so 'self' alone holds. 'unsafe-inline' is needed
+// for style only — markStagger()/typeChip() and the panel transitions set
+// style attributes on elements, which style-src governs.
+//
+// The external origins are the storefront's: the Fourthwall catalogue API is
+// read over fetch, and its product photos are served from its image proxy and
+// (for older uploads) Firebase storage.
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: https://imgproxy.fourthwall.dev https://firebasestorage.googleapis.com",
+  "font-src 'self'",
+  "connect-src 'self' https://storefront-api.fourthwall.com",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "base-uri 'none'",
+  "object-src 'none'",
+  "upgrade-insecure-requests",
+].join("; ");
+
+const SECURITY_HEADERS = {
+  "Content-Security-Policy": CSP,
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+  "X-Content-Type-Options": "nosniff",
+  // frame-ancestors above is the modern control; this covers older browsers.
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
+  "Cross-Origin-Opener-Policy": "same-origin",
+  "X-Robots-Tag": "index, follow",
+};
+
+// Response headers are immutable on a fetched Response, so rebuild it. Uses
+// the original as the init so status/statusText/existing headers survive.
+function secure(response, extra) {
+  const out = new Response(response.body, response);
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) out.headers.set(key, value);
+  if (extra) for (const [key, value] of Object.entries(extra)) out.headers.set(key, value);
+  return out;
+}
+
 // Vanity subdomains — <key>.tylerpixel.com redirects to its target. Each one
 // needs a proxied DNS record on the zone; the wildcard route in wrangler.jsonc
 // then brings the request here.
@@ -41,23 +87,25 @@ function redirectFor(request, url, env, ctx) {
   // done off the response path so the redirect never waits on KV.
   if (request.method === "GET") {
     ctx.waitUntil(
-      env.SUBDOMAIN_CLICKS.get(subdomain).then((count) =>
-        env.SUBDOMAIN_CLICKS.put(subdomain, String((parseInt(count, 10) || 0) + 1))
-      )
+      env.SUBDOMAIN_CLICKS.get(subdomain)
+        .then((count) => env.SUBDOMAIN_CLICKS.put(subdomain, String((parseInt(count, 10) || 0) + 1)))
+        .catch(() => {})
     );
   }
 
-  return new Response(null, {
-    // qr stays temporary so the printed code can be repointed later.
-    status: subdomain === "qr" ? 307 : 301,
-    headers: {
-      Location: `https://${target}`,
-      "Cache-Control": "no-store, max-age=0",
-      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
-      "X-Content-Type-Options": "nosniff",
-    },
-  });
+  return secure(
+    new Response(null, {
+      // qr stays temporary so the printed code can be repointed later.
+      status: subdomain === "qr" ? 307 : 301,
+      headers: {
+        Location: `https://${target}`,
+        "Cache-Control": "no-store, max-age=0",
+      },
+    })
+  );
 }
+
+// ── Message form ──
 
 const MSG_FROM = "message@tylerpixel.com";
 const MSG_TO = "gm@tylerpixel.com";
@@ -68,6 +116,13 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_NAME = 120;
 const MAX_EMAIL = 254;
 const MAX_MESSAGE = 5000;
+// Rejected before the body is read at all, so an oversized POST costs nothing.
+const MAX_BODY_BYTES = 16 * 1024;
+
+// Per-IP cap on sends. The window is rolling (each accepted send re-arms the
+// TTL), so a burst can't be topped up at the edge of a fixed window.
+const RATE_MAX = 3;
+const RATE_WINDOW_SEC = 900;
 
 function esc(value) {
   return String(value).replace(
@@ -76,23 +131,81 @@ function esc(value) {
   );
 }
 
-function json(status, body) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
+// Anything interpolated into an email header (the display name, the subject,
+// the Reply-To) must not be able to carry a line break — a bare CR/LF there
+// ends the header and starts one the sender chose. The rest of the C0 range
+// (and DEL) goes with it; none of it belongs in a name or an address.
+const CONTROL_CHARS = /[\u0000-\u001F\u007F]/g;
+
+function headerSafe(value) {
+  return String(value).replace(CONTROL_CHARS, " ").trim();
 }
 
-async function handleMessage(request, env) {
+function json(status, body, extraHeaders) {
+  return secure(
+    new Response(JSON.stringify(body), {
+      status,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store",
+        ...extraHeaders,
+      },
+    })
+  );
+}
+
+// Same-origin only. The browser always sends Origin on a cross-origin-capable
+// POST, so a mismatch (or absence) means the request didn't come from a page
+// on this site — which is the only client the endpoint exists to serve.
+function sameOrigin(request, url) {
+  const origin = request.headers.get("Origin");
+  if (!origin) return false;
+  try {
+    return new URL(origin).host === url.host;
+  } catch (err) {
+    return false;
+  }
+}
+
+async function underRateLimit(env, ip) {
+  if (!ip || !env.SUBDOMAIN_CLICKS) return true;
+  const key = `rl:msg:${ip}`;
+  try {
+    const count = parseInt(await env.SUBDOMAIN_CLICKS.get(key), 10) || 0;
+    if (count >= RATE_MAX) return false;
+    await env.SUBDOMAIN_CLICKS.put(key, String(count + 1), { expirationTtl: RATE_WINDOW_SEC });
+    return true;
+  } catch (err) {
+    // KV trouble shouldn't take the contact form down with it.
+    console.error("Rate-limit check failed:", err);
+    return true;
+  }
+}
+
+async function handleMessage(request, env, url) {
+  if (!sameOrigin(request, url)) {
+    return json(403, { error: "Forbidden." });
+  }
+  if (!(request.headers.get("Content-Type") || "").includes("application/json")) {
+    return json(415, { error: "Expected application/json." });
+  }
+  const declaredLength = parseInt(request.headers.get("Content-Length"), 10);
+  if (declaredLength > MAX_BODY_BYTES) {
+    return json(413, { error: "That message is too long." });
+  }
+
   let data;
   try {
     data = await request.json();
   } catch (err) {
     return json(400, { error: "Expected a JSON body." });
   }
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return json(400, { error: "Expected a JSON body." });
+  }
 
-  const name = String(data.name || "").trim();
-  const email = String(data.email || "").trim();
+  const name = headerSafe(data.name || "");
+  const email = headerSafe(data.email || "");
   const message = String(data.message || "").trim();
 
   // Honeypot — a hidden field humans never see. Report success so bots that
@@ -109,6 +222,12 @@ async function handleMessage(request, env) {
   }
   if (name.length > MAX_NAME || message.length > MAX_MESSAGE) {
     return json(400, { error: "That message is too long." });
+  }
+
+  if (!(await underRateLimit(env, request.headers.get("CF-Connecting-IP")))) {
+    return json(429, { error: "Too many messages just now — please try again later." }, {
+      "Retry-After": String(RATE_WINDOW_SEC),
+    });
   }
 
   try {
@@ -144,9 +263,11 @@ export default {
     }
 
     if (url.pathname === "/api/message") {
-      if (request.method !== "POST") return json(405, { error: "POST only." });
-      return handleMessage(request, env);
+      if (request.method !== "POST") {
+        return json(405, { error: "POST only." }, { Allow: "POST" });
+      }
+      return handleMessage(request, env, url);
     }
-    return env.ASSETS.fetch(request);
+    return secure(await env.ASSETS.fetch(request));
   },
 };

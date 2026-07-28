@@ -1,4 +1,8 @@
 // Project Upscale — renders site content and drives the bottom nav + panel reveals.
+//
+// Loaded as a classic script (not a module) so its top-level declarations stay
+// global: store.js builds on the helpers below, and the local CMS overlay
+// (admin/cms-edit.js) calls openWorkDetail/openPost by name.
 
 const SOCIAL_ICONS = {
   Twitter: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="currentColor"/></svg>`,
@@ -22,10 +26,141 @@ const NAV_ICONS = {
 // glyph. Phosphor "image" (regular).
 const IMAGE_EMPTY_ICON = `<svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V158.75l-26.07-26.06a16,16,0,0,0-22.63,0l-20,20-44-44a16,16,0,0,0-22.62,0L40,149.37V56ZM40,172l52-52,80,80H40Zm176,28H194.63l-36-36,20-20L216,181.38V200ZM144,100a12,12,0,1,1,12,12A12,12,0,0,1,144,100Z"/></svg>`;
 
+// Shown in the Writing panel's empty state.
+const WRITING_EMPTY_ICON = `<svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M227.32,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H216a8,8,0,0,0,0-16H115.32l112-112A16,16,0,0,0,227.32,73.37ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.69,147.32,64l24-24L216,84.69Z"/></svg>`;
+
+// sort.cash mark, inverted for use on its own brand-orange tile: the outer
+// shape is hardcoded white (the "logo"), the inner S is currentColor so a
+// wrapping element can set it to var(--sortcash) and read as a cutout.
+const SORT_CASH_MARK = `<svg viewBox="0 0 362 391" xmlns="http://www.w3.org/2000/svg"><path d="M333.135 28.3222C316.657 11.958 292.975 6.01729 267.285 8.26478L125.586 20.6619C99.8779 22.911 74.8207 33.1327 55.2823 52.7673C35.7648 72.381 25.6099 97.5114 23.3493 123.35L8.26478 295.767C6.01753 321.453 11.9583 345.092 28.1992 361.561C44.4841 378.074 68.0715 384.278 93.9717 382.012L235.671 369.615C261.552 367.351 286.636 356.906 306.164 337.378C325.692 317.85 336.139 292.765 338.403 266.884L353.487 94.4668C355.765 68.4333 349.642 44.7146 333.135 28.3222Z" fill="#ffffff"/><path d="M317.687 129.024C317.302 133.425 313.422 137.305 309.02 137.69L204.564 146.829C200.163 147.214 196.907 143.958 197.292 139.557L200.091 107.559C200.568 102.109 197.533 97.4579 191.588 97.9781L186.633 98.4115C180.688 98.9317 176.786 104.19 176.31 109.64L173.463 142.175C172.683 151.093 177.786 154.58 186.079 155.33L202.664 156.829L269.458 163.276C296.77 165.804 313.089 181.584 310.401 212.302L305.373 269.775C302.079 307.43 276.216 333.292 238.562 336.586L96.8619 348.983C59.2074 352.278 38.0017 330.533 41.2961 292.879L44.8901 251.798C45.2752 247.397 49.1555 243.517 53.5569 243.132L157.518 234.036C161.919 233.651 165.175 236.907 164.79 241.308L161.138 283.048C160.661 288.498 163.739 292.654 169.685 292.134L174.639 291.7C180.585 291.18 184.443 286.418 184.92 280.968L188.619 238.69C189.226 231.754 187.269 226.025 178.48 225.319L165.772 224.464L92.1288 217.632C65.3123 215.062 49.7487 196.265 52.046 170.006L56.3807 120.461C59.7184 82.3107 85.042 56.9871 122.696 53.6928L264.396 41.2956C302.051 38.0013 323.795 59.2069 320.458 97.3569L317.687 129.024Z" fill="currentColor"/></svg>`;
+
+// Work item project-type chip colors. Each type gets its own hue — keep new
+// entries clear of the ones already spoken for.
+const TYPE_COLORS = {
+  Brand: "#2f6fed", // blue
+  "Brand Identity": "#2f6fed",
+  Concept: "#8b5cf6", // violet
+  "UX/UI": "#ff5500", // orange
+  Corporate: "#06b6d4", // cyan
+  Freelance: "#ef4444", // red
+  Ecomm: "#10b981", // emerald
+  Uni: "#e0218a", // magenta
+};
+
+const supportsHover = window.matchMedia("(hover: hover)").matches;
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// ── Escaping and sanitising ──
+//
+// Everything the page renders comes from outside this file: site-content.json
+// (written by the local CMS, which stores rich fields as raw HTML) and the
+// Fourthwall catalogue (third-party HTML authored in their store admin).
+// Neither is a place to trust markup from, so text goes through esc() and
+// markup goes through setHtml()'s allowlist.
+
+const ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+
+function esc(value) {
+  return String(value == null ? "" : value).replace(/[&<>"']/g, (c) => ESCAPES[c]);
+}
+
+// Resolves against the document and checks the scheme that actually results,
+// so encoded or whitespace-padded "javascript:" can't slip past a prefix test.
+function safeUrl(url) {
+  const raw = String(url == null ? "" : url).trim();
+  if (!raw) return "";
+  try {
+    const parsed = new URL(raw, document.baseURI);
+    return /^(https?|mailto):$/.test(parsed.protocol) ? parsed.href : "";
+  } catch (err) {
+    return "";
+  }
+}
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+// Tags rich content is allowed to use, by lowercase local name. Anything else
+// is unwrapped (element dropped, its text kept) so a stray wrapper never
+// silently swallows a paragraph of copy. The SVG shapes are here because the
+// content itself uses them — the sort.cash mention carries that brand mark
+// inline as its tooltip.
+const ALLOWED_TAGS = new Set([
+  "a", "b", "strong", "i", "em", "u", "br", "p", "span", "small", "code", "ul", "ol", "li",
+  "svg", "g", "path", "circle", "ellipse", "rect", "line", "polyline", "polygon",
+]);
+
+// HTML attributes each tag may keep. SVG is governed by the rule below
+// instead: its geometry attributes are many, and none of them can execute.
+const ALLOWED_ATTRS = {
+  a: ["href", "target", "rel", "class", "data-work"],
+  span: ["class"],
+  p: ["class"],
+  li: ["class"],
+  code: ["class"],
+};
+
+// Inside an <svg> everything is presentational except event handlers, links
+// and style. <script>, <use>, <foreignObject> and the <animate> family never
+// get past the tag allowlist, so those exclusions are the whole risk surface.
+// xmlns is dropped because createElementNS has already set the namespace.
+function svgAttrAllowed(name) {
+  const n = name.toLowerCase();
+  return !n.startsWith("on") && !n.includes("href") && n !== "style" && n !== "xmlns";
+}
+
+function sanitizeInto(source, target, doc) {
+  for (const node of Array.from(source.childNodes)) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      target.appendChild(doc.createTextNode(node.nodeValue));
+      continue;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) continue; // comments, CDATA, …
+    const tag = node.localName.toLowerCase();
+    if (!ALLOWED_TAGS.has(tag)) {
+      sanitizeInto(node, target, doc); // unwrap: keep the contents, drop the tag
+      continue;
+    }
+    // An <svg> built with createElement instead of createElementNS is an
+    // unknown HTML element that renders nothing, so the namespace has to
+    // carry over from the parsed source.
+    const isSvg = node.namespaceURI === SVG_NS;
+    const el = isSvg ? doc.createElementNS(SVG_NS, node.localName) : doc.createElement(tag);
+
+    for (const name of node.getAttributeNames()) {
+      const allowed = isSvg ? svgAttrAllowed(name) : (ALLOWED_ATTRS[tag] || []).includes(name);
+      if (!allowed) continue;
+      const value = name === "href" ? safeUrl(node.getAttribute(name)) : node.getAttribute(name);
+      if (value) el.setAttribute(name, value);
+    }
+    // A link that opens a new tab hands that tab a window.opener back into
+    // this page unless it's told not to — so always say so, whatever the
+    // content claimed.
+    if (!isSvg && tag === "a" && el.getAttribute("target") === "_blank") {
+      el.setAttribute("rel", "noopener noreferrer");
+    }
+    sanitizeInto(node, el, doc);
+    target.appendChild(el);
+  }
+}
+
+// Replaces an element's contents with a sanitised copy of `html`. DOMParser is
+// used rather than innerHTML because it neither runs scripts nor fetches
+// resources for the markup it parses, so nothing in the input executes even
+// while it's being inspected.
+function setHtml(el, html) {
+  const dirty = new DOMParser().parseFromString(`<body>${html == null ? "" : html}</body>`, "text/html");
+  const frag = document.createDocumentFragment();
+  sanitizeInto(dirty.body, frag, document);
+  el.replaceChildren(frag);
+  return el;
+}
+
+// ── Small shared builders ──
+
 function emptyImageTile(extraClass) {
   const div = document.createElement("div");
   div.className = `image-empty ${extraClass}`;
-  div.innerHTML = IMAGE_EMPTY_ICON;
+  div.innerHTML = IMAGE_EMPTY_ICON; // constant markup, defined above
   return div;
 }
 
@@ -35,36 +170,41 @@ function attachImageFallback(img, extraClass) {
   img.addEventListener("error", () => img.replaceWith(emptyImageTile(extraClass)));
 }
 
-// Shown in the Writing panel's empty state.
-const WRITING_EMPTY_ICON = `<svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M227.32,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H216a8,8,0,0,0,0-16H115.32l112-112A16,16,0,0,0,227.32,73.37ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.69,147.32,64l24-24L216,84.69Z"/></svg>`;
-
-// sort.cash mark, inverted for use on its own brand-orange tile: the outer
-// shape is hardcoded white (the "logo"), the inner S is currentColor so a
-// wrapping element can set it to var(--sortcash) and read as a cutout.
-const SORT_CASH_MARK = `<svg viewBox="0 0 362 391" xmlns="http://www.w3.org/2000/svg"><path d="M333.135 28.3222C316.657 11.958 292.975 6.01729 267.285 8.26478L125.586 20.6619C99.8779 22.911 74.8207 33.1327 55.2823 52.7673C35.7648 72.381 25.6099 97.5114 23.3493 123.35L8.26478 295.767C6.01753 321.453 11.9583 345.092 28.1992 361.561C44.4841 378.074 68.0715 384.278 93.9717 382.012L235.671 369.615C261.552 367.351 286.636 356.906 306.164 337.378C325.692 317.85 336.139 292.765 338.403 266.884L353.487 94.4668C355.765 68.4333 349.642 44.7146 333.135 28.3222Z" fill="#ffffff"/><path d="M317.687 129.024C317.302 133.425 313.422 137.305 309.02 137.69L204.564 146.829C200.163 147.214 196.907 143.958 197.292 139.557L200.091 107.559C200.568 102.109 197.533 97.4579 191.588 97.9781L186.633 98.4115C180.688 98.9317 176.786 104.19 176.31 109.64L173.463 142.175C172.683 151.093 177.786 154.58 186.079 155.33L202.664 156.829L269.458 163.276C296.77 165.804 313.089 181.584 310.401 212.302L305.373 269.775C302.079 307.43 276.216 333.292 238.562 336.586L96.8619 348.983C59.2074 352.278 38.0017 330.533 41.2961 292.879L44.8901 251.798C45.2752 247.397 49.1555 243.517 53.5569 243.132L157.518 234.036C161.919 233.651 165.175 236.907 164.79 241.308L161.138 283.048C160.661 288.498 163.739 292.654 169.685 292.134L174.639 291.7C180.585 291.18 184.443 286.418 184.92 280.968L188.619 238.69C189.226 231.754 187.269 226.025 178.48 225.319L165.772 224.464L92.1288 217.632C65.3123 215.062 49.7487 196.265 52.046 170.006L56.3807 120.461C59.7184 82.3107 85.042 56.9871 122.696 53.6928L264.396 41.2956C302.051 38.0013 323.795 59.2069 320.458 97.3569L317.687 129.024Z" fill="currentColor"/></svg>`;
-
-// A brand-orange tile carrying the mark above at a fixed pixel size — used
+// A brand-orange tile carrying the sort.cash mark at a fixed pixel size — used
 // wherever sort.cash needs a thumbnail but has no product screenshot to show.
 function sortCashTile(extraClass, size) {
-  return `<div class="work-thumb sort-cash-tile ${extraClass}" style="--tile-icon-size:${size}px">${SORT_CASH_MARK}</div>`;
+  const div = document.createElement("div");
+  div.className = `work-thumb sort-cash-tile ${extraClass}`.trim();
+  div.style.setProperty("--tile-icon-size", `${size}px`);
+  div.innerHTML = SORT_CASH_MARK; // constant markup, defined above
+  return div;
 }
-
-// Work item project-type chip colors.
-const TYPE_COLORS = {
-  Brand: "#2f6fed",
-  "Brand Identity": "#2f6fed",
-  Concept: "#8b5cf6",
-  "UX/UI": "#ff5500",
-  Corporate: "#06b6d4",
-  Freelance: "#ef4444",
-};
 
 function typeChip(type) {
   const color = TYPE_COLORS[type] || "#666666";
-  return `<span class="work-chip work-chip--type" style="color:${color};background:${color}1a;">${type}</span>`;
+  return `<span class="work-chip work-chip--type" style="color:${color};background:${color}1a;">${esc(type)}</span>`;
 }
 
-const supportsHover = window.matchMedia("(hover: hover)").matches;
+// The year + type chips shared by work cards and their case-study pages.
+function chipsMarkup(project) {
+  const year = project.year ? `<span class="work-chip work-chip--year">${esc(project.year)}</span>` : "";
+  return `${year}${(project.types || []).map(typeChip).join("")}`;
+}
+
+// Cards, writing rows and gallery images are all divs/images acting as
+// buttons — same role, same tabindex, same Enter/Space contract.
+function makeActivatable(el, label, onActivate) {
+  el.setAttribute("role", "button");
+  el.setAttribute("tabindex", "0");
+  if (label) el.setAttribute("aria-label", label);
+  el.addEventListener("click", onActivate);
+  el.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onActivate();
+    }
+  });
+}
 
 function flashToast(el) {
   if (supportsHover) return;
@@ -94,6 +234,10 @@ function revealPanel(panel) {
 }
 
 function transitionPanels(current, next) {
+  // Panels share the document's scroll position (they're shown/hidden, not
+  // navigated to), so without this a switch — especially Next/Previous
+  // project — can land mid-page with no visible sign anything changed.
+  window.scrollTo(0, 0);
   if (!current) {
     revealPanel(next);
     return;
@@ -107,6 +251,56 @@ function transitionPanels(current, next) {
   }, STAGGER_EXIT_MS);
 }
 
+// ── Overlays — the tray and the lightbox ──
+//
+// Both are fixed full-screen layers that fade in, lock the page behind them,
+// and close on Escape or a backdrop click. This holds that shared half; each
+// only supplies its own contents.
+
+// Ordered, so Escape closes the topmost layer rather than everything at once.
+const openOverlays = new Set();
+
+// Long enough to outlast the CSS fade. Also the reason the close doesn't rely
+// on transitionend alone: under prefers-reduced-motion the transition is
+// removed entirely and that event never fires, which would leave the tray
+// invisible but still swallowing clicks.
+const OVERLAY_FADE_MS = 400;
+
+function showOverlay(el) {
+  el.hidden = false;
+  // Force a reflow so the layer animates up from its offset start state
+  // instead of snapping straight to its open position.
+  void el.offsetWidth;
+  el.classList.add("open");
+  openOverlays.add(el);
+  document.body.style.overflow = "hidden";
+}
+
+function hideOverlay(el) {
+  if (!el || el.hidden) return;
+  el.classList.remove("open");
+  openOverlays.delete(el);
+  // Only hand the page its scroll back once nothing is layered over it.
+  if (!openOverlays.size) document.body.style.overflow = "";
+  clearTimeout(el._fadeTimer);
+  el._fadeTimer = setTimeout(() => {
+    el.hidden = true;
+  }, prefersReducedMotion ? 0 : OVERLAY_FADE_MS);
+}
+
+function closeOnBackdrop(el) {
+  el.addEventListener("click", (e) => {
+    if (e.target === el) hideOverlay(el);
+  });
+}
+
+// One handler for both layers. Closing only the topmost is what stops Escape
+// in the lightbox from also dismissing the tray underneath it.
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape" || !openOverlays.size) return;
+  hideOverlay(Array.from(openOverlays).pop());
+});
+
 // ── Tray — shared bottom sheet. The cart (store.js) and the message form
 // (below) are views inside the same sheet; openTray swaps between them. ──
 
@@ -118,43 +312,103 @@ function openTray(view, title) {
   document.querySelectorAll(".tray-view").forEach((v) => {
     v.hidden = v.dataset.view !== view;
   });
-  overlay.hidden = false;
-  // Force a reflow so the sheet animates up from its offset start state
-  // instead of snapping straight to its open position.
-  void overlay.offsetWidth;
-  overlay.classList.add("open");
-  document.body.style.overflow = "hidden";
+  showOverlay(overlay);
 }
 
 function closeTray() {
-  const overlay = document.getElementById("trayOverlay");
-  if (!overlay || overlay.hidden) return;
-  overlay.classList.remove("open");
-  document.body.style.overflow = "";
-  const done = () => {
-    overlay.hidden = true;
-    overlay.removeEventListener("transitionend", done);
-  };
-  overlay.addEventListener("transitionend", done);
+  hideOverlay(document.getElementById("trayOverlay"));
 }
 
 function initTray() {
   const overlay = document.getElementById("trayOverlay");
+  if (overlay) closeOnBackdrop(overlay);
+
   const close = document.getElementById("trayClose");
-  if (overlay) {
-    overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) closeTray();
-    });
-  }
   if (close) close.addEventListener("click", closeTray);
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeTray();
-  });
 
   const form = document.getElementById("msgForm");
   if (form) form.addEventListener("submit", handleMsgSubmit);
   const back = document.getElementById("msgBack");
   if (back) back.addEventListener("click", () => showMsgStep(Math.max(0, msgStepIndex - 1)));
+}
+
+// ── Lightbox — full-size viewer for a work item's gallery images, opened by
+// clicking any gallery image. Cycles within that same project's images via
+// the on-screen arrows, arrow keys, or (on touch) a swipe. ──
+
+let lightboxImages = [];
+let lightboxIndex = 0;
+
+function renderLightboxImage() {
+  const image = lightboxImages[lightboxIndex];
+  if (!image) return;
+  const img = document.getElementById("lightboxImage");
+  img.src = safeUrl(image.src) || "";
+  img.alt = image.caption || "";
+  document.getElementById("lightboxCaption").textContent = image.caption || "";
+
+  const multi = lightboxImages.length > 1;
+  document.getElementById("lightboxPrev").hidden = !multi;
+  document.getElementById("lightboxNext").hidden = !multi;
+  document.getElementById("lightboxCounter").textContent = multi
+    ? `${lightboxIndex + 1} / ${lightboxImages.length}`
+    : "";
+}
+
+function openLightbox(images, startIndex) {
+  const overlay = document.getElementById("lightboxOverlay");
+  if (!overlay || !images || !images.length) return;
+  lightboxImages = images;
+  lightboxIndex = startIndex || 0;
+  renderLightboxImage();
+  showOverlay(overlay);
+}
+
+function closeLightbox() {
+  hideOverlay(document.getElementById("lightboxOverlay"));
+}
+
+function stepLightbox(delta) {
+  if (!lightboxImages.length) return;
+  lightboxIndex = (lightboxIndex + delta + lightboxImages.length) % lightboxImages.length;
+  renderLightboxImage();
+}
+
+function initLightbox() {
+  const overlay = document.getElementById("lightboxOverlay");
+  if (!overlay) return;
+
+  closeOnBackdrop(overlay);
+  document.getElementById("lightboxClose").addEventListener("click", closeLightbox);
+  document.getElementById("lightboxPrev").addEventListener("click", () => stepLightbox(-1));
+  document.getElementById("lightboxNext").addEventListener("click", () => stepLightbox(1));
+
+  document.addEventListener("keydown", (e) => {
+    if (overlay.hidden) return;
+    if (e.key === "ArrowLeft") stepLightbox(-1);
+    else if (e.key === "ArrowRight") stepLightbox(1);
+  });
+
+  // Touch swipe — left/right past a small threshold steps the gallery,
+  // anything smaller is treated as a tap and left alone.
+  let touchStartX = null;
+  overlay.addEventListener(
+    "touchstart",
+    (e) => {
+      touchStartX = e.touches[0].clientX;
+    },
+    { passive: true }
+  );
+  overlay.addEventListener(
+    "touchend",
+    (e) => {
+      if (touchStartX === null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      touchStartX = null;
+      if (Math.abs(dx) > 40) stepLightbox(dx > 0 ? -1 : 1);
+    },
+    { passive: true }
+  );
 }
 
 // ── Message form — the multi-step (name → email → message) flow behind the FAB ──
@@ -165,6 +419,12 @@ function initTray() {
 const MSG_ENDPOINT = "/api/message";
 
 const MSG_STEPS = ["name", "email", "message"];
+const MSG_INPUT_IDS = { name: "msgName", email: "msgEmail", message: "msgBody" };
+const MSG_PROMPTS = {
+  name: "Please tell me your name.",
+  email: "Please enter your email.",
+  message: "Please write a message.",
+};
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 let msgStepIndex = 0;
@@ -176,9 +436,7 @@ function setMsgError(text) {
 }
 
 function msgInputFor(step) {
-  return document.getElementById(
-    step === "name" ? "msgName" : step === "email" ? "msgEmail" : "msgBody"
-  );
+  return document.getElementById(MSG_INPUT_IDS[step]);
 }
 
 function showMsgStep(index) {
@@ -233,13 +491,7 @@ function handleMsgSubmit(e) {
   const value = msgInputFor(step).value.trim();
 
   if (!value) {
-    setMsgError(
-      step === "name"
-        ? "Please tell me your name."
-        : step === "email"
-          ? "Please enter your email."
-          : "Please write a message."
-    );
+    setMsgError(MSG_PROMPTS[step]);
     msgInputFor(step).focus();
     return;
   }
@@ -258,10 +510,6 @@ function handleMsgSubmit(e) {
 }
 
 async function sendMessage() {
-  const name = document.getElementById("msgName").value.trim();
-  const email = document.getElementById("msgEmail").value.trim();
-  const message = document.getElementById("msgBody").value.trim();
-
   const next = document.getElementById("msgNext");
   next.disabled = true;
   next.textContent = "Sending…";
@@ -269,31 +517,50 @@ async function sendMessage() {
     const res = await fetch(MSG_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
+      // The endpoint is same-origin and takes no credentials; say so rather
+      // than leaving it to the default.
+      credentials: "omit",
       body: JSON.stringify({
-        name,
-        email,
-        message,
+        name: document.getElementById("msgName").value.trim(),
+        email: document.getElementById("msgEmail").value.trim(),
+        message: document.getElementById("msgBody").value.trim(),
         // Honeypot — hidden from humans, so anything in it flags a bot.
         company: document.getElementById("msgCompany").value,
       }),
     });
-    if (!res.ok) throw new Error(`Endpoint responded ${res.status}`);
+    if (!res.ok) {
+      // The worker explains the refusal (rate limit, oversized) — pass that on
+      // rather than the generic failure, when it has something to say.
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `Endpoint responded ${res.status}`);
+    }
     showMsgDone("Message sent", "Thanks — I'll get back to you soon.");
   } catch (err) {
     console.error("Could not send message:", err);
-    setMsgError("Couldn't send right now. Please try again.");
+    setMsgError(err.message || "Couldn't send right now. Please try again.");
     next.disabled = false;
     next.textContent = "Send";
   }
 }
 
+// ── Content load ──
+
+// Kicked off at parse time rather than on DOMContentLoaded, so the request is
+// in flight while the rest of the document is still being parsed. store.js
+// awaits this same promise instead of fetching the file a second time.
+const contentReady = fetch("data/site-content.json", { credentials: "omit" }).then((res) => {
+  if (!res.ok) throw new Error(`Content responded ${res.status}`);
+  return res.json();
+});
+window.__contentReady = contentReady;
+
 document.addEventListener("DOMContentLoaded", async () => {
   initTray();
+  initLightbox();
 
   let content;
   try {
-    const res = await fetch("data/site-content.json");
-    content = await res.json();
+    content = await contentReady;
   } catch (err) {
     console.error("Error loading site content:", err);
     return;
@@ -305,7 +572,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.__siteContent = content;
 
   const tabLabel = (id, fallback) =>
-    (content.tabs && content.tabs.find((t) => t.id === id) || {}).label || fallback;
+    ((content.tabs && content.tabs.find((t) => t.id === id)) || {}).label || fallback;
 
   renderIdentity(content.profile);
   renderIntro(content.intro);
@@ -323,15 +590,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 // The action is a download link when given an href, or a plain button when
 // given an onClick (the Store's cart trigger) — returns it so callers can
 // keep updating it, e.g. the live cart count.
-function renderPanelHeading(panel, label, actionHref, actionText, onClick) {
-  const heading = document.createElement("div");
-  heading.className = "panel-heading";
+//
+// `sub` switches it to the smaller in-panel variant used for "Resume" and
+// "Social", which is the same row with a <p> title instead of an <h1>.
+function renderHeading(panel, label, { actionHref, actionText, onClick, index = 0, sub = false } = {}) {
+  const row = document.createElement("div");
+  row.className = sub ? "panel-subheading" : "panel-heading";
 
-  const title = document.createElement("h1");
+  const title = document.createElement(sub ? "p" : "h1");
   title.className = "page-title";
   title.textContent = label;
-  markStagger(title, 0);
-  heading.appendChild(title);
+  if (!sub) markStagger(title, index);
+  row.appendChild(title);
 
   let action = null;
   if (actionHref || onClick) {
@@ -341,17 +611,24 @@ function renderPanelHeading(panel, label, actionHref, actionText, onClick) {
       action.type = "button";
       action.addEventListener("click", onClick);
     } else {
-      action.href = actionHref;
+      action.href = safeUrl(actionHref) || "#";
       action.download = "";
     }
     action.textContent = actionText;
-    action.setAttribute("aria-label", actionText);
-    markStagger(action, 0);
-    heading.appendChild(action);
+    action.setAttribute("aria-label", sub ? `${actionText} ${label.toLowerCase()}` : actionText);
+    if (!sub) markStagger(action, index);
+    row.appendChild(action);
   }
 
-  panel.appendChild(heading);
+  // The sub variant staggers as one row; the main heading staggers its parts.
+  if (sub) markStagger(row, index);
+  panel.appendChild(row);
   return action;
+}
+
+// Kept as a named wrapper because store.js calls it.
+function renderPanelHeading(panel, label, actionHref, actionText, onClick) {
+  return renderHeading(panel, label, { actionHref, actionText, onClick });
 }
 
 // Gives inline text links (e.g. the sort.cash mention) the same hover/tap
@@ -387,6 +664,9 @@ function initFab(contact) {
   });
 }
 
+// Byline shown on writing posts — filled from profile.name in site-content.json.
+let authorName = "Tyler Patterson";
+
 function renderIdentity(profile) {
   if (!profile) return;
   authorName = profile.name || authorName;
@@ -396,13 +676,16 @@ function renderIdentity(profile) {
 function renderSocialRow(row, social) {
   if (!row || !social) return;
   social.forEach((s) => {
+    const href = safeUrl(s.url);
+    if (!href) return;
     const a = document.createElement("a");
-    a.href = s.url;
-    if (!s.url.startsWith("mailto:")) {
+    a.href = href;
+    if (!href.startsWith("mailto:")) {
       a.target = "_blank";
       a.rel = "noopener noreferrer";
     }
     a.setAttribute("aria-label", s.name);
+    // Keyed lookup into a constant map — never the content's own markup.
     a.innerHTML = SOCIAL_ICONS[s.name] || "";
     row.appendChild(a);
   });
@@ -412,12 +695,12 @@ function renderIntro(intro) {
   const panel = document.getElementById("panel-intro");
   if (!intro || !panel) return;
   const paragraphs = intro.paragraphs || [];
-  panel.innerHTML = "";
+  panel.replaceChildren();
   let idx = 0;
   paragraphs.forEach((p, i) => {
     const el = document.createElement("p");
     if (i === 0) el.className = "section-introduction";
-    el.innerHTML = p;
+    setHtml(el, p);
     markStagger(el, idx++);
     panel.appendChild(el);
   });
@@ -445,7 +728,7 @@ function renderIntro(intro) {
           el = document.createElement("img");
           el.className = "company-logo";
           el.src = c.logo;
-          el.alt = isDuplicate ? "" : c.name;
+          el.alt = isDuplicate ? "" : c.name || "";
           el.loading = "lazy";
           attachImageFallback(el, "company-logo");
         } else {
@@ -466,8 +749,8 @@ function renderWork(work, label) {
   const panel = document.getElementById("panel-work");
   if (!panel) return;
   workProjects = work || [];
-  panel.innerHTML = "";
-  renderPanelHeading(panel, label || "Selected Works");
+  panel.replaceChildren();
+  renderHeading(panel, label || "Selected Works");
 
   if (!work || !work.length) {
     const empty = document.createElement("p");
@@ -481,47 +764,48 @@ function renderWork(work, label) {
   work.forEach((project, i) => {
     const card = document.createElement("div");
     card.className = "work-card";
-    card.setAttribute("role", "button");
-    card.setAttribute("tabindex", "0");
-    card.setAttribute("aria-label", `View ${project.title} case study`);
-    const thumb =
-      project.slug === "sort-cash"
-        ? sortCashTile("", 32)
-        : project.image
-          ? `<img class="work-thumb" src="${project.image}" alt="${project.title}" loading="lazy" />`
-          : `<div class="work-thumb image-empty">${IMAGE_EMPTY_ICON}</div>`;
-    card.innerHTML = `
-      ${thumb}
-      <div class="work-head">
-        <p class="work-title">${project.title}</p>
-        <div class="work-chips">
-          ${project.year ? `<span class="work-chip work-chip--year">${project.year}</span>` : ""}
-          ${(project.types || []).map(typeChip).join("")}
-        </div>
-      </div>
-      ${project.description ? `<p class="work-description">${project.description}</p>` : ""}
+
+    if (project.slug === "sort-cash") {
+      card.appendChild(sortCashTile("", 32));
+    } else if (project.image) {
+      const img = document.createElement("img");
+      img.className = "work-thumb";
+      img.src = project.image;
+      img.alt = project.title || "";
+      img.loading = "lazy";
+      attachImageFallback(img, "work-thumb");
+      card.appendChild(img);
+    } else {
+      card.appendChild(emptyImageTile("work-thumb"));
+    }
+
+    const head = document.createElement("div");
+    head.className = "work-head";
+    head.innerHTML = `
+      <p class="work-title">${esc(project.title)}</p>
+      <div class="work-chips">${chipsMarkup(project)}</div>
     `;
-    const thumbImg = card.querySelector("img.work-thumb");
-    if (thumbImg) attachImageFallback(thumbImg, "work-thumb");
-    card.addEventListener("click", () => openWorkDetail(project));
-    card.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        openWorkDetail(project);
-      }
-    });
+    card.appendChild(head);
+
+    if (project.description) {
+      const desc = document.createElement("p");
+      desc.className = "work-description";
+      setHtml(desc, project.description);
+      card.appendChild(desc);
+    }
+
+    makeActivatable(card, `View ${project.title} case study`, () => openWorkDetail(project));
     markStagger(card, i + 1);
     list.appendChild(card);
   });
   panel.appendChild(list);
 }
 
-// Work-item case-study page — not a nav tab, only reachable by clicking a
-// work card. Reuses the same panel transition machinery as the tabs.
-function openWorkDetail(project) {
-  const panel = document.getElementById("panel-work-detail");
-  if (!panel) return;
-  panel.innerHTML = "";
+// Builds the case-study markup for a project into an already-emptied panel.
+// Split out from openWorkDetail so the Next/Previous transition can rebuild
+// the panel's content mid-animation, after the old content has slid out.
+function buildWorkDetailContent(panel, project) {
+  panel.replaceChildren();
   panel.dataset.slug = project.slug || ""; // read by the local CMS overlay only
 
   const back = document.createElement("a");
@@ -530,7 +814,8 @@ function openWorkDetail(project) {
   back.textContent = "← Back to Selected Works";
   back.addEventListener("click", (e) => {
     e.preventDefault();
-    transitionPanels(document.getElementById("panel-work-detail"), document.getElementById("panel-work"));
+    transitionPanels(panel, document.getElementById("panel-work"));
+    updateWorkNav(null);
   });
   markStagger(back, 0);
   panel.appendChild(back);
@@ -538,14 +823,12 @@ function openWorkDetail(project) {
   let hero;
   if (project.slug === "sort-cash") {
     // Same tile as the work-list thumb, not a scaled-up variant.
-    hero = document.createElement("div");
-    hero.innerHTML = sortCashTile("work-detail-image", 32);
-    hero = hero.firstElementChild;
+    hero = sortCashTile("work-detail-image", 32);
   } else if (project.image) {
     hero = document.createElement("img");
     hero.className = "work-detail-image";
     hero.src = project.image;
-    hero.alt = project.title;
+    hero.alt = project.title || "";
     attachImageFallback(hero, "work-detail-image");
   } else {
     hero = emptyImageTile("work-detail-image");
@@ -556,29 +839,58 @@ function openWorkDetail(project) {
   const head = document.createElement("div");
   head.className = "work-head";
   head.innerHTML = `
-    <p class="work-title work-detail-title">${project.title}</p>
-    <div class="work-chips">
-      ${project.year ? `<span class="work-chip work-chip--year">${project.year}</span>` : ""}
-      ${(project.types || []).map(typeChip).join("")}
-    </div>
+    <p class="work-title work-detail-title">${esc(project.title)}</p>
+    <div class="work-chips">${chipsMarkup(project)}</div>
   `;
   markStagger(head, 2);
   panel.appendChild(head);
 
   const body = document.createElement("p");
   body.className = "work-detail-body"; // hook for the local CMS overlay
-  body.innerHTML = project.caseStudy || project.description || "";
+  setHtml(body, project.caseStudy || project.description || "");
   markStagger(body, 3);
   panel.appendChild(body);
 
   let idx = 4;
 
-  if (project.link && project.link.url) {
+  if (project.images && project.images.length) {
+    const gallery = document.createElement("div");
+    gallery.className = "work-gallery";
+    project.images.forEach((image, i) => {
+      const figure = document.createElement("figure");
+      figure.className = "work-gallery-item";
+
+      const img = document.createElement("img");
+      img.className = "work-gallery-image";
+      img.src = image.src;
+      img.alt = image.caption || project.title || "";
+      img.loading = "lazy";
+      attachImageFallback(img, "work-gallery-image");
+      makeActivatable(img, `Enlarge image${image.caption ? `: ${image.caption}` : ""}`, () =>
+        openLightbox(project.images, i)
+      );
+      figure.appendChild(img);
+
+      if (image.caption) {
+        const caption = document.createElement("figcaption");
+        caption.className = "work-gallery-caption";
+        caption.textContent = image.caption;
+        figure.appendChild(caption);
+      }
+
+      markStagger(figure, idx++);
+      gallery.appendChild(figure);
+    });
+    panel.appendChild(gallery);
+  }
+
+  const visitHref = project.link && safeUrl(project.link.url);
+  if (visitHref) {
     const visit = document.createElement("p");
     visit.className = "detail-link-row";
     const a = document.createElement("a");
     a.className = "inline-link";
-    a.href = project.link.url;
+    a.href = visitHref;
     a.target = "_blank";
     a.rel = "noopener noreferrer";
     a.textContent = project.link.label || "Visit site";
@@ -604,10 +916,119 @@ function openWorkDetail(project) {
     markStagger(row, idx++);
     panel.appendChild(row);
   }
+}
 
-  const current = document.querySelector(".panel:not([hidden])");
-  transitionPanels(current, panel);
+// How far (px) the Next/Previous project transition slides content horizontally.
+const WORK_NAV_SLIDE_PX = 28;
+
+// The Next/Previous transition uses its own short, fixed timing instead of
+// the default --stagger-dur/--stagger-stagger (500ms / 40ms per line) — at
+// the default pace, a gallery-heavy project's exit alone could take the
+// better part of a second, leaving a long blank gap before the new project
+// even starts appearing. Old content is destroyed on rebuild regardless of
+// how far its own fade got, so cutting the exit short is free; overriding
+// the CSS vars keeps the visible motion's speed matched to that cut.
+const WORK_NAV_EXIT_MS = 160;
+const WORK_NAV_STAGGER_DUR_MS = 200;
+const WORK_NAV_STAGGER_GAP_MS = 10;
+
+// Bumped on every openWorkDetail call so a pending directional rebuild (see
+// below) can tell it's been superseded — by a second quick Next/Previous
+// click, or by navigating away entirely — and skip instead of landing late.
+let workDetailToken = 0;
+
+// Work-item case-study page — not a nav tab, only reachable by clicking a
+// work card (or the Next/Previous project buttons, which pass `direction`).
+function openWorkDetail(project, direction) {
+  const panel = document.getElementById("panel-work-detail");
+  if (!panel) return;
+
+  const isCurrent = panel === document.querySelector(".panel:not([hidden])");
+
+  if (direction && isCurrent) {
+    // Already reading a case study and paging to a neighbor: slide the
+    // current content out toward the side opposite the clicked button, then
+    // rebuild the panel for the new project and slide it in from the side
+    // the button points to — both moves share one direction, like a
+    // filmstrip sliding past rather than two separate fades. `t-stagger--h-only`
+    // strips the normal vertical rise + blur for this one transition so it
+    // reads as pure left/right motion, not a diagonal entrance. The
+    // shortened --stagger-dur/--stagger-stagger keep the gap where nothing's
+    // on screen (between the exit finishing and the new content appearing)
+    // short instead of stretching out with the default, slower pace.
+    window.scrollTo(0, 0);
+    const exitX = direction === "prev" ? WORK_NAV_SLIDE_PX : -WORK_NAV_SLIDE_PX;
+    const enterX = -exitX;
+    const exitMs = prefersReducedMotion ? 0 : WORK_NAV_EXIT_MS;
+    const token = ++workDetailToken;
+    const navRow = document.getElementById("workNavRow");
+
+    panel.style.setProperty("--stagger-slide-x", `${exitX}px`);
+    panel.style.setProperty("--stagger-dur", `${WORK_NAV_STAGGER_DUR_MS}ms`);
+    panel.style.setProperty("--stagger-stagger", `${WORK_NAV_STAGGER_GAP_MS}ms`);
+    panel.classList.add("t-stagger--h-only");
+    panel.classList.remove("is-shown");
+    panel.classList.add("is-hiding-slide");
+    // The Next/Previous labels are about to change to the next pair of
+    // neighbors — cross-fade them instead of letting the text snap.
+    if (navRow) navRow.classList.add("work-nav-row--fading");
+
+    setTimeout(() => {
+      // Superseded by another Next/Previous click, or the panel was
+      // navigated away from (e.g. "Back to Selected Works") mid-exit.
+      if (token !== workDetailToken || panel.hidden) return;
+      panel.classList.remove("is-hiding-slide");
+      buildWorkDetailContent(panel, project);
+      panel.style.setProperty("--stagger-slide-x", `${enterX}px`);
+      void panel.offsetWidth; // force reflow so the enter offset registers before animating to 0
+      requestAnimationFrame(() => {
+        panel.classList.add("is-shown");
+      });
+      initInlineLinkTooltips(panel);
+      updateWorkNav(project);
+      if (navRow) requestAnimationFrame(() => navRow.classList.remove("work-nav-row--fading"));
+    }, exitMs);
+    return;
+  }
+
+  workDetailToken++; // invalidate any directional rebuild still pending
+  buildWorkDetailContent(panel, project);
+  // Clear any leftover state from a previous Next/Previous transition so a
+  // plain (card-click) open always reveals straight up, at the normal pace.
+  panel.style.removeProperty("--stagger-slide-x");
+  panel.style.removeProperty("--stagger-dur");
+  panel.style.removeProperty("--stagger-stagger");
+  panel.classList.remove("t-stagger--h-only");
+  transitionPanels(document.querySelector(".panel:not([hidden])"), panel);
   initInlineLinkTooltips(panel);
+  updateWorkNav(project);
+}
+
+// Next/Previous project row, shown above the bottom nav only on a work-item
+// case study — lets you page straight to the neighboring project without
+// backing out to the Selected Works list first.
+function updateWorkNav(project) {
+  const row = document.getElementById("workNavRow");
+  const prevBtn = document.getElementById("workPrevBtn");
+  const nextBtn = document.getElementById("workNextBtn");
+  if (!row || !prevBtn || !nextBtn) return;
+
+  const i = project ? workProjects.indexOf(project) : -1;
+  if (i === -1 || workProjects.length < 2) {
+    row.hidden = true;
+    return;
+  }
+
+  const prevProject = workProjects[(i - 1 + workProjects.length) % workProjects.length];
+  const nextProject = workProjects[(i + 1) % workProjects.length];
+
+  row.hidden = false;
+  prevBtn.querySelector(".work-nav-label").textContent = prevProject.title;
+  nextBtn.querySelector(".work-nav-label").textContent = nextProject.title;
+  prevBtn.setAttribute("aria-label", `Previous project: ${prevProject.title}`);
+  nextBtn.setAttribute("aria-label", `Next project: ${nextProject.title}`);
+  prevBtn.onclick = () => openWorkDetail(prevProject, "prev");
+  nextBtn.onclick = () => openWorkDetail(nextProject, "next");
 }
 
 // Writing posts are looked up by slug from both the Writing list and any work
@@ -633,8 +1054,8 @@ let syncNavSelection = () => {};
 function renderWriting(writing, label) {
   const panel = document.getElementById("panel-writing");
   if (!panel) return;
-  panel.innerHTML = "";
-  renderPanelHeading(panel, label || "Writing");
+  panel.replaceChildren();
+  renderHeading(panel, label || "Writing");
 
   writingPosts = (writing && writing.posts) || [];
 
@@ -643,8 +1064,8 @@ function renderWriting(writing, label) {
     empty.className = "writing-empty";
     empty.innerHTML = `
       <span class="writing-empty-icon">${WRITING_EMPTY_ICON}</span>
-      <p class="writing-empty-title">${(writing && writing.disclaimer) || "Coming soon"}</p>
-      <p class="writing-empty-subtitle">${(writing && writing.subtitle) || ""}</p>
+      <p class="writing-empty-title">${esc((writing && writing.disclaimer) || "Coming soon")}</p>
+      <p class="writing-empty-subtitle">${esc((writing && writing.subtitle) || "")}</p>
     `;
     markStagger(empty, 1);
     panel.appendChild(empty);
@@ -656,37 +1077,30 @@ function renderWriting(writing, label) {
   writingPosts.forEach((post, i) => {
     const item = document.createElement("div");
     item.className = "writing-item";
-    item.setAttribute("role", "button");
-    item.setAttribute("tabindex", "0");
-    item.setAttribute("aria-label", `Read ${post.title}`);
     item.innerHTML = `
       <div class="writing-item-head">
-        <p class="writing-item-title">${post.title}</p>
-        ${post.date ? `<span class="work-chip work-chip--year">${post.date}</span>` : ""}
+        <p class="writing-item-title">${esc(post.title)}</p>
+        ${post.date ? `<span class="work-chip work-chip--year">${esc(post.date)}</span>` : ""}
       </div>
-      ${post.summary ? `<p class="writing-item-summary">${post.summary}</p>` : ""}
     `;
-    item.addEventListener("click", () => openPost(post));
-    item.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        openPost(post);
-      }
-    });
+    if (post.summary) {
+      const summary = document.createElement("p");
+      summary.className = "writing-item-summary";
+      setHtml(summary, post.summary);
+      item.appendChild(summary);
+    }
+    makeActivatable(item, `Read ${post.title}`, () => openPost(post));
     markStagger(item, i + 1);
     list.appendChild(item);
   });
   panel.appendChild(list);
 }
 
-// Byline shown on writing posts — filled from profile.name in site-content.json.
-let authorName = "Tyler Patterson";
-
 // Post page — not a nav tab, reachable from the Writing list or a work case study.
 function openPost(post) {
   const panel = document.getElementById("panel-writing-detail");
   if (!panel) return;
-  panel.innerHTML = "";
+  panel.replaceChildren();
   panel.dataset.slug = post.slug || ""; // read by the local CMS overlay only
 
   const back = document.createElement("a");
@@ -703,8 +1117,8 @@ function openPost(post) {
   const head = document.createElement("div");
   head.className = "post-head";
   head.innerHTML = `
-    <p class="work-title work-detail-title">${post.title}</p>
-    <p class="post-meta">By ${authorName}${post.date ? ` · ${post.date}` : ""}</p>
+    <p class="work-title work-detail-title">${esc(post.title)}</p>
+    <p class="post-meta">By ${esc(authorName)}${post.date ? ` · ${esc(post.date)}` : ""}</p>
   `;
   markStagger(head, 1);
   panel.appendChild(head);
@@ -712,48 +1126,23 @@ function openPost(post) {
   (post.body || []).forEach((text, i) => {
     const p = document.createElement("p");
     p.className = "post-paragraph";
-    p.innerHTML = text;
+    setHtml(p, text);
     markStagger(p, i + 2);
     panel.appendChild(p);
   });
 
   transitionPanels(document.querySelector(".panel:not([hidden])"), panel);
   initInlineLinkTooltips(panel);
-}
-
-// Sub-section label inside a panel, with an optional action on the right —
-// e.g. "Resume" paired with its Download link.
-function renderSubheading(panel, text, actionHref, actionText, index) {
-  const row = document.createElement("div");
-  row.className = "panel-subheading";
-
-  const label = document.createElement("p");
-  label.className = "page-title";
-  label.textContent = text;
-  row.appendChild(label);
-
-  if (actionHref) {
-    const action = document.createElement("a");
-    action.className = "resume-download";
-    action.href = actionHref;
-    action.download = "";
-    action.textContent = actionText;
-    action.setAttribute("aria-label", `${actionText} ${text.toLowerCase()}`);
-    row.appendChild(action);
-  }
-
-  markStagger(row, index);
-  panel.appendChild(row);
+  updateWorkNav(null);
 }
 
 function renderContact(contact, label, social, version) {
   const panel = document.getElementById("panel-contact");
   if (!contact || !panel) return;
-  panel.innerHTML = "";
-  let idx = 0;
+  panel.replaceChildren();
 
-  renderPanelHeading(panel, label || "About");
-  idx = 1;
+  renderHeading(panel, label || "About");
+  let idx = 1;
 
   if (contact.portrait) {
     const row = document.createElement("div");
@@ -780,7 +1169,7 @@ function renderContact(contact, label, social, version) {
   (contact.about || []).forEach((text) => {
     const p = document.createElement("p");
     p.className = "about-paragraph";
-    p.innerHTML = text;
+    setHtml(p, text);
     // Mentions of Selected Works are marked with data-work="<slug>" in the
     // content JSON — wire them straight into the matching case study. The
     // toast is added here so initInlineLinkTooltips doesn't fall back to a
@@ -807,7 +1196,12 @@ function renderContact(contact, label, social, version) {
   });
 
   if (contact.resume && contact.resume.length) {
-    renderSubheading(panel, "Resume", contact.resumeFile, "Download", idx++);
+    renderHeading(panel, "Resume", {
+      actionHref: contact.resumeFile,
+      actionText: "Download",
+      index: idx++,
+      sub: true,
+    });
 
     const list = document.createElement("div");
     list.className = "resume-list";
@@ -815,8 +1209,8 @@ function renderContact(contact, label, social, version) {
       const item = document.createElement("div");
       item.className = "resume-item";
       item.innerHTML = `
-        <p class="resume-title">${r.title}</p>
-        <p class="resume-meta"><span class="resume-place">${r.place}</span> · <span class="resume-date">${r.date}</span></p>
+        <p class="resume-title">${esc(r.title)}</p>
+        <p class="resume-meta"><span class="resume-place">${esc(r.place)}</span> · <span class="resume-date">${esc(r.date)}</span></p>
       `;
       markStagger(item, idx + i);
       list.appendChild(item);
@@ -826,7 +1220,7 @@ function renderContact(contact, label, social, version) {
   }
 
   if (social && social.length) {
-    renderSubheading(panel, "Social", null, null, idx++);
+    renderHeading(panel, "Social", { index: idx++, sub: true });
 
     const socialRow = document.createElement("nav");
     socialRow.className = "identity-links";
@@ -836,13 +1230,26 @@ function renderContact(contact, label, social, version) {
     panel.appendChild(socialRow);
   }
 
+  // Sign-off row: copyright on the left, the shipped build on the right. The
+  // version is stamped into site-content.json by scripts/ship.sh on every
+  // deploy, so this chip always names the build you're actually looking at.
+  const footer = document.createElement("div");
+  footer.className = "about-footer";
+
+  const copyright = document.createElement("p");
+  copyright.className = "about-copyright";
+  copyright.textContent = `© ${new Date().getFullYear()} Tyler Pixel`;
+  footer.appendChild(copyright);
+
   if (version) {
-    const chip = document.createElement("p");
-    chip.className = "about-version";
-    chip.innerHTML = `<span class="about-version-chip">v${version}</span>`;
-    markStagger(chip, idx++);
-    panel.appendChild(chip);
+    const chip = document.createElement("span");
+    chip.className = "about-version-chip";
+    chip.textContent = `v${version}`;
+    footer.appendChild(chip);
   }
+
+  markStagger(footer, idx++);
+  panel.appendChild(footer);
 
   initInlineLinkTooltips(panel);
 }
@@ -860,7 +1267,8 @@ function initNav(tabs) {
     btn.setAttribute("role", "tab");
     btn.setAttribute("aria-label", tab.label);
     btn.setAttribute("aria-selected", i === 0 ? "true" : "false");
-    btn.innerHTML = `${NAV_ICONS[tab.id] || ""}<span class="nav-toast">${tab.label}</span>`;
+    // Icon comes from the constant map; only the label is content.
+    btn.innerHTML = `${NAV_ICONS[tab.id] || ""}<span class="nav-toast">${esc(tab.label)}</span>`;
     btn.addEventListener("click", () => {
       selectPanel(tab.id);
       flashToast(btn);
@@ -879,12 +1287,9 @@ function initNav(tabs) {
     const next = document.getElementById(`panel-${id}`);
     if (!next || next === current) return;
 
-    nav.querySelectorAll(".nav-tab").forEach((t) => {
-      t.setAttribute("aria-selected", t.dataset.tab === id ? "true" : "false");
-    });
-    positionIndicator();
-
+    syncNavSelection(id);
     transitionPanels(current, next);
+    updateWorkNav(null);
   }
 
   function positionIndicator() {
