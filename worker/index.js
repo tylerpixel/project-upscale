@@ -27,7 +27,10 @@ const CSP = [
   "connect-src 'self' https://storefront-api.fourthwall.com",
   "form-action 'self'",
   "frame-ancestors 'none'",
-  "base-uri 'none'",
+  // 'self', not 'none': the document sets <base href="/"> so that nested
+  // routes like /work/<slug> resolve assets from the root. 'none' would
+  // silently render that tag inert and break every deep link.
+  "base-uri 'self'",
   "object-src 'none'",
   "upgrade-insecure-requests",
 ].join("; ");
@@ -103,6 +106,32 @@ function redirectFor(request, url, env, ctx) {
       },
     })
   );
+}
+
+// ── Storefront currency hint ──
+//
+// Cloudflare resolves the visitor's country at the edge, which beats guessing
+// from browser locale (a traveller's locale says where they're from, not where
+// they are). Only the currencies the storefront actually offers are mapped;
+// everything else falls through to USD.
+const COUNTRY_CURRENCY = {
+  AU: "AUD",
+  NZ: "NZD",
+  GB: "GBP",
+  CA: "CAD",
+  JP: "JPY",
+  // Eurozone
+  AT: "EUR", BE: "EUR", CY: "EUR", DE: "EUR", EE: "EUR", ES: "EUR", FI: "EUR",
+  FR: "EUR", GR: "EUR", HR: "EUR", IE: "EUR", IT: "EUR", LT: "EUR", LU: "EUR",
+  LV: "EUR", MT: "EUR", NL: "EUR", PT: "EUR", SI: "EUR", SK: "EUR",
+};
+
+// Tells a caller only which country its own request came from, so there's
+// nothing here worth withholding cross-origin — and requiring an Origin would
+// break it, since browsers don't send one on same-origin GETs.
+function handleGeo(request) {
+  const country = (request.cf && request.cf.country) || "";
+  return json(200, { country, currency: COUNTRY_CURRENCY[country] || "USD" });
 }
 
 // ── Message form ──
@@ -260,6 +289,13 @@ export default {
     // rather than swallowing them.
     if (url.hostname !== ROOT_DOMAIN && url.hostname.endsWith(`.${ROOT_DOMAIN}`)) {
       return fetch(request);
+    }
+
+    if (url.pathname === "/api/geo") {
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        return json(405, { error: "GET only." }, { Allow: "GET" });
+      }
+      return handleGeo(request);
     }
 
     if (url.pathname === "/api/message") {

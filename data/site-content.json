@@ -1,5 +1,5 @@
 {
-  "version": "1.0.2",
+  "version": "1.0.3",
   "profile": {
     "name": "Tyler Patterson",
     "role": "Design Engineer"
@@ -396,8 +396,7 @@
   "store": {
     "_comment": "Short card blurbs keyed by Fourthwall product name. The full product description still comes from Fourthwall and is shown on the detail page; these just keep the listing to one tidy line each. Products without an entry fall back to their Fourthwall copy.",
     "descriptions": {
-      "DSES Jacket": "Denim jacket for Sphere enjoyers.",
-      "Marc Andreessen's The Techno-Optimist Manifesto (PDF)": "The manifesto, as a 35-page PDF.",
+      "The Techno-Optimist Manifesto": "The manifesto, as a 35-page PDF.",
       "Anti Entropy Entropy Club Tee": "Heavyweight tee, emblem on the chest.",
       "Anti Entropy Entropy Club Sticker": "Die-cut sticker of the club emblem.",
       "Cracked e/acc Mug": "Ceramic mug for coffee or cola.",

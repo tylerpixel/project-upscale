@@ -224,6 +224,16 @@ function markStagger(el, index) {
 const STAGGER_EXIT_MS = 200;
 
 function revealPanel(panel) {
+  document.body.classList.toggle("is-404", panel.id === "panel-404");
+  // Two transitions can overlap — an async deep link landing while a tab
+  // switch is still inside its exit timeout — which used to leave both panels
+  // stacked. Whatever else is on screen goes now, so exactly one panel is ever
+  // visible regardless of how the callers raced.
+  document.querySelectorAll(".panel:not([hidden])").forEach((other) => {
+    if (other === panel) return;
+    other.hidden = true;
+    other.classList.remove("is-shown", "is-hiding", "is-hiding-slide");
+  });
   panel.hidden = false;
   panel.classList.remove("is-hiding");
   panel.classList.remove("is-shown");
@@ -543,12 +553,115 @@ async function sendMessage() {
   }
 }
 
+// ── Routing ──
+//
+// Panels are shown and hidden rather than navigated to, so the address bar
+// has to be kept in step by hand. Every tab and detail page gets a real path;
+// the worker's single-page-application fallback serves index.html for all of
+// them, so those URLs survive a reload or being pasted to someone.
+
+const SITE_TITLE = "Tyler Pixel | Design Engineer";
+
+const TAB_PATHS = {
+  intro: "/",
+  work: "/work",
+  store: "/store",
+  writing: "/writing",
+  contact: "/about", // the tab's id is historical; "about" is what it's called
+};
+const PATH_TABS = Object.fromEntries(Object.entries(TAB_PATHS).map(([id, path]) => [path, id]));
+
+// Filled in by initNav so page titles can use the same labels as the nav.
+let tabLabels = {};
+
+// Assigned inside initNav — lets the router drive tab selection.
+let selectTab = () => {};
+
+// Writes the URL and title for whatever was just opened. Pushing only when
+// the path actually changes keeps popstate and first load from stacking
+// duplicate entries, so Back always moves.
+function setRoute(path, title, replace) {
+  document.title = title ? `${title} | Tyler Pixel` : SITE_TITLE;
+  if (location.pathname === path) return;
+  if (replace) history.replaceState({}, "", path);
+  else history.pushState({}, "", path);
+}
+
+// Opens whatever `pathname` names. Falls back to the intro for anything
+// unrecognised — including a slug that no longer exists — rewriting the URL
+// rather than leaving a dead one in the bar.
+function applyRoute(pathname) {
+  const segments = pathname.split("/").filter(Boolean);
+  const [head, slug] = segments;
+
+  if (!segments.length) {
+    selectTab("intro");
+    return;
+  }
+
+  if (slug) {
+    if (head === "work") {
+      const project = findProject(slug);
+      if (project) {
+        openWorkDetail(project);
+        syncNavSelection("work");
+        return;
+      }
+      // A slug that names nothing is a dead URL, not a reason to quietly
+      // show the section list under a rewritten address.
+      showNotFound();
+      return;
+    } else if (head === "writing") {
+      const post = findPost(slug);
+      if (post) {
+        openPost(post);
+        syncNavSelection("writing");
+        return;
+      }
+      showNotFound();
+      return;
+    } else if (head === "store") {
+      // Show the list straight away; store.js swaps in the product once its
+      // catalogue arrives, since only it knows the slugs.
+      selectTab("store", true);
+      if (window.__openStoreSlug) window.__openStoreSlug(slug);
+      return;
+    }
+  }
+
+  const tab = PATH_TABS[`/${head}`];
+  if (tab) {
+    selectTab(tab);
+    return;
+  }
+
+  showNotFound();
+}
+
+// Any path that matches nothing. The URL is deliberately left alone — a 404
+// should keep the address that produced it, so it can be read and corrected,
+// and so a reload doesn't silently become the homepage.
+function showNotFound() {
+  const panel = document.getElementById("panel-404");
+  if (!panel) {
+    selectTab("intro", true);
+    setRoute("/", null, true);
+    return;
+  }
+  document.title = `404 | Tyler Pixel`;
+  syncNavSelection(null); // no tab owns this page
+  updateWorkNav(null);
+  transitionPanels(document.querySelector(".panel:not([hidden])"), panel);
+}
+
+window.addEventListener("popstate", () => applyRoute(location.pathname));
+
 // ── Content load ──
 
 // Kicked off at parse time rather than on DOMContentLoaded, so the request is
 // in flight while the rest of the document is still being parsed. store.js
 // awaits this same promise instead of fetching the file a second time.
-const contentReady = fetch("data/site-content.json", { credentials: "omit" }).then((res) => {
+const contentReady = fetch("/data/site-content.json", { credentials: "omit" }).then((res) => {
   if (!res.ok) throw new Error(`Content responded ${res.status}`);
   return res.json();
 });
@@ -582,7 +695,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   initNav(content.tabs);
   initFab(content.contact);
 
-  revealPanel(document.getElementById("panel-intro"));
+  // Honour a deep link on first paint rather than always opening the intro.
+  applyRoute(location.pathname);
 });
 
 // Shared header for the Selected Works, Store, Writing and Resume panels — a
@@ -816,6 +930,7 @@ function buildWorkDetailContent(panel, project) {
     e.preventDefault();
     transitionPanels(panel, document.getElementById("panel-work"));
     updateWorkNav(null);
+    setRoute(TAB_PATHS.work, tabLabels.work);
   });
   markStagger(back, 0);
   panel.appendChild(back);
@@ -969,6 +1084,7 @@ function openWorkDetail(project, direction) {
     panel.classList.add("t-stagger--h-only");
     panel.classList.remove("is-shown");
     panel.classList.add("is-hiding-slide");
+    setRoute(`/work/${project.slug || ""}`, project.title);
     // The Next/Previous labels are about to change to the next pair of
     // neighbors — cross-fade them instead of letting the text snap.
     if (navRow) navRow.classList.add("work-nav-row--fading");
@@ -992,6 +1108,7 @@ function openWorkDetail(project, direction) {
   }
 
   workDetailToken++; // invalidate any directional rebuild still pending
+  setRoute(`/work/${project.slug || ""}`, project.title);
   buildWorkDetailContent(panel, project);
   // Clear any leftover state from a previous Next/Previous transition so a
   // plain (card-click) open always reveals straight up, at the normal pace.
@@ -1100,6 +1217,7 @@ function renderWriting(writing, label) {
 function openPost(post) {
   const panel = document.getElementById("panel-writing-detail");
   if (!panel) return;
+  setRoute(`/writing/${post.slug || ""}`, post.title);
   panel.replaceChildren();
   panel.dataset.slug = post.slug || ""; // read by the local CMS overlay only
 
@@ -1110,6 +1228,7 @@ function openPost(post) {
   back.addEventListener("click", (e) => {
     e.preventDefault();
     transitionPanels(panel, document.getElementById("panel-writing"));
+    setRoute(TAB_PATHS.writing, tabLabels.writing);
   });
   markStagger(back, 0);
   panel.appendChild(back);
@@ -1259,14 +1378,26 @@ function initNav(tabs) {
   const indicator = document.getElementById("navInd");
   if (!nav || !tabs || !tabs.length) return;
 
+  tabLabels = Object.fromEntries(tabs.map((t) => [t.id, t.label]));
+
   tabs.forEach((tab, i) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "nav-tab";
     btn.dataset.tab = tab.id;
+    btn.id = `tab-${tab.id}`;
     btn.setAttribute("role", "tab");
     btn.setAttribute("aria-label", tab.label);
     btn.setAttribute("aria-selected", i === 0 ? "true" : "false");
+    // role="tablist"/"tab" is only valid ARIA if the tabs actually point at
+    // tabpanels — without this pairing a screen reader announces a tab widget
+    // whose panels it can't find.
+    btn.setAttribute("aria-controls", `panel-${tab.id}`);
+    const panel = document.getElementById(`panel-${tab.id}`);
+    if (panel) {
+      panel.setAttribute("role", "tabpanel");
+      panel.setAttribute("aria-labelledby", `tab-${tab.id}`);
+    }
     // Icon comes from the constant map; only the label is content.
     btn.innerHTML = `${NAV_ICONS[tab.id] || ""}<span class="nav-toast">${esc(tab.label)}</span>`;
     btn.addEventListener("click", () => {
@@ -1276,7 +1407,7 @@ function initNav(tabs) {
     nav.appendChild(btn);
   });
 
-  function selectPanel(id) {
+  function selectPanel(id, keepUrl) {
     const active = nav.querySelector(`.nav-tab[data-tab="${id}"]`);
     if (!active) return;
 
@@ -1285,12 +1416,20 @@ function initNav(tabs) {
     // meant to take you back out of it.
     const current = document.querySelector(".panel:not([hidden])");
     const next = document.getElementById(`panel-${id}`);
-    if (!next || next === current) return;
+    if (!next) return;
+    // Bail only when the panel is genuinely already on screen. Testing
+    // `next === current` alone would swallow the very first reveal of a panel
+    // that starts un-hidden, leaving its .t-stagger-line children stuck at
+    // opacity 0 — content in the DOM, nothing visible on the page.
+    if (next === current && next.classList.contains("is-shown")) return;
 
     syncNavSelection(id);
     transitionPanels(current, next);
     updateWorkNav(null);
+    if (!keepUrl) setRoute(TAB_PATHS[id] || "/", id === "intro" ? null : tabLabels[id]);
   }
+
+  selectTab = selectPanel;
 
   function positionIndicator() {
     const active = nav.querySelector('.nav-tab[aria-selected="true"]');
@@ -1303,7 +1442,8 @@ function initNav(tabs) {
     nav.querySelectorAll(".nav-tab").forEach((t) => {
       t.setAttribute("aria-selected", t.dataset.tab === id ? "true" : "false");
     });
-    positionIndicator();
+    indicator.hidden = !id;
+    if (id) positionIndicator();
   };
 
   window.addEventListener("resize", positionIndicator);

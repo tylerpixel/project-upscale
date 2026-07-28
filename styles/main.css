@@ -714,6 +714,59 @@ nav.identity-links {
   color: var(--fg);
 }
 
+/* Currency picker + Cart, grouped at the right of the Store heading. */
+.store-heading-actions {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.store-currency-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* The chevron is drawn in CSS rather than an SVG data URI, so nothing extra
+   has to be allowed through the image CSP. */
+.store-currency-wrap::after {
+  content: "";
+  position: absolute;
+  right: 1px;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-right: 1.5px solid var(--fg-muted);
+  border-bottom: 1.5px solid var(--fg-muted);
+  transform: translateY(-75%) rotate(45deg);
+  pointer-events: none;
+}
+
+.store-currency {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  padding: 0 14px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font: inherit;
+  font-size: 12pt;
+  line-height: inherit;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.store-currency:hover {
+  color: var(--fg);
+}
+
+.store-currency:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+
 .store-gallery {
   margin-bottom: 20px;
 }
@@ -1597,6 +1650,94 @@ nav.identity-links {
   }
 }
 
+/* ── 404 ──
+   The GIF sits in a .work-thumb frame so it reads as one of the Selected
+   Works tiles rather than as page furniture; only the attribution and the
+   body flag below are 404-specific (see revealPanel in site.js). */
+#panel-404 .notfound-thumb {
+  margin-bottom: 16px;
+}
+
+/* Title over subtitle, matching the Writing panel's empty state. */
+#panel-404 .notfound-title {
+  margin: 0;
+  font-size: 12pt;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+#panel-404 .notfound-message {
+  margin: 2px 0 0;
+  color: var(--fg-muted);
+}
+
+/* A real button rather than a text link — filled, with the same left chevron
+   the Previous-project control uses. inline-flex so it hugs its label instead
+   of spanning the column the way the full-width primary buttons do. */
+#panel-404 .notfound-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  padding: 11px 16px 11px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--fg);
+  color: #ffffff;
+  font-size: 11pt;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.12s ease;
+}
+
+#panel-404 .notfound-home:hover {
+  opacity: 0.88;
+}
+
+#panel-404 .notfound-home:active {
+  transform: scale(0.98);
+}
+
+#panel-404 .notfound-home svg {
+  flex: 0 0 auto;
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+/* Sits above the bottom nav, clearing it by the same 88px the tray uses. */
+.attribution {
+  position: fixed;
+  left: 50%;
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 2;
+  display: none;
+  width: 100%;
+  padding: 0 var(--gutter);
+  font-size: 9pt;
+  text-align: center;
+  color: var(--fg-muted);
+}
+
+body.is-404 .attribution {
+  display: block;
+}
+
+.light-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--underline);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.14em;
+  transition: text-decoration-color 0.2s ease;
+}
+
+.light-link:hover {
+  text-decoration-color: var(--underline-hover);
+}
+
 /* ── Bottom nav (ported from sort.cash's shared bottom nav — glass pill +
    sliding indicator + FAB) — fixed, floats outside the content column,
    same on every breakpoint. Icon assignment pending. ── */
@@ -1774,6 +1915,12 @@ nav.identity-links {
   display: block;
   width: 20px;
   height: 20px;
+}
+
+/* Hidden on the 404, which no tab owns — matching the explicit [hidden]
+   rules used elsewhere rather than relying on the UA sheet alone. */
+.nav-ind[hidden] {
+  display: none;
 }
 
 .nav-ind {

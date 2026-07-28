@@ -7,10 +7,15 @@
 # pushes. One command so the shipped build and the version on the page can
 # never drift apart.
 #
-#   ./scripts/ship.sh              # 1.0.1 -> 1.0.2
-#   ./scripts/ship.sh minor        # 1.0.1 -> 1.1.0
-#   ./scripts/ship.sh major        # 1.0.1 -> 2.0.0
-#   ./scripts/ship.sh --dry-run    # show what would happen, change nothing
+#   ./scripts/ship.sh                      # 1.0.1 -> 1.0.2
+#   ./scripts/ship.sh minor                # 1.0.1 -> 1.1.0
+#   ./scripts/ship.sh major                # 1.0.1 -> 2.0.0
+#   ./scripts/ship.sh -m "New case study"  # custom commit subject
+#   ./scripts/ship.sh --dry-run            # show what would happen, change nothing
+#
+# Whatever is outstanding in the working tree is swept into the release commit,
+# so the tree is always clean afterwards and the tag always points at exactly
+# what was deployed.
 #
 set -euo pipefail
 
@@ -19,20 +24,28 @@ cd "$(dirname "$0")/.."
 CONTENT="data/site-content.json"
 PART="patch"
 DRY_RUN=0
+MESSAGE=""
 
-for arg in "$@"; do
-  case "$arg" in
-    patch|minor|major) PART="$arg" ;;
+while [ $# -gt 0 ]; do
+  case "$1" in
+    patch|minor|major) PART="$1" ;;
     --dry-run|-n) DRY_RUN=1 ;;
-    *) echo "usage: $0 [patch|minor|major] [--dry-run]" >&2; exit 2 ;;
+    -m|--message)
+      shift
+      [ $# -gt 0 ] || { echo "-m needs a message" >&2; exit 2; }
+      MESSAGE="$1"
+      ;;
+    *) echo "usage: $0 [patch|minor|major] [-m message] [--dry-run]" >&2; exit 2 ;;
   esac
+  shift
 done
 
-# A dirty tree means the release commit would sweep up unrelated work, and the
-# tag would then point at something nobody reviewed.
-if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
-  echo "Working tree has uncommitted changes — commit or stash them first." >&2
-  git status --short --untracked-files=no >&2
+# A rebase or merge left half-finished would otherwise get committed as if it
+# were finished work.
+if [ -d "$(git rev-parse --git-path rebase-merge 2>/dev/null)" ] ||
+   [ -d "$(git rev-parse --git-path rebase-apply 2>/dev/null)" ] ||
+   [ -f "$(git rev-parse --git-path MERGE_HEAD 2>/dev/null)" ]; then
+  echo "A merge or rebase is in progress — finish it before shipping." >&2
   exit 1
 fi
 
@@ -44,6 +57,14 @@ NEXT=$(node -e "
 ")
 
 echo "Shipping $CURRENT -> $NEXT ($PART)"
+
+PENDING=$(git status --porcelain)
+if [ -n "$PENDING" ]; then
+  echo "Including these working-tree changes in the release commit:"
+  echo "$PENDING" | sed 's/^/  /'
+else
+  echo "Working tree clean — the version bump is the only change."
+fi
 
 if [ "$DRY_RUN" -eq 1 ]; then
   echo "Dry run — nothing written, nothing deployed."
@@ -65,8 +86,10 @@ node -e "
   fs.writeFileSync(path, JSON.stringify(content, null, 2) + '\n');
 "
 
-git add "$CONTENT"
-git commit -m "v$NEXT"
+# Everything outstanding ships together, so the tag names exactly the tree
+# that gets deployed a few lines below.
+git add -A
+git commit -m "${MESSAGE:-v$NEXT}${MESSAGE:+ (v$NEXT)}"
 git tag -a "v$NEXT" -m "v$NEXT"
 
 npx wrangler deploy

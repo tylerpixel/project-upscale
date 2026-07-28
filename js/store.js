@@ -12,6 +12,15 @@ const FW_TOKEN = "ptkn_be80840a-63bb-4229-a898-f8ed4a14dbc3";
 const FW_API = "https://storefront-api.fourthwall.com/v1";
 const FW_STORE = "https://store.tylerpixel.com";
 const CART_KEY = "tp_shop_cart";
+const CURRENCY_KEY = "tp_shop_currency";
+
+// Fourthwall converts prices server-side when the catalogue is requested with
+// a currency, and its hosted checkout takes the same code — so this is a real
+// price switch, not a display-only conversion. The list is an allowlist:
+// the stored value is user-writable and ends up in an API query and a
+// checkout URL, so anything not on it falls back to USD.
+const CURRENCIES = ["USD", "AUD", "NZD", "GBP", "EUR", "CAD", "JPY"];
+const DEFAULT_CURRENCY = "USD";
 
 // Per-line cap. Nothing here is bought in bulk, and it keeps a corrupted or
 // hand-edited localStorage entry from rendering an absurd total.
@@ -24,6 +33,7 @@ const store = {
   color: null,
   size: null,
   cartAction: null, // the "Cart" button in the Store panel heading
+  currency: DEFAULT_CURRENCY,
   // Variant ids Fourthwall refuses to sell. The catalogue can still advertise a
   // product as AVAILABLE with UNLIMITED stock while the cart endpoint rejects
   // it, so this is only discoverable by asking.
@@ -31,6 +41,24 @@ const store = {
 };
 
 const CART_NOTE_DEFAULT = "Secure checkout is handled by Fourthwall.";
+
+// Resolves once the first catalogue load has settled, either way. The router
+// awaits this for /store/<slug> deep links. It's a deferred rather than the
+// fetch promise itself because renderStore may not have been called yet when
+// the router asks — and awaiting a null would report an empty catalogue and
+// send a perfectly good deep link to the 404 page.
+let markStoreReady;
+const storeReady = new Promise((resolve) => {
+  markStoreReady = resolve;
+});
+
+// The visitor's likely currency, from the edge's view of where the request
+// came from. Started at parse time so it's in flight during page load, and
+// only ever consulted when they haven't chosen one for themselves.
+const geoCurrency = fetch("/api/geo", { credentials: "omit" })
+  .then((res) => (res.ok ? res.json() : null))
+  .then((data) => (data && CURRENCIES.includes(data.currency) ? data.currency : null))
+  .catch(() => null);
 
 // ── Helpers ──
 
@@ -76,6 +104,33 @@ function validCartItem(item) {
     item.price >= 0 &&
     typeof item.currency === "string"
   );
+}
+
+// Returns true when the visitor has picked a currency before. Only an
+// explicit choice is ever stored, so a saved value always outranks the
+// location hint — travelling shouldn't silently re-price a store someone
+// deliberately set to their home currency.
+function loadCurrency() {
+  try {
+    const saved = localStorage.getItem(CURRENCY_KEY);
+    if (CURRENCIES.includes(saved)) {
+      store.currency = saved;
+      return true;
+    }
+  } catch (err) {
+    // fall through to the default
+  }
+  store.currency = DEFAULT_CURRENCY;
+  return false;
+}
+
+function saveCurrency(code) {
+  store.currency = CURRENCIES.includes(code) ? code : DEFAULT_CURRENCY;
+  try {
+    localStorage.setItem(CURRENCY_KEY, store.currency);
+  } catch (err) {
+    // Session-only is fine; the in-memory choice still applies.
+  }
 }
 
 function loadCart() {
@@ -150,12 +205,37 @@ function sizesForColor(product, color) {
     .filter(Boolean);
 }
 
+// Cart lines carry their own price so the tray can render without the
+// catalogue. That copy goes stale when the currency changes — and a cart
+// holding two currencies would total nonsense, since the sum is formatted with
+// a single code. Re-pricing against every fresh catalogue keeps the whole cart
+// in one currency by construction. Variant ids are stable across currencies,
+// so this is a straight lookup.
+function repriceCart(products) {
+  const byVariant = new Map();
+  (products || []).forEach((p) => (p.variants || []).forEach((v) => byVariant.set(v.id, v)));
+  let changed = false;
+  store.cart.forEach((item) => {
+    const variant = byVariant.get(item.variantId);
+    if (!variant) return;
+    const price = (variant.unitPrice || {}).value || 0;
+    const currency = (variant.unitPrice || {}).currency || store.currency;
+    if (item.price !== price || item.currency !== currency) {
+      item.price = price;
+      item.currency = currency;
+      changed = true;
+    }
+  });
+  if (changed) saveCart();
+}
+
 // ── Product list ──
 
 async function fetchProducts() {
   const url = new URL(`${FW_API}/collections/all/products`);
   url.searchParams.set("storefront_token", FW_TOKEN);
   url.searchParams.set("limit", "50");
+  url.searchParams.set("currency", store.currency);
   const res = await fetch(url, { credentials: "omit" });
   if (!res.ok) throw new Error(`Storefront responded ${res.status}`);
   const data = await res.json();
@@ -199,13 +279,61 @@ function srcAttr(url) {
   return url ? ` src="${esc(url)}"` : "";
 }
 
-function renderStore(label) {
+// Remembered so a currency change can rebuild the panel with the same title.
+let storeLabel = "Store";
+
+// Currency picker + Cart, grouped at the right of the Store heading.
+function buildCurrencyPicker(panel) {
+  const heading = panel.querySelector(".panel-heading");
+  if (!heading || !store.cartAction) return;
+
+  const actions = document.createElement("div");
+  actions.className = "store-heading-actions";
+
+  const wrap = document.createElement("span");
+  wrap.className = "store-currency-wrap";
+
+  const select = document.createElement("select");
+  select.className = "store-currency";
+  select.setAttribute("aria-label", "Currency");
+  CURRENCIES.forEach((code) => {
+    const option = document.createElement("option");
+    option.value = code;
+    option.textContent = code;
+    if (code === store.currency) option.selected = true;
+    select.appendChild(option);
+  });
+
+  select.addEventListener("change", () => {
+    if (select.value === store.currency) return;
+    saveCurrency(select.value);
+    // Re-fetch at the new currency. Anything open at the time is restored
+    // below once the fresh catalogue lands.
+    const openSlug = document.getElementById("panel-store-detail").hidden
+      ? null
+      : (store.product || {}).slug || null;
+    renderStore(storeLabel, openSlug);
+  });
+
+  wrap.appendChild(select);
+  actions.appendChild(wrap);
+  // Move the Cart button in beside it rather than leaving it a sibling, so
+  // .panel-heading keeps its two-child space-between layout.
+  actions.appendChild(store.cartAction);
+  heading.appendChild(actions);
+}
+
+// `reopenSlug` re-opens a product after a currency change, so switching
+// currency while reading a product doesn't bounce you back to the list.
+function renderStore(label, reopenSlug) {
   const panel = document.getElementById("panel-store");
   if (!panel) return;
+  storeLabel = label || storeLabel;
   panel.replaceChildren();
 
-  store.cartAction = renderPanelHeading(panel, label || "Store", null, "Cart", openCart);
+  store.cartAction = renderPanelHeading(panel, storeLabel, null, "Cart", openCart);
   syncCartAction();
+  buildCurrencyPicker(panel);
 
   const list = document.createElement("div");
   list.className = "work-list";
@@ -224,6 +352,10 @@ function renderStore(label) {
   Promise.all([fetchProducts(), fetchBlurbs()])
     .then(([products, blurbs]) => {
       store.products = products;
+      // Keep the cart in step with the catalogue's currency before anything
+      // renders a price.
+      repriceCart(products);
+      syncCartAction();
       status.remove();
       if (!products.length) {
         const empty = document.createElement("p");
@@ -232,6 +364,13 @@ function renderStore(label) {
         panel.appendChild(empty);
         return;
       }
+      if (reopenSlug) {
+        const reopen = products.find((p) => p.slug === reopenSlug);
+        if (reopen) openProductDetail(reopen);
+      }
+      // The tray may be open on the cart while prices changed underneath it.
+      if (!document.getElementById("trayOverlay").hidden) renderCart();
+
       products.forEach((product, i) => {
         const card = document.createElement("div");
         card.className = "work-card";
@@ -254,7 +393,8 @@ function renderStore(label) {
     .catch((err) => {
       console.error("Could not load products:", err);
       status.textContent = "Couldn't load the store right now. Please try again later.";
-    });
+    })
+    .finally(() => markStoreReady());
 }
 
 // ── Product detail ──
@@ -263,6 +403,7 @@ function openProductDetail(product) {
   const panel = document.getElementById("panel-store-detail");
   if (!panel) return;
 
+  setRoute(`/store/${product.slug || ""}`, product.name);
   store.product = product;
   const colors = uniqueColors(product.variants);
   const sizes = uniqueSizes(product.variants);
@@ -279,6 +420,7 @@ function openProductDetail(product) {
   back.addEventListener("click", (e) => {
     e.preventDefault();
     transitionPanels(panel, document.getElementById("panel-store"));
+    setRoute(TAB_PATHS.store, tabLabels.store);
   });
   markStagger(back, 0);
   panel.appendChild(back);
@@ -342,7 +484,7 @@ function openProductDetail(product) {
              ${colors
                .map(
                  (c) =>
-                   `<button class="store-swatch" type="button" data-color="${esc(c.name)}" title="${esc(c.name)}" aria-label="${esc(c.name)}"><span style="background:${esc(c.swatch)}"></span></button>`
+                   `<button class="store-swatch" type="button" data-color="${esc(c.name)}" title="${esc(c.name)}" aria-label="${esc(c.name)}"><span></span></button>`
                )
                .join("")}
            </div>`
@@ -362,6 +504,16 @@ function openProductDetail(product) {
   `;
   markStagger(options, 4);
   panel.appendChild(options);
+
+  // Swatch colours come from the storefront API. esc() escapes HTML, not CSS,
+  // so interpolating one into a style attribute let a value like
+  // "red;background-image:url(...)" append declarations of its own. Assigning
+  // through the style property instead hands it to the CSS parser, which
+  // rejects anything that isn't a single valid colour.
+  options.querySelectorAll(".store-swatch").forEach((btn) => {
+    const match = colors.find((c) => c.name === btn.dataset.color);
+    if (match) btn.querySelector("span").style.backgroundColor = match.swatch;
+  });
 
   const swatches = options.querySelector("#storeSwatches");
   if (swatches) {
@@ -457,28 +609,50 @@ async function variantSellable(variantId) {
   }
 }
 
+// True while a sellability check is in flight. The swatch and size handlers
+// are delegated to their containers rather than the Add button, so they keep
+// firing while it's disabled — without this a second click could be verifying
+// one variant and adding another.
+let addInFlight = false;
+
 async function addToCart(product) {
+  if (addInFlight) return;
   const variant = findVariant(product.variants, store.color, store.size);
   if (!variant) return;
 
   // Verify before adding, so an unsellable item can never poison the cart and
   // strand the user at checkout with a vague failure.
   const add = document.getElementById("storeAdd");
-  const label = add ? add.textContent : "";
+  addInFlight = true;
   if (add) {
     add.disabled = true;
     add.textContent = "Checking…";
   }
-  const sellable = await variantSellable(variant.id);
+
+  let sellable;
+  try {
+    sellable = await variantSellable(variant.id);
+  } finally {
+    addInFlight = false;
+  }
+
+  // Those live controls mean the selection can move on mid-request. Re-resolve
+  // it rather than trusting what was captured before the await: picking a
+  // different colour while the check ran used to add the previous variant.
+  if (findVariant(product.variants, store.color, store.size) !== variant) {
+    syncDetail(product);
+    return;
+  }
+
   if (!sellable) {
     store.unavailable.add(variant.id);
     if (add) add.textContent = "Currently unavailable";
     return;
   }
-  if (add) {
-    add.disabled = false;
-    add.textContent = label;
-  }
+
+  // Rebuild the button from current state instead of restoring a label
+  // captured earlier, which could have gone stale the same way.
+  syncDetail(product);
 
   const existing = store.cart.find((item) => item.variantId === variant.id);
   if (existing) {
@@ -548,7 +722,9 @@ function renderCart() {
     })
     .join("");
 
-  document.getElementById("cartTotal").textContent = fmt(cartTotal(), store.cart[0].currency);
+  // repriceCart keeps every line in the catalogue's currency, so the total
+  // can be formatted from the selected one rather than the first line's.
+  document.getElementById("cartTotal").textContent = fmt(cartTotal(), store.currency);
 
   // Block checkout while the cart still holds something Fourthwall won't sell,
   // and offer the one-click way out.
@@ -616,7 +792,7 @@ async function checkout() {
       // Built through URL rather than string concatenation so the cart id and
       // currency are encoded, whatever the API hands back.
       const checkoutUrl = new URL("/checkout/", FW_STORE);
-      checkoutUrl.searchParams.set("cartCurrency", store.cart[0].currency || "USD");
+      checkoutUrl.searchParams.set("cartCurrency", store.currency);
       checkoutUrl.searchParams.set("cartId", data.id);
       window.location.href = checkoutUrl.href;
       return;
@@ -647,8 +823,41 @@ async function checkout() {
 
 // ── Init ──
 
-document.addEventListener("DOMContentLoaded", () => {
+// Answers the router's /store/<slug> lookups. The catalogue is fetched async,
+// so this waits for it rather than reporting failure and leaving a second
+// code path to retry later — two openers racing is what used to leave the
+// store list and a product page on screen at the same time.
+window.__openStoreSlug = async (slug) => {
+  await storeReady;
+  // Only act if the URL still points here; the visitor may have navigated on
+  // while the catalogue was in flight.
+  const [head, current] = location.pathname.split("/").filter(Boolean);
+  if (head !== "store" || current !== slug) return;
+  const product = store.products.find((p) => p.slug === slug);
+  if (!product) {
+    // Matches how an unknown /work/ or /writing/ slug behaves.
+    showNotFound();
+    return;
+  }
+  openProductDetail(product);
+  syncNavSelection("store");
+};
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const chosen = loadCurrency();
   loadCart();
+
+  // Without a saved choice, take the edge's hint — but never block the store
+  // on it. The guess is a default only: it isn't written to storage, so it
+  // re-evaluates each visit and an explicit pick still wins permanently.
+  if (!chosen) {
+    const guess = await Promise.race([
+      geoCurrency,
+      new Promise((resolve) => setTimeout(() => resolve(null), 1200)),
+    ]);
+    if (guess) store.currency = guess;
+  }
+
   renderStore("Store");
 
   const pay = document.getElementById("cartCheckout");

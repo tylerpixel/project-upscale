@@ -2,19 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Routes nest (/work/<slug>), so every relative asset path in this file
+         and in site-content.json has to resolve from the root rather than
+         from the current route's directory. -->
+    <base href="/" />
     <!-- Metadata Titles -->
-    <title>Tyler Pixel | Project Upscale</title>
-    <meta content="Tyler Pixel | Project Upscale" property="og:title" />
-    <meta content="Tyler Pixel | Project Upscale" property="twitter:title" />
+    <title>Tyler Pixel | Design Engineer</title>
+    <meta content="Tyler Pixel | Design Engineer" property="og:title" />
+    <meta content="Tyler Pixel | Design Engineer" property="twitter:title" />
     <!-- Metadata Descriptions -->
-    <meta
-      content="A passionate designer who propels pixels into powerful brand experiences, moving to Brisbane, Australia."
-      name="description"
-    />
-    <meta
-      content="A passionate designer who propels pixels into powerful brand experiences, moving to Brisbane, Australia."
-      property="og:description"
-    />
+    <meta content="Brand identity design and product engineering by Tyler Pixel, based in Brisbane, Australia." name="description" />
+    <meta content="Brand identity design and product engineering by Tyler Pixel, based in Brisbane, Australia." property="og:description" />
     <!-- Metadata Images -->
     <meta content="/images/linky-image.png" property="og:image" />
     <!-- Metadata Misc -->
@@ -23,7 +21,8 @@
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:site" content="@tylerpixel" />
     <meta name="twitter:creator" content="@tylerpixel" />
-    <meta property="og:url" content="https://upscale.tylerpixel.com" />
+    <meta property="og:url" content="https://tylerpixel.com" />
+    <link rel="canonical" href="https://tylerpixel.com/" />
     <meta
       content="width=device-width, initial-scale=1, viewport-fit=cover"
       name="viewport"
@@ -33,16 +32,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <!-- Fonts -->
-    <link rel="preload" href="fonts/DMSans-Variable.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="data/site-content.json" as="fetch" crossorigin />
+    <link rel="preload" href="/fonts/DMSans-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/data/site-content.json" as="fetch" crossorigin />
     <!-- File Links-->
-    <link rel="stylesheet" href="styles/main.css" type="text/css" />
+    <link rel="stylesheet" href="/styles/main.css" type="text/css" />
     <link rel="apple-touch-icon" href="/images/webclip.png" />
-    <link rel="manifest" href="manifest.json" />
+    <link rel="manifest" href="/manifest.json" />
     <!-- Javascript — deferred so both download during parse but still run in
          order, with store.js seeing site.js's helpers already defined. -->
-    <script src="js/site.js" defer></script>
-    <script src="js/store.js" defer></script>
+    <script src="/js/site.js" defer></script>
+    <script src="/js/store.js" defer></script>
     <!-- Favicon Handling -->
     <link rel="icon" href="/images/favicon.png" type="image/png" />
   </head>
@@ -63,7 +62,7 @@
       </header>
 
       <div class="section-panels">
-        <section class="panel t-stagger" data-panel="intro" id="panel-intro"></section>
+        <section class="panel t-stagger" data-panel="intro" id="panel-intro" hidden></section>
         <section class="panel t-stagger" data-panel="work" id="panel-work" hidden></section>
         <section class="panel t-stagger" data-panel="writing" id="panel-writing" hidden></section>
         <section class="panel t-stagger" data-panel="contact" id="panel-contact" hidden></section>
@@ -73,8 +72,25 @@
         <section class="panel t-stagger" data-panel="work-detail" id="panel-work-detail" hidden></section>
         <section class="panel t-stagger" data-panel="store-detail" id="panel-store-detail" hidden></section>
         <section class="panel t-stagger" data-panel="writing-detail" id="panel-writing-detail" hidden></section>
+        <!-- Shown by the router for any path that matches nothing. The GIF
+             reuses .work-thumb so it sits in the same frame as a Selected
+             Works thumbnail. -->
+        <section class="panel t-stagger" data-panel="notfound" id="panel-404" hidden>
+          <img class="work-thumb notfound-thumb" src="/images/404.gif" alt="A lone figure walking away across an empty desert" />
+          <p class="notfound-title">404 Error</p>
+          <p class="notfound-message">This page does not exist.</p>
+          <a class="notfound-home" href="/">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+            Back to homepage
+          </a>
+        </section>
       </div>
     </main>
+
+    <div class="attribution">
+      <a href="/images/404.gif" class="light-link">GIF</a> by HBO /
+      <a href="https://creativecommons.org/licenses/by/2.0/" class="light-link" target="_blank" rel="noopener noreferrer">CC BY</a>
+    </div>
 
     <!-- Bottom nav — fixed overlay, sits outside .site so it never shifts with content -->
     <div class="navwrap">
