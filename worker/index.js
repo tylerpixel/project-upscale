@@ -6,6 +6,7 @@
 // count kept in KV; everything else falls through to the static assets.
 
 const ROOT_DOMAIN = "tylerpixel.com";
+const WWW_DOMAIN = `www.${ROOT_DOMAIN}`;
 
 // ── Security headers ──
 // Applied to every response this worker returns, including static assets.
@@ -284,6 +285,17 @@ async function handleMessage(request, env, url) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+
+    // www used to be a DNS-only CNAME straight to Webflow, from before this
+    // site moved to Workers — anyone who typed/bookmarked/autocompleted the
+    // www. form got Webflow's edge instead of this site. Now that it's a
+    // Custom Domain (wrangler.jsonc) the request reaches the worker; send it
+    // on to the canonical apex, path and query intact.
+    if (url.hostname === WWW_DOMAIN) {
+      return secure(
+        Response.redirect(`https://${ROOT_DOMAIN}${url.pathname}${url.search}`, 301)
+      );
+    }
 
     const redirect = redirectFor(request, url, env, ctx);
     if (redirect) return redirect;

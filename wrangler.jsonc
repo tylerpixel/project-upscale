@@ -37,6 +37,13 @@
   ],
   "routes": [
     { "pattern": "tylerpixel.com", "custom_domain": true },
+    // www still had a stale DNS-only CNAME to Webflow from before this site
+    // moved to Workers — mobile browsers that filled in "www." (autocomplete,
+    // an old homescreen bookmark) hit Webflow's edge directly and got its
+    // raw, unstyled 404 for a hostname it no longer recognizes. Attaching it
+    // here as a Custom Domain makes Cloudflare take over and proxy it, and
+    // the worker below 301s it to the apex.
+    { "pattern": "www.tylerpixel.com", "custom_domain": true },
     // Vanity subdomain redirects (x., github., book., …) — the proxied DNS
     // records for each subdomain already exist on the zone.
     { "pattern": "*.tylerpixel.com/*", "zone_name": "tylerpixel.com" }
