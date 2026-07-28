@@ -13,12 +13,18 @@
     // the vanity redirect subdomains instead of redirecting them.
     "run_worker_first": true
   },
-  // Email Sending binding for the message form. The sender lock means a bug
-  // (or abuse) can never make this worker send as any other address.
+  // Email Sending binding for the message form. Both ends are pinned: a bug
+  // (or abuse) can't make this worker send as any other address, and now it
+  // can't send anywhere except the inbox that's meant to receive the form.
+  // Until the destination lock was added the binding was "unrestricted" —
+  // any address the worker was talked into passing would have been accepted.
+  // If MSG_TO in worker/index.js ever changes, this has to change with it,
+  // and the new address needs verifying in Cloudflare first.
   "send_email": [
     {
       "name": "EMAIL",
-      "allowed_sender_addresses": ["message@tylerpixel.com"]
+      "allowed_sender_addresses": ["message@tylerpixel.com"],
+      "allowed_destination_addresses": ["dm@tylerpixel.com"]
     }
   ],
   // Vanity-redirect click counts — the same namespace the old
