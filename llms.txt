@@ -1,0 +1,45 @@
+# Tyler Pixel
+
+> Portfolio of Tyler Patterson (Tyler Pixel), a design engineer in Brisbane,
+> Australia, working on brand identity design and product engineering. The site
+> is a single-page app: every URL below is a real, linkable route, but the HTML
+> served at each one is the same shell, with the content rendered client-side
+> from /data/site-content.json.
+
+Because the pages are rendered in the browser, fetching a route's HTML will not
+show you its content. The JSON files listed under Data are the source of truth
+and are the better thing to read.
+
+## Sections
+
+- [Intro](https://tylerpixel.com/): Who Tyler is and the companies whose teams use products he's worked on.
+- [Selected Works](https://tylerpixel.com/work): Case studies for brand identity and product work.
+- [Writing](https://tylerpixel.com/writing): Posts on design and building products.
+- [Store](https://tylerpixel.com/store): Merchandise and digital goods, fulfilled by Fourthwall.
+- [About](https://tylerpixel.com/about): Background, resume, and contact.
+
+## Selected works
+
+- [sort.cash](https://tylerpixel.com/work/sort-cash)
+- [Pinetree](https://tylerpixel.com/work/pinetree)
+- [Hnry](https://tylerpixel.com/work/hnry)
+- [Engulf Studio](https://tylerpixel.com/work/engulf-studio)
+- [VTNZ](https://tylerpixel.com/work/vtnz)
+- [healthCar](https://tylerpixel.com/work/healthcar)
+- [Warchest](https://tylerpixel.com/work/warchest)
+- [Rebels And Rebellions](https://tylerpixel.com/work/rebels-and-rebellions)
+- [Eight360](https://tylerpixel.com/work/eight360)
+- [Secret Kings](https://tylerpixel.com/work/secret-kings)
+- [Signal](https://tylerpixel.com/work/signal)
+- [Tesla](https://tylerpixel.com/work/tesla)
+
+## Data
+
+- [site-content.json](https://tylerpixel.com/data/site-content.json): All page copy, work case studies, and writing posts, as structured JSON.
+- [legal.json](https://tylerpixel.com/data/legal.json): Terms, privacy policy, and returns policy.
+
+## Optional
+
+- [Terms](https://tylerpixel.com/terms)
+- [Privacy](https://tylerpixel.com/privacy)
+- [Returns](https://tylerpixel.com/returns)

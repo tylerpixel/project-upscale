@@ -106,6 +106,11 @@ node -e "
   }
 "
 
+# index.html loads the .min files, so they have to be rebuilt from the current
+# sources *before* the commit — otherwise the tag names a tree whose minified
+# assets are a revision behind the CSS and JS they were built from.
+./scripts/build.sh
+
 # Everything outstanding ships together, so the tag names exactly the tree
 # that gets deployed a few lines below.
 git add -A

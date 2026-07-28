@@ -1415,6 +1415,10 @@ function renderContact(contact, label, social, version) {
     portrait.className = "about-portrait";
     portrait.src = contact.portrait;
     portrait.alt = contact.portraitAlt || "";
+    // Square source, rendered in a 96px square box — the attributes just
+    // reserve it so the greeting beside it doesn't jump when the file lands.
+    portrait.width = 96;
+    portrait.height = 96;
     // The photo is optional — if it hasn't been added yet, drop it rather than
     // leaving a broken-image box in the middle of the story.
     portrait.addEventListener("error", () => portrait.remove());

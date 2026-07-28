@@ -10,7 +10,10 @@
 - 🧑‍🎨 **Aesthetic** -  Looks nice and has precise UX/UI that aren't distracting.
 
 ### 🏗️ Tech Stack
-- **Languages**: HTML, CSS, and JS — no framework, no build step
+- **Languages**: HTML, CSS, and JS — no framework, and nothing to install. The
+  one build step is `./scripts/build.sh`, which minifies `styles/main.css` and
+  `js/*.js` into the `.min` files `index.html` loads. Edit the sources; run the
+  script (or just `ship.sh`, which runs it for you) to see the change locally.
 - **Editor**: VS Code
 - **Hosting**: Cloudflare Workers (static assets + a worker for the message
   form and the vanity-subdomain redirects — see `worker/index.js`)
@@ -19,8 +22,8 @@
 - **Version Control**: GitHub
 
 ### Shipping
-`./scripts/ship.sh` bumps the version in `data/site-content.json`, commits and
-tags it, deploys to Cloudflare, and pushes — so the version chip on the About
+`./scripts/ship.sh` rebuilds the minified assets, bumps the version in
+`data/site-content.json`, commits and tags it, deploys to Cloudflare, and pushes — so the version chip on the About
 page always names the build that's actually live. Pass `minor` or `major` to
 bump those instead of the patch, or `--dry-run` to preview.
 
