@@ -1,5 +1,5 @@
 {
-  "version": "1.0.12",
+  "version": "1.0.13",
   "profile": {
     "name": "Tyler Patterson",
     "role": "Design Engineer"
@@ -20,10 +20,6 @@
     {
       "name": "Instagram",
       "url": "https://instagram.com/tylerpixel"
-    },
-    {
-      "name": "Mail",
-      "url": "mailto:dm@tylerpixel.com"
     }
   ],
   "tabs": [
@@ -98,7 +94,57 @@
       ],
       "description": "A consumer budgeting app I design and build end to end, teaching financial literacy on the way to a funded emergency account.",
       "image": "images/work/sort-cash/sort-cash-icon.svg",
-      "caseStudy": "sort.cash is the product I'm building now — a consumer budgeting app aimed at the gap between knowing you should save and actually having a buffer when something breaks. The goal isn't another dashboard of charts; it's teaching financial literacy in the flow of using the thing, and getting people to a funded emergency account. I'm designing and building it end to end, which has been the most useful design education I've had: every decision has to survive contact with shipping it.",
+      "caseStudy": [
+        {
+          "kind": "meta",
+          "rows": [
+            {
+              "label": "Client",
+              "value": "Self-initiated"
+            },
+            {
+              "label": "Role",
+              "value": "Founder"
+            },
+            {
+              "label": "Year",
+              "value": "2026, ongoing"
+            },
+            {
+              "label": "Scope",
+              "value": "Product design · Brand identity"
+            },
+            {
+              "label": "Status",
+              "value": "Pre-launch, in design and build"
+            }
+          ]
+        },
+        {
+          "kind": "lede",
+          "body": [
+            "A budgeting app that teaches financial literacy in the flow of using it. Income runs through a fixed sequence of priorities, savings first, and the product hands back a single figure: what is safe to spend. The target state is a funded emergency account, not an engaged user."
+          ]
+        },
+        {
+          "body": [
+            "<a class=\"inline-link\" href=\"https://www.finder.com.au/news/breaking-point-2025\" target=\"_blank\" rel=\"noopener noreferrer\">Finder</a> found that 43% of Australians hold less than $1,000 in their bank account, and that inside that group the average balance is $215.<span class=\"case-fn\">1</span> The advice that fixes it is not scarce. It is the most repeated advice in personal finance. What is scarce is the bridge between knowing and doing, and most budgeting apps are built for the far side of it. They open onto categories, charts and reconciliation, and they assume the person reading those things already knows what the numbers mean and what to do when one of them is too high. Financial literacy is treated as a prerequisite rather than as something the product might supply.",
+            "I built this because I was on the near side of that bridge myself: debt, no plan, and no vocabulary for any of it. sort.cash is for people in their twenties and early thirties who are earning properly for the first time and have never held a budget.",
+            "The engine is two old ideas. Income falls through an ordered sequence rather than into a grid of categories that all compete at once, and savings sit at the top of the fall instead of at the bottom where the leftovers land. The proportions come from <a class=\"inline-link\" href=\"https://en.wikipedia.org/wiki/The_Richest_Man_in_Babylon\" target=\"_blank\" rel=\"noopener noreferrer\"><em>The Richest Man in Babylon</em></a>: a tenth of everything you earn is yours to keep, before it is anyone else’s.<span class=\"case-fn\">2</span> Together they produce the product’s only real output, a spend figure that is <em>permitted</em> rather than merely remaining. The user does not decide to save. They decide how to spend what is left after saving already happened.",
+            "Two things follow from that. There are no bank connections, so everything stays local and the user sets their own numbers, which means the gap between what they guessed their bills were and what the bills turn out to be is the first thing the product teaches them. And no figure appears without the arithmetic that produced it, because someone who has never budgeted does not need a more authoritative number. They need to see that the number comes from their own behaviour, and that changing the behaviour changes it.",
+            "It does not police anyone. No overspend alarms, no streaks, no notifications asking where you have been. Guilt ends the relationship with the tool, and a tool nobody opens is worth nothing, so the product notifies about the state of an object and never about the conduct of a person. A figure that has gone six months without review is a fact about the figure.",
+            "I design and build it end to end: vanilla HTML, CSS and JavaScript inside Tauri 2, iOS first, with the brand, the waiting list and a working MVP done and a TestFlight build next. That part has been the most useful design education I have had. Designing and building the same screen removes the option of hand-waving, and the screens easiest to skip in a design file, the empty state and the error and the moment a real balance arrives lower than expected, are exactly the ones that have to exist in a build."
+          ]
+        },
+        {
+          "kind": "cites",
+          "heading": "Cites",
+          "body": [
+            "<span class=\"case-fn\">1</span> Finder, <em>Breaking point: 9.2 million Aussies have less than $1,000 in savings</em>, June 2025. Consumer Sentiment Tracker, 1,310 respondents, May 2025 wave. <a class=\"inline-link\" href=\"https://www.finder.com.au/news/breaking-point-2025\" target=\"_blank\" rel=\"noopener noreferrer\">finder.com.au/news/breaking-point-2025</a>",
+            "<span class=\"case-fn\">2</span> George S. Clason, <em>The Richest Man in Babylon</em>, 1926. <a class=\"inline-link\" href=\"https://en.wikipedia.org/wiki/The_Richest_Man_in_Babylon\" target=\"_blank\" rel=\"noopener noreferrer\">en.wikipedia.org/wiki/The_Richest_Man_in_Babylon</a>"
+          ]
+        }
+      ],
       "link": {
         "label": "Visit sort.cash",
         "url": "https://sort.cash"
@@ -388,20 +434,7 @@
   "writing": {
     "disclaimer": "Coming soon",
     "subtitle": "I'm drafting some posts — check back soon.",
-    "posts": [
-      {
-        "slug": "sort-dot-cash",
-        "title": "Sort Dot Cash",
-        "date": "July 28th, 2026",
-        "summary": "Notes on designing and building a budgeting app that has to teach as well as track.",
-        "body": [
-          "Most budgeting apps assume you already know what you're doing. They hand you categories, charts and a monthly burn rate, and quietly expect financial literacy to be a prerequisite rather than something the product might actually help with.",
-          "sort.cash starts from the opposite assumption. The person opening it may never have held a budget, and the win isn't a beautiful dashboard — it's having a few hundred dollars set aside the first time something breaks. That reframing changes almost every design decision: what you show first, what you're allowed to hide, and how much you explain along the way.",
-          "Building it myself has been the sharpest part. When you design and ship the same screen, you stop being able to hand-wave the hard bits — the empty state, the error, the moment someone connects an account and sees a number they don't like. Those are the screens that decide whether a product teaches anyone anything.",
-          "It's still in progress. More to come as it takes shape."
-        ]
-      }
-    ]
+    "posts": []
   },
   "store": {
     "_comment": "Short card blurbs keyed by Fourthwall product name. The full product description still comes from Fourthwall and is shown on the detail page; these just keep the listing to one tidy line each. Products without an entry fall back to their Fourthwall copy.",

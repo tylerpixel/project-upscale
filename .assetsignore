@@ -9,7 +9,17 @@ node_modules
 worker
 scripts
 admin
+docs
 lighthouse
+# scripts/inline-content.js renames a few things to <name>.parked for the
+# duration of a deploy — the content file, once it's inside index.html, and the
+# local dev toolbar. Matching the suffix rather than the real paths is
+# deliberate: `wrangler dev` honours this file too, so listing a real path here
+# would also stop the local server serving it, which is where both of those are
+# needed. Parking only exists between the inline and the revert.
+# data/legal.json is untouched: it's fetched on demand when a policy page opens,
+# so it isn't part of first paint and stays a file of its own.
+*.parked
 .backups
 README.md
 wrangler.jsonc

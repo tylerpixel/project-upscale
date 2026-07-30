@@ -3,12 +3,16 @@
 > Portfolio of Tyler Patterson (Tyler Pixel), a design engineer in Brisbane,
 > Australia, working on brand identity design and product engineering. The site
 > is a single-page app: every URL below is a real, linkable route, but the HTML
-> served at each one is the same shell, with the content rendered client-side
-> from /data/site-content.json.
+> served at each one is the same shell, with the content rendered client-side.
 
 Because the pages are rendered in the browser, fetching a route's HTML will not
-show you its content. The JSON files listed under Data are the source of truth
-and are the better thing to read.
+show you the rendered content of that route. It will, however, give you all of
+it: every page embeds the site's entire copy as JSON in a single tag,
+
+    <script id="siteContent" type="application/json">…</script>
+
+so one request for any URL above is enough to read the whole site. That tag is
+the source of truth and is the better thing to parse.
 
 ## Sections
 
@@ -35,8 +39,8 @@ and are the better thing to read.
 
 ## Data
 
-- [site-content.json](https://tylerpixel.com/data/site-content.json): All page copy, work case studies, and writing posts, as structured JSON.
-- [legal.json](https://tylerpixel.com/data/legal.json): Terms, privacy policy, and returns policy.
+- All page copy, work case studies, and writing posts: embedded in every page as the `siteContent` JSON tag described above. There is no separate file to fetch.
+- [legal.json](https://tylerpixel.com/data/legal.json): Terms, privacy policy, and returns policy. Fetched on demand when a policy page opens, so this one is still its own file.
 
 ## Optional
 

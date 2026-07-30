@@ -20,6 +20,9 @@
   --underline: #d9d9d9;
   --underline-hover: #666666;
   --bg: #ffffff;
+  /* The wordmark blue — shared by the header mark and the footer's full-width
+     repeat of it, so the two can't drift. */
+  --brand: #0060e5;
   /* The measure everything lines up to. This is the *content* width — the
      gutter is added on top — so the text column, the bottom nav and the tray
      sheet all end up exactly this wide inside their padding. */
@@ -124,7 +127,24 @@ h2 {
   border: 0;
   height: 13px;
   width: auto;
-  color: #0060E5;
+  color: var(--brand);
+}
+
+/* Block-level flex, NOT inline-flex. .wordmark inherits the body's 1.6 line
+   height, which on the h1 is a 51.2px line box — an inline-level child gets
+   baseline-aligned inside it and lands ~23px below the 13px heading, on top of
+   the role line underneath. A block-level box builds no line box at all, so the
+   mark sits where the heading is.
+   fit-content keeps the hit area tight to the mark instead of spanning the
+   column, which is what inline-flex was there for.
+   The height has to be carried here too, or the svg's `height: 100%` below
+   resolves against a zero-height box. */
+.wordmark-home {
+  display: flex;
+  width: fit-content;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
 }
 
 .wordmark svg {
@@ -166,6 +186,189 @@ nav.identity-links {
   width: 16px;
   height: 16px;
   display: block;
+}
+
+/* ── Loading skeleton ──
+   Static markup in index.html, so it's on screen in the first frame — before
+   site.min.js has downloaded, let alone rendered a panel. Sized to the body
+   text's own rhythm (12pt at 1.6 is a 25.6px line) so the column doesn't
+   resettle when the real copy replaces it. Removed by revealPanel() and
+   initNav(); if content never arrives it stays up, which reads as still-loading
+   rather than as an empty page. ── */
+/* Everything that paints as a grey bar is one primitive, .skeleton-bar, plus a
+   modifier for its shape. So the fill, the pulse and the reduced-motion opt-out
+   are each declared exactly once — when these were eight separate class names
+   the opt-out below listed only three of them and the rest kept animating for
+   people who had asked motion to stop. */
+.skeleton-bar,
+.nav-skeleton::before {
+  display: block;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* The bars still hold the layout; they just stop breathing. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-bar,
+  .nav-skeleton::before {
+    animation: none;
+  }
+}
+
+/* ── Bar shapes ── */
+
+/* 12 + 13.6 = the 25.6px line box a 12pt/1.6 line occupies. */
+.skeleton-bar--line {
+  height: 12px;
+  margin-bottom: 13.6px;
+}
+
+/* The lede is set at 13pt against the body's 12pt. */
+.skeleton-bar--lede {
+  height: 14px;
+}
+
+/* Label/value rows: the case study's meta header and the resume list. */
+.skeleton-bar--row {
+  height: 11px;
+  margin-bottom: 20px;
+}
+
+/* A .page-title — shorter and heavier than body copy. */
+.skeleton-bar--title {
+  width: 46%;
+  height: 15px;
+  margin-bottom: 22px;
+}
+
+.skeleton-bar--short {
+  width: 38%;
+}
+
+/* Cards lead with their image, so the thumb carries most of the card's height.
+   16:9 for work, square for store — the frames the real thumbnails fill, so
+   nothing reflows when they land. */
+.skeleton-bar--thumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 12px;
+  border-radius: 8px;
+}
+
+.skeleton-bar--square {
+  aspect-ratio: 1 / 1;
+}
+
+.skeleton-bar--logo {
+  height: 15px;
+  flex: 0 0 auto;
+}
+
+/* Matches the box the real portrait reserves. */
+.skeleton-bar--portrait {
+  width: 96px;
+  height: 96px;
+  flex: 0 0 auto;
+  border-radius: 12px;
+}
+
+/* The greeting bubble beside it. */
+.skeleton-bar--pill {
+  width: 148px;
+  height: 34px;
+  border-radius: 999px;
+}
+
+/* ── Groups ── */
+
+.skeleton-para {
+  margin: 0 0 20px;
+}
+
+/* Paragraphs don't end flush, so neither does the skeleton — a full-width last
+   line is the tell that makes these read as bars rather than as text. */
+.skeleton-para .skeleton-bar:last-child {
+  width: 64%;
+  margin-bottom: 0;
+}
+
+.skeleton-para:nth-child(2) .skeleton-bar:last-child {
+  width: 43%;
+}
+
+.skeleton-para:nth-child(3) .skeleton-bar:last-child {
+  width: 52%;
+}
+
+.skeleton-card {
+  margin-bottom: 26px;
+}
+
+/* Scoped to the group so the alternating widths can't reach a lone row
+   elsewhere, e.g. the back-link above a case study's hero. */
+.skeleton-meta {
+  margin-bottom: 24px;
+}
+
+.skeleton-meta .skeleton-bar:nth-child(even) {
+  width: 72%;
+}
+
+.skeleton-meta .skeleton-bar:last-child {
+  margin-bottom: 0;
+}
+
+.skeleton-portrait-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+/* Stands in for the company-logos strip under the intro copy. */
+.skeleton-logos {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 12px;
+}
+
+.skeleton-logos .skeleton-bar:nth-child(1) {
+  width: 74px;
+}
+
+.skeleton-logos .skeleton-bar:nth-child(2) {
+  width: 96px;
+}
+
+.skeleton-logos .skeleton-bar:nth-child(3) {
+  width: 58px;
+}
+
+/* One per nav tab, on the same `flex: 1` grid the real tabs use, so the pill
+   isn't an empty capsule while the content file is in flight. */
+.nav-skeleton {
+  flex: 1;
+  display: grid;
+  place-items: center;
+}
+
+.nav-skeleton::before {
+  content: "";
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
 }
 
 /* ── Panels ── */
@@ -311,29 +514,59 @@ nav.identity-links {
   color: var(--fg-muted);
 }
 
-/* ── About page footer — copyright on the left, build version on the right.
-   The compound selector keeps the row flex even though .t-stagger-line
-   (declared later) forces display: block on staggered elements. ── */
-.about-footer.t-stagger-line,
-.about-footer {
+/* ── Site footer ──
+   The shell's sign-off, below every panel rather than inside one: the wordmark
+   at the full width of the column, a hairline running out to the build chip,
+   then copyright on the left and the social icons on the right. ── */
+.site-footer {
+  /* Deliberately deeper than the wordmark's 24px gap to the hairline below it:
+     this is the break between the panel's content and the footer block, so it
+     needs to read as separation rather than as internal spacing. */
+  margin-top: 32px;
+}
+
+/* Hidden on the intro, which already opens on the wordmark — repeating it a
+   screen later reads as a stutter rather than a sign-off. Every other panel
+   (including the 404) keeps it. */
+body.is-intro .site-footer {
+  display: none;
+}
+
+/* Sized off the column instead of the header's fixed 13px, so the mark reads as
+   a full-width rule of its own. */
+.site-footer-mark {
+  color: var(--brand);
+}
+
+.site-footer-mark svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Hairline and chip on one line, with the 9px gap the only thing between them —
+   the rule takes whatever width the chip leaves. Compound selector so the row
+   stays flex even though .t-stagger-line (declared later, added by markStagger)
+   forces display: block on staggered elements. */
+.site-footer-rule-row.t-stagger-line,
+.site-footer-rule-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin: 36px 0 0;
+  gap: 9px;
+  margin-top: 24px;
 }
 
-/* Scoped past `.about-footer` to beat `.panel p`'s specificity — otherwise its
-   20px bottom margin survives into the flex item's margin box and pushes the
-   text visibly above the chip it's supposed to sit level with. */
-.about-footer .about-copyright {
-  margin: 0;
-  font-size: 9.5pt;
-  color: var(--fg-muted);
+.site-footer-rule {
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--underline);
 }
 
-.about-version-chip {
-  display: inline-block;
+/* Links the build you're looking at to the commit history it came from. The
+   version is stamped into site-content.json by scripts/ship.sh on every deploy,
+   so the chip can never name a build other than the deployed one. */
+.site-footer-version {
+  flex: 0 0 auto;
   padding: 4px 9px;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.05);
@@ -342,6 +575,36 @@ nav.identity-links {
   letter-spacing: 0.02em;
   line-height: 1;
   color: var(--fg-muted);
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.site-footer-version:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--fg);
+}
+
+/* Compound selector for the same reason as the rule row above. */
+.site-footer-meta.t-stagger-line,
+.site-footer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.site-footer-copyright {
+  margin: 0;
+  font-size: 9.5pt;
+  color: var(--fg-muted);
+}
+
+/* The icon row is 24px boxes around 16px icons, so its last glyph sits 4px
+   short of the row's edge — pulled back out so it lines up with the end of the
+   hairline above it. */
+.site-footer-meta .identity-links {
+  margin-right: -4px;
 }
 
 /* ── Company logos strip ── */
@@ -626,6 +889,220 @@ nav.identity-links {
   font-size: 10pt;
   line-height: 1.4;
   color: var(--fg-muted);
+}
+
+/* ── Long-form case study ──
+   Blocks built by buildCaseStudy() in site.js, used by both the work detail
+   panel (the short essay: header block and one-liner only) and the writing
+   detail panel (the full piece, with headings, beats and figures). Every rule
+   that lands on a paragraph is written as two classes, because `.panel p` (a
+   class plus a type) otherwise wins and puts its 20px margin back — the same
+   fight documented at `.work-list .work-title` above. Two classes beat it
+   without naming a panel, which is what lets one block serve both. */
+.case-block {
+  margin: 0 0 32px;
+}
+
+.case-block:last-child {
+  margin-bottom: 0;
+}
+
+/* Header block — client, role, year, scope, status. Five scannable lines on
+   the same hairline rhythm as the resume list, so the case study opens with
+   facts rather than with prose. */
+.case-block .case-meta {
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  margin: 0;
+}
+
+.case-block .case-meta-label,
+.case-block .case-meta-value {
+  margin: 0;
+  padding: 7px 0;
+  border-top: 1px solid var(--underline);
+  font-size: 10pt;
+  line-height: 1.4;
+}
+
+.case-block .case-meta-label {
+  color: var(--fg-muted);
+}
+
+.case-block .case-meta-label:last-of-type,
+.case-block .case-meta-value:last-of-type {
+  border-bottom: 1px solid var(--underline);
+}
+
+/* The one-liner: the sentence written for someone who reads nothing else, so
+   it carries the only step up in size on the page. */
+.case-block .case-lede {
+  margin: 0;
+  font-size: 13pt;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: -0.4pt;
+  color: var(--fg);
+}
+
+/* The lede closes with a rule of its own, so the summary reads as a standalone
+   opening rather than as the first paragraph of the section under it. */
+.case-block--lede {
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--underline);
+}
+
+/* That rule already does the dividing, so a section heading landing directly
+   after the lede doesn't stack a second one on top of it. */
+.case-block--lede + .case-block .case-heading {
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* A rule above each section heading rather than a size jump — the column is
+   360px wide, so division does the work that a larger type scale would. */
+.case-block .case-heading {
+  margin: 0 0 14px;
+  padding-top: 22px;
+  border-top: 1px solid var(--underline);
+  font-size: 12pt;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.3pt;
+  color: var(--fg);
+}
+
+.case-block .case-paragraph {
+  margin: 0 0 12px;
+  font-size: 11pt;
+  line-height: 1.55;
+  color: var(--fg);
+}
+
+.case-block .case-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Labelled beat — Tension / The call / Why / The cost inside a decision, and
+   the same shape wherever else a run of parallel points needs to be scanned
+   rather than read (the three pricing models, the two craft notes). */
+.case-block .case-beat {
+  margin: 0 0 16px;
+}
+
+.case-block .case-beat:last-child {
+  margin-bottom: 0;
+}
+
+/* A beat opening after prose needs more air than the paragraph gap, or its
+   label reads as a heading belonging to the paragraph above it. */
+.case-block .case-paragraph + .case-beat {
+  margin-top: 8px;
+}
+
+.case-block .case-beat-label {
+  margin: 0 0 3px;
+  font-size: 8.5pt;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--fg-muted);
+}
+
+/* Decisions are the section a case study is judged on, so they are the one
+   run of blocks that gets a standing mark down the side. The rule is the
+   brand orange at low alpha — the only place the accent appears in body
+   copy — and it groups the four beats as one argument. */
+.case-block--decision {
+  margin-bottom: 26px;
+  padding-left: 14px;
+  border-left: 2px solid rgba(255, 85, 0, 0.2);
+}
+
+.case-block .case-decision-title {
+  margin: 0 0 14px;
+  font-size: 11.5pt;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.3pt;
+  color: var(--fg);
+}
+
+.case-block .case-number {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 9pt;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  color: var(--sortcash);
+}
+
+/* Footnote: pulled up against the section it annotates instead of floating a
+   full block gap below it. */
+.case-block--note {
+  margin-top: -18px;
+}
+
+.case-block .case-note {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--underline);
+  font-size: 9.5pt;
+  line-height: 1.45;
+  color: var(--fg-muted);
+}
+
+.case-fn {
+  font-size: 0.7em;
+  vertical-align: super;
+  line-height: 0;
+  font-weight: 600;
+  color: var(--sortcash);
+}
+
+/* In a note or a cites entry the marker is the reference number itself, not a
+   superscript pointing at one. */
+.case-block .case-note .case-fn,
+.case-block--cites .case-fn {
+  font-size: inherit;
+  vertical-align: baseline;
+  margin-right: 5px;
+}
+
+/* ── Cites — the numbered sources at the foot of a case study. Same muted,
+   smaller setting as a footnote, but a real section with its own heading
+   rather than an aside pulled up under the block it annotates. ── */
+/* Rendered after the CTAs rather than inline with the other blocks, so it can't
+   inherit its air from a preceding sibling's bottom margin — this restores the
+   same 32px between the CTA and the heading's rule that sits between any two
+   sections. Without it the rule is drawn flush against the button. */
+.case-block--cites {
+  margin-top: 32px;
+}
+
+.case-block--cites .case-paragraph {
+  margin: 0 0 7px;
+  font-size: 9.5pt;
+  line-height: 1.45;
+  color: var(--fg-muted);
+}
+
+.case-block--cites .case-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Evidence sits under the section it belongs to rather than in the gallery
+   block at the foot of the page. */
+.case-block .case-figure {
+  margin: 20px 0 0;
+}
+
+/* Until the exports exist these are all empty tiles, and the gallery's 4:3
+   default stacks two of them into most of a screen — shallower keeps the
+   section's argument and its evidence in view together. */
+.case-block .case-figure .image-empty {
+  aspect-ratio: 16 / 10;
 }
 
 /* ── Store ── */
@@ -959,11 +1436,56 @@ nav.identity-links {
   transform: scale(0.99);
 }
 
+/* ── CTA button ──
+   The filled inline action, shared by the 404's back-link and a work item's
+   "Visit …" link. inline-flex so it hugs its label instead of spanning the
+   column the way the primary buttons above do, and the icon side decides which
+   end takes the tighter padding — hence the trailing modifier. ── */
+.cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 16px 11px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--fg);
+  color: #ffffff;
+  font-size: 11pt;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.12s ease;
+}
+
+/* Icon after the label rather than before it, so the tight side flips. */
+.cta-button--trailing {
+  padding: 11px 12px 11px 16px;
+}
+
+.cta-button:hover {
+  opacity: 0.88;
+}
+
+.cta-button:active {
+  transform: scale(0.98);
+}
+
+.cta-button svg {
+  flex: 0 0 auto;
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
 /* ── Store footer — policy links below the product list ── */
 .store-footer {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
+  /* Spread across the column rather than bunched at the left, flush to both
+     edges so the row lines up with the footer's copyright and icons below it.
+     The separator dots are flex items too, so they land centred in each gap. */
+  justify-content: space-between;
   gap: 8px;
   margin-top: 44px;
   padding-top: 20px;
@@ -1767,39 +2289,10 @@ nav.identity-links {
   color: var(--fg-muted);
 }
 
-/* A real button rather than a text link — filled, with the same left chevron
-   the Previous-project control uses. inline-flex so it hugs its label instead
-   of spanning the column the way the full-width primary buttons do. */
+/* The 404's back-link is a .cta-button (see the shared rules above); only its
+   spacing in this panel belongs here. */
 #panel-404 .notfound-home {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   margin-top: 20px;
-  padding: 11px 16px 11px 12px;
-  border: 0;
-  border-radius: 12px;
-  background: var(--fg);
-  color: #ffffff;
-  font-size: 11pt;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.12s ease;
-}
-
-#panel-404 .notfound-home:hover {
-  opacity: 0.88;
-}
-
-#panel-404 .notfound-home:active {
-  transform: scale(0.98);
-}
-
-#panel-404 .notfound-home svg {
-  flex: 0 0 auto;
-  display: block;
-  width: 16px;
-  height: 16px;
 }
 
 /* Sits above the bottom nav, clearing it by the same 88px the tray uses. */
@@ -1864,13 +2357,6 @@ body.is-404 .attribution {
 .work-nav-row {
   display: flex;
   gap: 10px;
-  transition: opacity 180ms ease;
-}
-
-/* While Next/Previous rebuilds the panel, the row cross-fades instead of the
-   labels instantly popping to the new project's name (see openWorkDetail). */
-.work-nav-row--fading {
-  opacity: 0;
 }
 
 .work-nav-row[hidden] {
@@ -1922,6 +2408,15 @@ body.is-404 .attribution {
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--fg);
+  transition: opacity 180ms ease;
+}
+
+/* While Next/Previous rebuilds the panel, only the project titles cross-fade —
+   the pills, their borders and their shadows hold still. The transition lives on
+   the label and not on .work-nav-row for exactly that reason: fading the row
+   takes the buttons with it (see openWorkDetail, which adds the class). */
+.work-nav-row--fading .work-nav-label {
+  opacity: 0;
 }
 
 .nav {

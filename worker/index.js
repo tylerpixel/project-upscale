@@ -61,6 +61,49 @@ function secure(response, extra) {
   return out;
 }
 
+// ── Loading skeleton ──
+//
+// index.html carries one hidden skeleton per panel shape; this picks the one
+// matching the route and unhides it on the way out, so the placeholder the
+// browser paints is the silhouette of the page being opened rather than always
+// the intro's.
+//
+// It happens here rather than in the page because the CSP above is
+// `script-src 'self'` with no 'unsafe-inline': an inline picker would be
+// blocked, and an external blocking script would cost a round trip before the
+// first paint, which is the exact gap the skeleton exists to cover. Doing it at
+// the edge costs the client nothing and works with JS off entirely.
+//
+// Keep the keys in step with the data-skeleton attributes in index.html.
+function skeletonFor(pathname) {
+  if (pathname === "/") return "intro";
+  if (/^\/work\/[^/]+\/?$/.test(pathname)) return "work-detail";
+  if (/^\/work\/?$/.test(pathname)) return "work";
+  // A product deep link paints the store *list* first — applyRoute() calls
+  // selectTab("store") immediately and store.js only swaps the product in once
+  // the catalogue lands — so the list's shape is the honest placeholder here.
+  if (/^\/store(\/[^/]+)?\/?$/.test(pathname)) return "store";
+  if (/^\/about\/?$/.test(pathname)) return "about";
+  // Writing's empty state, the legal documents, and anything the router will
+  // resolve to the 404 all read as a title over prose.
+  return "prose";
+}
+
+// Only touches HTML: every other asset streams through untouched. The rewriter
+// matches one element and removes one attribute, so the inlined content blob in
+// <script id="siteContent"> passes through as the raw text it is.
+function withSkeleton(response, pathname) {
+  const type = response.headers.get("content-type") || "";
+  if (!type.includes("text/html")) return response;
+  return new HTMLRewriter()
+    .on(`[data-skeleton="${skeletonFor(pathname)}"]`, {
+      element(el) {
+        el.removeAttribute("hidden");
+      },
+    })
+    .transform(response);
+}
+
 // Vanity subdomains — <key>.tylerpixel.com redirects to its target. Each one
 // needs a proxied DNS record on the zone; the wildcard route in wrangler.jsonc
 // then brings the request here.
@@ -320,6 +363,6 @@ export default {
       }
       return handleMessage(request, env, url);
     }
-    return secure(await env.ASSETS.fetch(request));
+    return secure(withSkeleton(await env.ASSETS.fetch(request), url.pathname));
   },
 };

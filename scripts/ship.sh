@@ -2,7 +2,7 @@
 #
 # Ship Project Upscale.
 #
-# Bumps the version in data/site-content.json (which is what the About page's
+# Bumps the version in data/site-content.json (which is what the site footer's
 # chip renders), commits it, tags the commit, deploys to Cloudflare, and
 # pushes. One command so the shipped build and the version on the page can
 # never drift apart.
@@ -117,7 +117,18 @@ git add -A
 git commit -m "${MESSAGE:-v$NEXT}${MESSAGE:+ (v$NEXT)}"
 git tag -a "v$NEXT" -m "v$NEXT"
 
+# Fold the content file into index.html for the upload only. This runs *after*
+# the commit on purpose: the blob would otherwise be committed, and every copy
+# edit would show up twice in the diff — once in data/site-content.json and
+# again inside index.html. The trap puts index.html back even if the deploy
+# fails, so a broken ship can't leave a 40 KiB blob in the working tree.
+trap 'node scripts/inline-content.js --revert' EXIT
+node scripts/inline-content.js
+
 npx wrangler deploy
+
+node scripts/inline-content.js --revert
+trap - EXIT
 
 git push --follow-tags
 

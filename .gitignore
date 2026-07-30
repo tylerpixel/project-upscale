@@ -27,6 +27,19 @@ Thumbs.db
 admin/
 data/.backups/
 
+# Drafts being workshopped offline — content lives in data/site-content.json
+# once it's ready to ship.
+docs/
+
+# Local dev toolbar — loaded only when the hostname is localhost (see the tail
+# of js/site.js). Never committed, so it lives on whichever machine created it.
+dev/
+
+# Transient: scripts/inline-content.js parks files under this suffix while a
+# deploy is in flight. Only ever on disk if a ship was interrupted, and
+# `inline-content.js --revert` puts them back.
+*.parked
+
 # Wrangler local state
 .wrangler/
 

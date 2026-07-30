@@ -27,6 +27,10 @@ const NAV_ICONS = {
 const IMAGE_EMPTY_ICON = `<svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V158.75l-26.07-26.06a16,16,0,0,0-22.63,0l-20,20-44-44a16,16,0,0,0-22.62,0L40,149.37V56ZM40,172l52-52,80,80H40Zm176,28H194.63l-36-36,20-20L216,181.38V200ZM144,100a12,12,0,1,1,12,12A12,12,0,0,1,144,100Z"/></svg>`;
 
 // Shown in the Writing panel's empty state.
+// Trailing chevron for a .cta-button — the mirror of the leading one the 404's
+// back-link and the Previous-project control use.
+const CTA_ARROW_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>`;
+
 const WRITING_EMPTY_ICON = `<svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M227.32,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H216a8,8,0,0,0,0-16H115.32l112-112A16,16,0,0,0,227.32,73.37ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.69,147.32,64l24-24L216,84.69Z"/></svg>`;
 
 // sort.cash mark, inverted for use on its own brand-orange tile: the outer
@@ -206,8 +210,12 @@ function makeActivatable(el, label, onActivate) {
   });
 }
 
-function flashToast(el) {
-  if (supportsHover) return;
+// `force` shows it even where hover works, for callers with no pointer behind
+// them — keyboard activation, which otherwise lands on a bare icon with nothing
+// naming it. The .show-toast rules sit outside the (hover: hover) block, so they
+// apply on desktop too.
+function flashToast(el, force) {
+  if (supportsHover && !force) return;
   el.classList.add("show-toast");
   clearTimeout(el._toastTimer);
   el._toastTimer = setTimeout(() => el.classList.remove("show-toast"), 1200);
@@ -224,7 +232,30 @@ function markStagger(el, index) {
 const STAGGER_EXIT_MS = 200;
 
 function revealPanel(panel) {
+  // A real panel is going up, so the static placeholder has done its job. Done
+  // here rather than when the content resolves, so there's no frame where the
+  // skeleton is gone and the panel hasn't arrived yet.
+  const skeleton = document.getElementById("contentSkeleton");
+  if (skeleton) skeleton.remove();
+
   document.body.classList.toggle("is-404", panel.id === "panel-404");
+  // The intro is the one panel that ends on the wordmark it opens with, so the
+  // footer's full-width repeat of it is suppressed there and shown everywhere
+  // else (see body.is-intro in main.css).
+  const isIntro = panel.id === "panel-intro";
+  document.body.classList.toggle("is-intro", isIntro);
+
+  // Replay the footer's entrance alongside the panel's. Reset first so it
+  // animates on every change rather than only the first — same remove/reflow/add
+  // shape showAfterReflow() uses, which is why it's reused here.
+  const footer = document.querySelector(".site-footer");
+  if (footer) {
+    footer.classList.remove("is-shown");
+    if (!isIntro) {
+      void footer.offsetWidth;
+      showAfterReflow(footer);
+    }
+  }
   // Two transitions can overlap — an async deep link landing while a tab
   // switch is still inside its exit timeout — which used to leave both panels
   // stacked. Whatever else is on screen goes now, so exactly one panel is ever
@@ -705,9 +736,11 @@ let legalReady = null;
 
 function loadLegal() {
   if (!legalReady) {
-    legalReady = fetch("/data/legal.json", { credentials: "omit" })
-      .then((res) => (res.ok ? res.json() : null))
-      .catch(() => null);
+    // Same guard as the content file: this one is deployed rather than inlined,
+    // so a missing or misrouted file comes back as the SPA fallback's HTML and
+    // res.ok alone would wave it through into res.json(). openLegal() treats
+    // null as "not found", which is the right outcome either way.
+    legalReady = fetchJson("/data/legal.json").catch(() => null);
   }
   return legalReady;
 }
@@ -787,13 +820,49 @@ window.addEventListener("popstate", () => applyRoute(location.pathname));
 
 // ── Content load ──
 
-// Kicked off at parse time rather than on DOMContentLoaded, so the request is
-// in flight while the rest of the document is still being parsed. store.js
-// awaits this same promise instead of fetching the file a second time.
-const contentReady = fetch("/data/site-content.json", { credentials: "omit" }).then((res) => {
-  if (!res.ok) throw new Error(`Content responded ${res.status}`);
-  return res.json();
-});
+// Two sources, one promise. Deployed builds carry the content file inside
+// index.html (scripts/inline-content.js, run by ship.sh), so it's already here
+// and there's nothing to wait for; locally the tag is absent and the file is
+// fetched, which is what keeps the CMS editing data/site-content.json in place.
+//
+// Either way this settles at parse time rather than on DOMContentLoaded, so the
+// request — when there is one — is in flight while the rest of the document is
+// still being parsed. store.js awaits this same promise instead of going after
+// the content a second time.
+// Every JSON file this site fetches goes through here. The content-type check is
+// the important part: wrangler.jsonc sets not_found_handling to
+// "single-page-application", so a path with no asset behind it resolves to
+// index.html with a 200 rather than a 404 — res.ok on its own tells you nothing
+// about whether you got the file you asked for. Matched on the media type's own
+// suffix rule so "application/json" and "application/ld+json" pass while
+// "text/html" can't sneak through on a substring.
+function fetchJson(path) {
+  return fetch(path, { credentials: "omit" }).then((res) => {
+    if (!res.ok) throw new Error(`${path} responded ${res.status}`);
+    const type = (res.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
+    if (type !== "application/json" && !type.endsWith("+json")) {
+      throw new Error(`${path} responded ${type || "an unknown type"}, not JSON`);
+    }
+    return res.json();
+  });
+}
+
+function loadContent() {
+  const inline = document.getElementById("siteContent");
+  if (inline) {
+    try {
+      return Promise.resolve(JSON.parse(inline.textContent));
+    } catch (err) {
+      // Fall through to the network. Only reachable if the inlined blob is
+      // corrupt, and only recoverable while the file is still being uploaded —
+      // but a broken build should still try to render rather than give up.
+      console.error("Inlined site content is unparseable, falling back to fetch:", err);
+    }
+  }
+  return fetchJson("/data/site-content.json");
+}
+
+const contentReady = loadContent();
 window.__contentReady = contentReady;
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -820,8 +889,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderIntro(content.intro);
   renderWork(content.work, tabLabel("work", "Selected Works"));
   renderWriting(content.writing, tabLabel("writing", "Writing"));
-  renderContact(content.contact, tabLabel("contact", "About"), content.social, content.version);
+  renderContact(content.contact, tabLabel("contact", "About"));
+  renderSiteFooter(content);
   initNav(content.tabs);
+  initWordmarkHome(); // after initNav — selectTab is assigned in there
   initFab(content.contact);
 
   // Honour a deep link on first paint rather than always opening the intro.
@@ -896,6 +967,20 @@ function initInlineLinkTooltips(root) {
   });
 }
 
+// The header wordmark goes home to the intro. Its href is real, so this only
+// takes over the plain left-click — modified clicks and middle-clicks keep the
+// browser's own behaviour (new tab, new window), which "#" plus preventDefault
+// would have thrown away.
+function initWordmarkHome() {
+  const link = document.querySelector(".wordmark-home");
+  if (!link) return;
+  link.addEventListener("click", (e) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    selectTab("intro");
+  });
+}
+
 function initFab(contact) {
   const fab = document.getElementById("navFab");
   if (!fab || !contact) return;
@@ -932,6 +1017,47 @@ function renderSocialRow(row, social) {
     a.innerHTML = SOCIAL_ICONS[s.name] || "";
     row.appendChild(a);
   });
+}
+
+// The shell's footer, shown under every panel: the wordmark at full column
+// width, then the hairline + build chip, then the sign-off row. Rendered here
+// rather than left static in index.html because the version and the social list
+// both come out of site-content.json.
+function renderSiteFooter(content) {
+  // Clone the header's wordmark instead of shipping the path a second time in
+  // index.html — the container is aria-hidden, so the copy stays decorative.
+  const mark = document.getElementById("siteFooterMark");
+  const wordmark = document.querySelector(".wordmark svg");
+  if (mark && wordmark && !mark.firstChild) mark.appendChild(wordmark.cloneNode(true));
+
+  const version = document.getElementById("siteFooterVersion");
+  if (version && content.version) {
+    version.textContent = `v${content.version}`;
+    version.setAttribute("aria-label", `Version ${content.version} — view the source on GitHub`);
+    version.hidden = false;
+  }
+
+  const copyright = document.getElementById("siteFooterCopyright");
+  if (copyright) copyright.textContent = `${new Date().getFullYear()} © Tyler Pixel`;
+
+  const social = document.getElementById("siteFooterSocial");
+  if (social) {
+    social.replaceChildren();
+    renderSocialRow(social, content.social);
+  }
+
+  // Now that there's something in it, let it show. It ships hidden so it can't
+  // paint as a lone hairline while the rest of this is still pending.
+  const footer = document.querySelector(".site-footer");
+  if (!footer) return;
+  footer.hidden = false;
+
+  // Its three rows cascade in on the same stagger the panels use, so the footer
+  // arrives with the page rather than snapping in under it. revealPanel() is
+  // what actually triggers the reveal, on every panel change.
+  [mark, footer.querySelector(".site-footer-rule-row"), footer.querySelector(".site-footer-meta")]
+    .filter(Boolean)
+    .forEach((row, i) => markStagger(row, i));
 }
 
 function renderIntro(intro) {
@@ -1059,6 +1185,149 @@ function renderWork(work, label) {
   panel.appendChild(list);
 }
 
+// ── Long-form case studies ──
+//
+// `caseStudy` is either a single HTML string — the short entries, rendered into
+// one paragraph exactly as before — or an array of blocks. A block carries any
+// combination of:
+//
+//   kind      "meta" (the five-line header), "lede" (the one-liner) or "note"
+//             (a footnote). Absent on an ordinary prose section.
+//   heading   Section heading. A block with only a heading is a divider, used
+//             to title the run of decisions that follows it.
+//   number    Present on a decision — renders the heading as a numbered one.
+//   rows      [{ label, value }] for the header block.
+//   body      Paragraphs. A string is prose; a { label, text } object is a
+//             labelled beat (Tension / The call / Why / The cost), whose text
+//             may itself be several paragraphs.
+//   figures   [{ caption, src }] — evidence for that section, placed under it
+//             rather than pooled at the end of the page like `images` is.
+//
+// Everything is built as DOM rather than markup so the sanitiser only ever sees
+// the inline HTML inside a paragraph, which is the only part the content file
+// is allowed to style.
+
+function caseParagraph(text, className) {
+  const p = document.createElement("p");
+  p.className = className;
+  setHtml(p, text);
+  return p;
+}
+
+function caseBeat(beat) {
+  const wrap = document.createElement("div");
+  wrap.className = "case-beat";
+
+  if (beat.label) {
+    const label = document.createElement("p");
+    label.className = "case-beat-label";
+    label.textContent = beat.label;
+    wrap.appendChild(label);
+  }
+  [].concat(beat.text || []).forEach((text) => {
+    wrap.appendChild(caseParagraph(text, "case-paragraph"));
+  });
+  return wrap;
+}
+
+function caseMeta(rows) {
+  const dl = document.createElement("dl");
+  dl.className = "case-meta";
+  (rows || []).forEach((row) => {
+    const dt = document.createElement("dt");
+    dt.className = "case-meta-label";
+    dt.textContent = row.label || "";
+    const dd = document.createElement("dd");
+    dd.className = "case-meta-value";
+    dd.textContent = row.value || "";
+    dl.append(dt, dd);
+  });
+  return dl;
+}
+
+// sort.cash has no product screenshots in the repository yet, so a figure with
+// no `src` renders as the same empty tile a broken image falls back to, keeping
+// its caption. The caption states what the image has to prove rather than
+// labelling it, so it is worth writing before the export exists — it's the
+// brief for the export.
+function caseFigure(figure) {
+  const fig = document.createElement("figure");
+  fig.className = "work-gallery-item case-figure";
+
+  if (figure.src) {
+    const img = document.createElement("img");
+    img.className = "work-gallery-image";
+    img.src = figure.src;
+    img.alt = figure.caption || "";
+    img.loading = "lazy";
+    attachImageFallback(img, "work-gallery-image");
+    fig.appendChild(img);
+  } else {
+    fig.appendChild(emptyImageTile("work-gallery-image"));
+  }
+
+  if (figure.caption) {
+    const caption = document.createElement("figcaption");
+    caption.className = "work-gallery-caption";
+    caption.textContent = figure.caption;
+    fig.appendChild(caption);
+  }
+  return fig;
+}
+
+function caseSection(block) {
+  const kind = block.kind || "";
+  const section = document.createElement("section");
+  section.className = `case-block${kind ? ` case-block--${kind}` : ""}${block.number ? " case-block--decision" : ""}`;
+
+  if (kind === "meta") {
+    section.appendChild(caseMeta(block.rows));
+    return section;
+  }
+
+  if (block.heading) {
+    // Decisions sit under the "Decisions" divider, so they are a level down.
+    const heading = document.createElement(block.number ? "h3" : "h2");
+    heading.className = block.number ? "case-decision-title" : "case-heading";
+    if (block.number) {
+      const n = document.createElement("span");
+      n.className = "case-number";
+      n.textContent = block.number;
+      heading.appendChild(n);
+    }
+    heading.appendChild(document.createTextNode(block.heading));
+    section.appendChild(heading);
+  }
+
+  const paragraphClass =
+    kind === "lede" ? "case-lede" : kind === "note" ? "case-note" : "case-paragraph";
+
+  (block.body || []).forEach((entry) => {
+    section.appendChild(
+      typeof entry === "string" ? caseParagraph(entry, paragraphClass) : caseBeat(entry)
+    );
+  });
+
+  (block.figures || []).forEach((figure) => section.appendChild(caseFigure(figure)));
+
+  return section;
+}
+
+// Past this many blocks the entrance would take longer to finish than the
+// reader takes to start reading, so the tail all arrives together.
+const CASE_STAGGER_CAP = 12;
+
+// Returns the next stagger index, so the visit/cross-link rows after the case
+// study keep animating in sequence with it.
+function buildCaseStudy(panel, blocks, startIndex) {
+  blocks.forEach((block, i) => {
+    const section = caseSection(block);
+    markStagger(section, Math.min(startIndex + i, CASE_STAGGER_CAP));
+    panel.appendChild(section);
+  });
+  return Math.min(startIndex + blocks.length, CASE_STAGGER_CAP + 1);
+}
+
 // Builds the case-study markup for a project into an already-emptied panel.
 // Split out from openWorkDetail so the Next/Previous transition can rebuild
 // the panel's content mid-animation, after the old content has slid out.
@@ -1104,13 +1373,29 @@ function buildWorkDetailContent(panel, project) {
   markStagger(head, 2);
   panel.appendChild(head);
 
-  const body = document.createElement("p");
-  body.className = "work-detail-body"; // hook for the local CMS overlay
-  setHtml(body, project.caseStudy || project.description || "");
-  markStagger(body, 3);
-  panel.appendChild(body);
+  let idx = 3;
 
-  let idx = 4;
+  // A cites block is held back and appended at the very foot of the page,
+  // below the gallery and below the CTAs — the sources close the page out, so
+  // nothing actionable sits underneath them.
+  let citeBlocks = [];
+
+  if (Array.isArray(project.caseStudy)) {
+    // Long form. No `.work-detail-body`, so the CMS's rich-text overlay stays
+    // off these — a structured case study is edited in the content file.
+    citeBlocks = project.caseStudy.filter((block) => block.kind === "cites");
+    idx = buildCaseStudy(
+      panel,
+      project.caseStudy.filter((block) => block.kind !== "cites"),
+      idx
+    );
+  } else {
+    const body = document.createElement("p");
+    body.className = "work-detail-body"; // hook for the local CMS overlay
+    setHtml(body, project.caseStudy || project.description || "");
+    markStagger(body, idx++);
+    panel.appendChild(body);
+  }
 
   if (project.images && project.images.length) {
     const gallery = document.createElement("div");
@@ -1147,12 +1432,17 @@ function buildWorkDetailContent(panel, project) {
   if (visitHref) {
     const visit = document.createElement("p");
     visit.className = "detail-link-row";
+    // A filled CTA rather than a text link — this is the one outbound action on
+    // a case study, so it gets the same button the 404's back-link uses, with
+    // the chevron trailing the label instead of leading it. No .inline-link,
+    // which means no hover tooltip: a button states its own destination.
     const a = document.createElement("a");
-    a.className = "inline-link";
+    a.className = "cta-button cta-button--trailing";
     a.href = visitHref;
     a.target = "_blank";
     a.rel = "noopener noreferrer";
     a.textContent = project.link.label || "Visit site";
+    a.insertAdjacentHTML("beforeend", CTA_ARROW_ICON); // constant markup
     visit.appendChild(a);
     markStagger(visit, idx++);
     panel.appendChild(visit);
@@ -1175,6 +1465,9 @@ function buildWorkDetailContent(panel, project) {
     markStagger(row, idx++);
     panel.appendChild(row);
   }
+
+  // Sources last — below every CTA above them.
+  if (citeBlocks.length) buildCaseStudy(panel, citeBlocks, idx);
 }
 
 // How far (px) the Next/Previous project transition slides content horizontally.
@@ -1283,13 +1576,15 @@ function updateWorkNav(project) {
   const prevProject = workProjects[(i - 1 + workProjects.length) % workProjects.length];
   const nextProject = workProjects[(i + 1) % workProjects.length];
 
-  row.hidden = false;
+  // Labels before the fade-in, so the new pair is what animates in.
   prevBtn.querySelector(".work-nav-label").textContent = prevProject.title;
   nextBtn.querySelector(".work-nav-label").textContent = nextProject.title;
   prevBtn.setAttribute("aria-label", `Previous project: ${prevProject.title}`);
   nextBtn.setAttribute("aria-label", `Next project: ${nextProject.title}`);
   prevBtn.onclick = () => openWorkDetail(prevProject, "prev");
   nextBtn.onclick = () => openWorkDetail(nextProject, "next");
+
+  row.hidden = false;
 }
 
 // Writing posts are looked up by slug from both the Writing list and any work
@@ -1386,20 +1681,28 @@ function openPost(post) {
   markStagger(head, 1);
   panel.appendChild(head);
 
-  (post.body || []).forEach((text, i) => {
-    const p = document.createElement("p");
-    p.className = "post-paragraph";
-    setHtml(p, text);
-    markStagger(p, i + 2);
-    panel.appendChild(p);
-  });
+  // A post is either a plain run of paragraphs or the same block structure a
+  // long-form case study uses — an object anywhere in the body means the
+  // latter, since a plain post's entries are all strings.
+  const body = post.body || [];
+  if (body.some((entry) => entry && typeof entry === "object")) {
+    buildCaseStudy(panel, body, 2);
+  } else {
+    body.forEach((text, i) => {
+      const p = document.createElement("p");
+      p.className = "post-paragraph";
+      setHtml(p, text);
+      markStagger(p, i + 2);
+      panel.appendChild(p);
+    });
+  }
 
   transitionPanels(document.querySelector(".panel:not([hidden])"), panel);
   initInlineLinkTooltips(panel);
   updateWorkNav(null);
 }
 
-function renderContact(contact, label, social, version) {
+function renderContact(contact, label) {
   const panel = document.getElementById("panel-contact");
   if (!contact || !panel) return;
   panel.replaceChildren();
@@ -1486,37 +1789,9 @@ function renderContact(contact, label, social, version) {
     panel.appendChild(list);
   }
 
-  if (social && social.length) {
-    renderHeading(panel, "Social", { index: idx++, sub: true });
-
-    const socialRow = document.createElement("nav");
-    socialRow.className = "identity-links";
-    socialRow.setAttribute("aria-label", "Social");
-    markStagger(socialRow, idx++);
-    renderSocialRow(socialRow, social);
-    panel.appendChild(socialRow);
-  }
-
-  // Sign-off row: copyright on the left, the shipped build on the right. The
-  // version is stamped into site-content.json by scripts/ship.sh on every
-  // deploy, so this chip always names the build you're actually looking at.
-  const footer = document.createElement("div");
-  footer.className = "about-footer";
-
-  const copyright = document.createElement("p");
-  copyright.className = "about-copyright";
-  copyright.textContent = `${new Date().getFullYear()} © Tyler Pixel`;
-  footer.appendChild(copyright);
-
-  if (version) {
-    const chip = document.createElement("span");
-    chip.className = "about-version-chip";
-    chip.textContent = `v${version}`;
-    footer.appendChild(chip);
-  }
-
-  markStagger(footer, idx++);
-  panel.appendChild(footer);
+  // The panel ends on the resume. Its Social section and its sign-off row (the
+  // copyright plus the build chip) both moved to the site footer, which renders
+  // under this panel like every other one — see renderSiteFooter.
 
   initInlineLinkTooltips(panel);
 }
@@ -1526,7 +1801,13 @@ function initNav(tabs) {
   const indicator = document.getElementById("navInd");
   if (!nav || !tabs || !tabs.length) return;
 
+  // Past the guard on purpose: with no tabs to build, the placeholders should
+  // stay rather than leave an empty pill behind. Removed before the indicator
+  // is positioned below, which measures the nav's children.
+  nav.querySelectorAll(".nav-skeleton").forEach((el) => el.remove());
+
   tabLabels = Object.fromEntries(tabs.map((t) => [t.id, t.label]));
+
 
   tabs.forEach((tab, i) => {
     const btn = document.createElement("button");
@@ -1555,7 +1836,9 @@ function initNav(tabs) {
     nav.appendChild(btn);
   });
 
-  function selectPanel(id, keepUrl) {
+  // `replace` swaps the URL instead of pushing a new entry — used by hover
+  // navigation, so passing over the nav doesn't fill the back button.
+  function selectPanel(id, keepUrl, replace) {
     const active = nav.querySelector(`.nav-tab[data-tab="${id}"]`);
     if (!active) return;
 
@@ -1574,7 +1857,7 @@ function initNav(tabs) {
     syncNavSelection(id);
     transitionPanels(current, next);
     updateWorkNav(null);
-    if (!keepUrl) setRoute(TAB_PATHS[id] || "/", id === "intro" ? null : tabLabels[id]);
+    if (!keepUrl) setRoute(TAB_PATHS[id] || "/", id === "intro" ? null : tabLabels[id], replace);
   }
 
   selectTab = selectPanel;
@@ -1594,6 +1877,59 @@ function initNav(tabs) {
     if (id) positionIndicator();
   };
 
+  // Left/right step through the tabs and activate as they go, which is the
+  // expected keyboard behaviour for a role="tablist" — and unlike hovering, a
+  // key press is unambiguously deliberate.
+  //
+  // Left/right only, on purpose: up/down are the page's vertical scroll, and
+  // taking those would cost more than this adds.
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    // Cmd/Ctrl/Alt + Left is browser back on one platform or another.
+    if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+    // The tray and the lightbox both own arrows while they're up — the lightbox
+    // steps its gallery with them.
+    if (openOverlays.size) return;
+    // Never take them from a caret.
+    const focused = document.activeElement;
+    if (focused && (focused.isContentEditable || /^(input|textarea|select)$/i.test(focused.tagName))) {
+      return;
+    }
+
+    const tabButtons = Array.from(nav.querySelectorAll(".nav-tab"));
+    if (!tabButtons.length) return;
+
+    // Read the position off aria-selected rather than tracking it separately, so
+    // this agrees with the nav whatever put it in its current state — including
+    // a detail panel, which keeps its parent tab selected.
+    const at = tabButtons.findIndex((b) => b.getAttribute("aria-selected") === "true");
+    const step = e.key === "ArrowRight" ? 1 : -1;
+    const target = tabButtons[((at === -1 ? 0 : at) + step + tabButtons.length) % tabButtons.length];
+    if (!target) return;
+
+    e.preventDefault();
+    selectPanel(target.dataset.tab);
+    // The same toast a tap raises on touch, forced on: it's the only thing that
+    // names the icon you just landed on.
+    flashToast(target, true);
+    // Take focus only if the nav already had it, so this stays a page-wide
+    // shortcut elsewhere instead of yanking focus down to the bar.
+    if (nav.contains(focused)) target.focus();
+  });
+
   window.addEventListener("resize", positionIndicator);
   requestAnimationFrame(positionIndicator);
+}
+
+// ── Dev toolbar loader ──
+// Local-only affordance: dev/devtools.js is in .gitignore and .assetsignore, so
+// it is neither committed nor uploaded. The hostname check means production
+// never even requests it — this block is the only trace of it that ships, and
+// off localhost it does nothing. onerror swallows the 404 on a fresh clone,
+// where the ignored file won't exist.
+if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+  const devtools = document.createElement("script");
+  devtools.src = "/dev/devtools.js";
+  devtools.addEventListener("error", () => devtools.remove());
+  document.addEventListener("DOMContentLoaded", () => document.body.appendChild(devtools));
 }
