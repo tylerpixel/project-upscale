@@ -174,6 +174,17 @@ function attachImageFallback(img, extraClass) {
   img.addEventListener("error", () => img.replaceWith(emptyImageTile(extraClass)));
 }
 
+// The bare hostname a tooltip names a destination by. Shared by the inline-link
+// tooltips and the figure-link ones so an outbound link reads the same wherever
+// it appears. Falls back to a generic label for anything unparseable.
+function hostLabel(url) {
+  try {
+    return new URL(url, document.baseURI).hostname.replace(/^www\./, "");
+  } catch (err) {
+    return "link";
+  }
+}
+
 // A brand-orange tile carrying the sort.cash mark at a fixed pixel size — used
 // wherever sort.cash needs a thumbnail but has no product screenshot to show.
 function sortCashTile(extraClass, size) {
@@ -952,12 +963,7 @@ function initInlineLinkTooltips(root) {
     // Markup can already ship its own tooltip content (e.g. a brand logo) —
     // only fall back to a generic text tooltip when none is present.
     if (!a.querySelector(".nav-toast")) {
-      let label = "Visit link";
-      try {
-        label = `Visit ${new URL(a.href).hostname.replace(/^www\./, "")}`;
-      } catch (err) {
-        // leave the generic fallback label
-      }
+      const label = `Visit ${hostLabel(a.href)}`;
       const tip = document.createElement("span");
       tip.className = "nav-toast";
       tip.textContent = label;
@@ -1250,6 +1256,15 @@ function caseMeta(rows) {
 // its caption. The caption states what the image has to prove rather than
 // labelling it, so it is worth writing before the export exists — it's the
 // brief for the export.
+//
+// `alt` is kept separate from `caption` because a figure can need one without
+// the other: a case-study figure captions itself and the caption is the honest
+// alt, while a post's screenshots carry written alt text and no visible caption
+// at all. `width`/`height` are the file's own pixel dimensions — no rule in the
+// stylesheet forces an aspect ratio on these, so handing the browser the
+// intrinsic one is what lets a 3:1 banner and a near-square screenshot each
+// render at their own shape, reserved before the file lands. `href` points the
+// figure at its source, for screenshots of something that lives elsewhere.
 function caseFigure(figure) {
   const fig = document.createElement("figure");
   fig.className = "work-gallery-item case-figure";
@@ -1258,10 +1273,45 @@ function caseFigure(figure) {
     const img = document.createElement("img");
     img.className = "work-gallery-image";
     img.src = figure.src;
-    img.alt = figure.caption || "";
+    img.alt = figure.alt || figure.caption || "";
     img.loading = "lazy";
+    img.decoding = "async";
+    if (figure.width) img.width = figure.width;
+    if (figure.height) img.height = figure.height;
     attachImageFallback(img, "work-gallery-image");
-    fig.appendChild(img);
+
+    const href = figure.href && safeUrl(figure.href);
+    if (href) {
+      // The image is the whole link, so its alt is the accessible name and the
+      // anchor needs nothing of its own. rel is the same pair every other
+      // outbound link on the site carries, whatever the content asked for.
+      const link = document.createElement("a");
+      link.className = "case-figure-link";
+      link.href = href;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.appendChild(img);
+
+      // Same tooltip vocabulary as the nav and the inline links, but seated in
+      // the image's own bottom corner rather than floating above it: an image
+      // is a large target, and a chip centred over its top edge reads as
+      // belonging to the paragraph above rather than to the picture. Without
+      // it a linked image is indistinguishable from an unlinked one until the
+      // cursor changes.
+      //
+      // aria-hidden because the alt text is already a full description and the
+      // anchor's accessible name is built from its contents — appending "View
+      // on X" to a thirty-word alt makes that name unwieldy for no gain.
+      const tip = document.createElement("span");
+      tip.className = "nav-toast nav-toast--corner";
+      tip.setAttribute("aria-hidden", "true");
+      tip.textContent = figure.linkLabel || `Visit ${hostLabel(href)}`;
+      link.appendChild(tip);
+
+      fig.appendChild(link);
+    } else {
+      fig.appendChild(img);
+    }
   } else {
     fig.appendChild(emptyImageTile("work-gallery-image"));
   }

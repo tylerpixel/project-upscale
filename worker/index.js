@@ -89,19 +89,91 @@ function skeletonFor(pathname) {
   return "prose";
 }
 
+// ── Per-route metadata ──
+//
+// index.html carries the site's own title, description and share card, which is
+// the right answer for most of the site. A route with something more specific to
+// say overrides them here, on the way out — for the same reason the skeleton is
+// chosen here rather than in the page. Every route is served the identical
+// document, and the crawlers and social scrapers that read these tags don't run
+// the JavaScript that fills the route in, so a title set by setRoute() in
+// site.js is invisible to all of them.
+//
+// An entry has to be kept in step by hand with the post it describes in
+// data/site-content.json. The worker can't read that file back at runtime: at
+// deploy time scripts/inline-content.js folds it into the document and parks it
+// out of the upload, so there's nothing at /data/site-content.json to fetch.
+const ROUTE_META = {
+  "/writing/elon-musk-stole-my-meme": {
+    title: "Elon Musk Stole My Meme | Tyler Pixel",
+    description:
+      "Between August 2023 and the middle of 2024 I went from around 600 followers to over 2,000, sold merch into Silicon Valley, Japan and Canada, and had one of my images reposted by Elon Musk to 45 million people.",
+    canonical: "https://tylerpixel.com/writing/elon-musk-stole-my-meme",
+    type: "article",
+    image: "https://tylerpixel.com/images/figs/elon-starship-tweet.png",
+    imageWidth: "720",
+    imageHeight: "603",
+    imageAlt:
+      "Elon Musk's post of the meme, captioned Starship with a cigarette emoji, showing 45M views, 490K likes and 39K reposts",
+  },
+};
+
+// A deep link is equally valid with or without the trailing slash, and both
+// reach here — so they can't disagree about which card they carry.
+function metaFor(pathname) {
+  const key = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+  return ROUTE_META[key] || null;
+}
+
 // Only touches HTML: every other asset streams through untouched. The rewriter
-// matches one element and removes one attribute, so the inlined content blob in
-// <script id="siteContent"> passes through as the raw text it is.
-function withSkeleton(response, pathname) {
+// matches whole elements and sets attributes on them, so the inlined content
+// blob in <script id="siteContent"> passes through as the raw text it is.
+function withRouteHtml(response, pathname) {
   const type = response.headers.get("content-type") || "";
   if (!type.includes("text/html")) return response;
-  return new HTMLRewriter()
-    .on(`[data-skeleton="${skeletonFor(pathname)}"]`, {
+
+  let rewriter = new HTMLRewriter().on(`[data-skeleton="${skeletonFor(pathname)}"]`, {
+    element(el) {
+      el.removeAttribute("hidden");
+    },
+  });
+
+  const meta = metaFor(pathname);
+  if (!meta) return rewriter.transform(response);
+
+  // One handler per tag rather than a loop over a selector map: the tags differ
+  // in which attribute carries the value (content, href) and in whether the
+  // value is an attribute at all (<title>), and spelling that out is shorter
+  // than the indirection that would hide it.
+  const setContent = (value) => ({
+    element(el) {
+      if (value) el.setAttribute("content", value);
+    },
+  });
+
+  rewriter = rewriter
+    .on("title", {
       element(el) {
-        el.removeAttribute("hidden");
+        el.setInnerContent(meta.title);
       },
     })
-    .transform(response);
+    .on('meta[property="og:title"]', setContent(meta.title))
+    .on('meta[property="twitter:title"]', setContent(meta.title))
+    .on('meta[name="description"]', setContent(meta.description))
+    .on('meta[property="og:description"]', setContent(meta.description))
+    .on('meta[property="og:type"]', setContent(meta.type))
+    .on('meta[property="og:url"]', setContent(meta.canonical))
+    .on('meta[property="og:image"]', setContent(meta.image))
+    .on('meta[property="og:image:width"]', setContent(meta.imageWidth))
+    .on('meta[property="og:image:height"]', setContent(meta.imageHeight))
+    .on('meta[property="og:image:alt"]', setContent(meta.imageAlt))
+    .on('link[rel="canonical"]', {
+      element(el) {
+        el.setAttribute("href", meta.canonical);
+      },
+    });
+
+  return rewriter.transform(response);
 }
 
 // Vanity subdomains — <key>.tylerpixel.com redirects to its target. Each one
@@ -363,6 +435,6 @@ export default {
       }
       return handleMessage(request, env, url);
     }
-    return secure(withSkeleton(await env.ASSETS.fetch(request), url.pathname));
+    return secure(withRouteHtml(await env.ASSETS.fetch(request), url.pathname));
   },
 };

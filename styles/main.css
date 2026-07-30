@@ -1053,12 +1053,16 @@ body.is-intro .site-footer {
   color: var(--fg-muted);
 }
 
+/* --brand, not --sortcash: a footnote marker is the site's own furniture and
+   appears on any long-form page, so it takes the wordmark blue. The orange is
+   sort.cash's brand colour and only belongs where that product is what's being
+   shown — its tile, its logo tooltip — not in body copy generally. */
 .case-fn {
   font-size: 0.7em;
   vertical-align: super;
   line-height: 0;
   font-weight: 600;
-  color: var(--sortcash);
+  color: var(--brand);
 }
 
 /* In a note or a cites entry the marker is the reference number itself, not a
@@ -1096,6 +1100,34 @@ body.is-intro .site-footer {
    block at the foot of the page. */
 .case-block .case-figure {
   margin: 20px 0 0;
+}
+
+/* A block ending on a figure closes with a small, muted caption rather than
+   body copy, so the standard 32px gap under it reads as a hole in the column.
+   Bring it down to the 20px the figure already keeps above itself, so a figure
+   sits with even air on both sides and its caption stays visibly attached to
+   the image rather than floating between it and the next paragraph. */
+.case-block:has(.case-figure:last-child) {
+  margin-bottom: 20px;
+}
+
+/* `.work-gallery-image` carries `cursor: zoom-in` for the lightbox, which only
+   the gallery at the foot of a case study wires up — a case figure isn't
+   clickable, so it shouldn't advertise that it is. A figure that links out to
+   its source is clickable, just not zoomable, so it takes the pointer back. */
+.case-block .case-figure .work-gallery-image {
+  cursor: default;
+}
+
+/* The positioning context its hover tooltip anchors to (.nav-toast--corner),
+   so the chip sits in the image's corner rather than the panel's. */
+.case-block .case-figure-link {
+  position: relative;
+  display: block;
+}
+
+.case-block .case-figure-link .work-gallery-image {
+  cursor: pointer;
 }
 
 /* Until the exports exist these are all empty tiles, and the gallery's 4:3
@@ -2468,6 +2500,19 @@ body.is-404 .attribution {
   bottom: calc(100% + 2px);
 }
 
+/* Figure-link variant — seated inside the image's bottom-right corner instead
+   of floating centred above it. An image is a large target, and the default
+   placement would put the chip over the paragraph above the picture, reading as
+   that paragraph's tooltip rather than the image's. Overrides all four offsets
+   because the base rule sets bottom/left and centres with a translateX. */
+.nav-toast--corner {
+  top: auto;
+  right: 10px;
+  bottom: 10px;
+  left: auto;
+  transform: translateY(4px);
+}
+
 .nav-toast.icon-toast {
   bottom: calc(100% + 2px);
   padding: 0;
@@ -2488,6 +2533,14 @@ body.is-404 .attribution {
   .inline-link:hover .nav-toast {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
+  }
+
+  /* Its own rule, not another selector on the one above: the corner variant is
+     right-anchored rather than centred, so it must not inherit that
+     translateX(-50%) or it slides half its width off the image on hover. */
+  .case-figure-link:hover .nav-toast--corner {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

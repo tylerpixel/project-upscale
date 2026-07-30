@@ -37,6 +37,10 @@ the source of truth and is the better thing to parse.
 - [Signal](https://tylerpixel.com/work/signal)
 - [Tesla](https://tylerpixel.com/work/tesla)
 
+## Writing
+
+- [Elon Musk Stole My Meme](https://tylerpixel.com/writing/elon-musk-stole-my-meme)
+
 ## Data
 
 - All page copy, work case studies, and writing posts: embedded in every page as the `siteContent` JSON tag described above. There is no separate file to fetch.

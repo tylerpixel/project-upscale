@@ -1,5 +1,5 @@
 {
-  "version": "1.0.13",
+  "version": "1.0.14",
   "profile": {
     "name": "Tyler Patterson",
     "role": "Design Engineer"
@@ -434,7 +434,202 @@
   "writing": {
     "disclaimer": "Coming soon",
     "subtitle": "I'm drafting some posts — check back soon.",
-    "posts": []
+    "posts": [
+      {
+        "slug": "elon-musk-stole-my-meme",
+        "title": "Elon Musk Stole My Meme",
+        "date": "30 July 2026",
+        "summary": "Between August 2023 and the middle of 2024 I went from around 600 followers to over 2,000, sold merch into Silicon Valley, Japan and Canada, and had one of my images reposted by Elon Musk to 45 million people.",
+        "body": [
+          {
+            "body": [
+              "Between August 2023 and the middle of 2024 I went from around 600 followers to over 2,000, sold merch into Silicon Valley, Japan and Canada, and had one of my images reposted by Elon Musk to 45 million people. For most of that period I was working part-time in the flooring department of a Mitre 10 Mega in Wellington, cutting fake grass and lifting heavy tiles.",
+              "None of it came from a portfolio, a pitch, or an application. It came from a single idea I picked up in a community called Visualize Value, run by Jack Butcher: <a class=\"inline-link\" href=\"https://visualizevalue.com/concepts/permissionless-apprenticeship?utm_source=tylerpixel.com&utm_medium=referral&utm_campaign=elon-musk-stole-my-meme\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>permissionless apprenticeship</strong></a>.<span class=\"case-fn\">1</span>"
+            ]
+          },
+          {
+            "heading": "The mechanic",
+            "body": [
+              "The premise is simple enough to explain in one sentence. You do the work for someone without being asked, publish it, tag them, and see what happens.",
+              "No brief, no invoice, no request for a meeting. You identify someone doing interesting work, find the gap between what they have and what they should have, close it, and put it in public. The output has to be genuinely good for them, not for you. That's the whole discipline.",
+              "What you're actually doing is engineering luck surface area. Opportunity arrives in proportion to how much of your work is visible and how many people it's visible to. Most people sit inside a closed system: their work goes to a client, the client approves it, nobody else ever sees it. Permissionless work punches a hole in that system and attaches your name to someone with far more exposure than you have. You are not asking for a share of their audience. You are giving them something worth showing to it."
+            ]
+          },
+          {
+            "heading": "e/acc",
+            "body": [
+              "In August 2023 the <a class=\"inline-link\" href=\"https://en.wikipedia.org/wiki/Effective_accelerationism\" target=\"_blank\" rel=\"noopener noreferrer\">effective accelerationism</a> movement was forming on X.<span class=\"case-fn\">2</span> It was being driven largely by two anonymous accounts, Beff Jezos and bayeslord, who were writing the founding material for the ideology in public.",
+              "They had ideas and no visual identity. So I made them one: profile pictures and profile covers for both accounts, unprompted, and posted them."
+            ],
+            "figures": [
+              {
+                "src": "images/figs/basedbeffjezos-cover.webp",
+                "alt": "Profile cover designed for @basedbeffjezos: a hulking figure standing on an orange Martian plain in front of industrial machinery, with BASEDBEFFJEZOS set in chrome lettering across the top",
+                "width": 1080,
+                "height": 360,
+                "caption": "Profile cover made for @basedbeffjezos, unprompted, August 2023."
+              },
+              {
+                "src": "images/figs/bayeslord-cover.webp",
+                "alt": "Profile cover designed for @bayeslord: an armoured eagle figure standing in a dense retrofuturist megacity, with BAYESLORD set in yellow lettering across the top",
+                "width": 1080,
+                "height": 364,
+                "caption": "Profile cover for @bayeslord, from the same run."
+              }
+            ]
+          },
+          {
+            "body": [
+              "They followed me. They reposted the work. That was the door.",
+              "Beff Jezos was later revealed as <a class=\"inline-link\" href=\"https://en.wikipedia.org/wiki/Guillaume_Verdon\" target=\"_blank\" rel=\"noopener noreferrer\">Guillaume Verdon</a>, who went on to found Extropic, building chips that use the analogue noise of physics itself to run probabilistic inference rather than forcing everything through deterministic ones and zeros.<span class=\"case-fn\">3</span> That is the calibre of person the community was full of, which is worth stating plainly: these were not shitposters. They were extremely bright people who happened to communicate through memes."
+            ]
+          },
+          {
+            "heading": "The store",
+            "body": [
+              "On 20 September 2023 I posted a mockup of a black hoodie with ANTI DECEL EACC CLUB across the chest, captioned as nothing more than an idea, and tagged Beff, bayeslord and xlr8harder. There was no product behind it. No store, no supplier, no stock. It was a render."
+            ],
+            "figures": [
+              {
+                "src": "images/figs/tylerpixel-idea-tweet.webp",
+                "alt": "Tyler's post of a black hoodie mockup reading ANTI DECEL EACC CLUB, captioned as an idea",
+                "width": 720,
+                "height": 603,
+                "caption": "The original post, 20 September 2023. No store, no supplier, no stock.",
+                "href": "https://x.com/tylerpixel/status/1704360351679275305",
+                "linkLabel": "View on X"
+              }
+            ]
+          },
+          {
+            "body": [
+              "Less than two hours later Garry Tan replied with the Fry GIF. Shut up and take my money."
+            ],
+            "figures": [
+              {
+                "src": "images/figs/garrytan-fry-tweet.webp",
+                "alt": "Garry Tan's reply: the Futurama Fry GIF captioned shut up and take my money",
+                "width": 720,
+                "height": 603,
+                "href": "https://x.com/garrytan/status/1704387506614276518",
+                "caption": "Garry Tan's reply, less than two hours later.",
+                "linkLabel": "View on X"
+              }
+            ]
+          },
+          {
+            "body": [
+              "Then he did the thing that actually changed the trajectory. He tagged <a class=\"inline-link\" href=\"https://fourthwall.com/?utm_source=tylerpixel.com&utm_medium=referral&utm_campaign=elon-musk-stole-my-meme\" target=\"_blank\" rel=\"noopener noreferrer\">Fourthwall</a> and Walker Williams in the same thread and asked “can we make this happen pls?”"
+            ],
+            "figures": [
+              {
+                "src": "images/figs/garrytan-fourthwall-tweet.webp",
+                "alt": "Garry Tan tagging Fourthwall and Walker Williams asking if they can make it happen, with Tyler replying with a store link",
+                "width": 720,
+                "height": 302,
+                "href": "https://x.com/garrytan/status/1704387638479012236",
+                "caption": "The tag that became the entire Fourthwall chapter.",
+                "linkLabel": "View on X"
+              }
+            ]
+          },
+          {
+            "body": [
+              "I stood up a Shopify store that afternoon and replied with a link. Got you fam.",
+              "That tag is the entire Fourthwall chapter. Garry Tan introduced me to Walker Williams, Fourthwall's co-founder, in public, in a reply, to a mockup of a product that did not exist. I later moved the whole store off Shopify onto Fourthwall with help from the people who built it. Garry Tan bought a piece. Will Depue from OpenAI came through.",
+              "Over that stretch I made $4,445.40 USD (about $7,650 NZD) in merch sales, shipping to Silicon Valley, Japan, Canada, and a handful of places I had to look up. It taught me more about e-commerce, positioning and marketing than any course would have, because every lesson cost me real money or made me real money.",
+              "I typeset Marc Andreessen's <a class=\"inline-link\" href=\"https://a16z.com/the-techno-optimist-manifesto/?utm_source=tylerpixel.com&utm_medium=referral&utm_campaign=elon-musk-stole-my-meme\" target=\"_blank\" rel=\"noopener noreferrer\">Techno-Optimist Manifesto</a> into a proper book, essentially a designed edition of the blog post, and someone at Daylight Computer downloaded a copy.<span class=\"case-fn\">4</span>"
+            ]
+          },
+          {
+            "heading": "Ten minutes",
+            "body": [
+              "The meme happened on 20 November 2023, in the middle of the OpenAI weekend. <a class=\"inline-link\" href=\"https://en.wikipedia.org/wiki/Removal_of_Sam_Altman_from_OpenAI\" target=\"_blank\" rel=\"noopener noreferrer\">Sam Altman had just been fired</a>, nobody knew who was running the company, and the entire timeline was refreshing itself into a stupor.<span class=\"case-fn\">5</span> I got home from a shift on the floor, tiles and carpet and offcuts, and opened X.",
+              "Aravind Srinivas, the founder of Perplexity, posted the meme, the one where he's staring down the barrel of the camera with a fistful of lit cigarettes bunched together in front of his face. Two words: me right now."
+            ],
+            "figures": [
+              {
+                "src": "images/figs/aravind-merightnow-tweet.webp",
+                "alt": "Aravind Srinivas posting the Matthew McConaughey cigarettes frame captioned Me right now, 20 November 2023",
+                "width": 720,
+                "height": 603,
+                "href": "https://x.com/AravSrinivas/status/1726509168780321016",
+                "caption": "Aravind Srinivas's post, 20 November 2023, mid-OpenAI weekend.",
+                "linkLabel": "View on X"
+              }
+            ]
+          },
+          {
+            "body": [
+              "Someone in the replies pointed out that the cluster of filters looked like an engine array. That was the whole setup, sitting there unassembled.",
+              "So I assembled it. I turned the bundle of cigarettes into Starship's Raptor cluster and lit the plume underneath it, so McConaughey is holding a full static fire between his fingers. Ten minutes in Photoshop, posted, done. It did fine on my account, maybe a hundred likes.",
+              "Five days later, on 25 November, Elon Musk posted it himself. One word and an emoji: “Starship 🚬”. No credit, no tag. Forty-five million views, just under half a million likes, thirty-nine thousand reposts."
+            ],
+            "figures": [
+              {
+                "src": "images/figs/elon-starship-tweet.webp",
+                "alt": "Elon Musk's post of the meme, captioned Starship with a cigarette emoji, showing 45M views, 490K likes and 39K reposts",
+                "width": 720,
+                "height": 603,
+                "href": "https://x.com/elonmusk/status/1728215732784382087",
+                "caption": "Elon Musk's post, 25 November 2023. Forty-five million views, no credit.",
+                "linkLabel": "View on X"
+              }
+            ]
+          },
+          {
+            "body": [
+              "The man who became the first trillionaire ran my ten-minute Photoshop job in front of more people than will ever see anything else I make. I genuinely don't care that he took it. It's funny as hell, and it's better street cred than an award."
+            ]
+          },
+          {
+            "heading": "The hard tech meme machine",
+            "body": [
+              "I kept going. Anduril had just announced the <a class=\"inline-link\" href=\"https://www.anduril.com/news/anduril-unveils-roadrunner-and-roadrunner-m?utm_source=tylerpixel.com&utm_medium=referral&utm_campaign=elon-musk-stole-my-meme\" target=\"_blank\" rel=\"noopener noreferrer\">Roadrunner</a>, so I photoshopped Uber Eats livery onto it, purely because the colourway would look sick.<span class=\"case-fn\">6</span> This was before the image models could do it for you, so it was real compositing work. Palmer Luckey engaged with the post.",
+              "On 2 December, <a class=\"inline-link\" href=\"https://www.pronouncedkyle.com/?utm_source=tylerpixel.com&utm_medium=referral&utm_campaign=elon-musk-stole-my-meme\" target=\"_blank\" rel=\"noopener noreferrer\">Christian Keil</a>, at the time chief of staff at <a class=\"inline-link\" href=\"https://astranis.com/?utm_source=tylerpixel.com&utm_medium=referral&utm_campaign=elon-musk-stole-my-meme\" target=\"_blank\" rel=\"noopener noreferrer\">Astranis</a>, posted both memes side by side, said he was buying stock in me early, and called me a “one-man hard-tech meme machine”."
+            ],
+            "figures": [
+              {
+                "src": "images/figs/keil-hardtech-tweet.webp",
+                "alt": "Christian Keil's post showing the Starship meme and the Uber Eats Roadrunner side by side, calling Tyler a one-man hard-tech meme machine",
+                "width": 720,
+                "height": 603,
+                "href": "https://x.com/pronounced_kyle/status/1730773664461889558",
+                "caption": "Christian Keil's post, 2 December 2023.",
+                "linkLabel": "View on X"
+              }
+            ]
+          },
+          {
+            "body": [
+              "I ran with that label for a good while, because a positioning statement handed to you by someone inside one of the most interesting space companies in the world is worth more than one you write for yourself.",
+              "For roughly a year I was a small micro-celebrity in Silicon Valley, while my actual job title was flooring team member."
+            ]
+          },
+          {
+            "heading": "What it's actually worth",
+            "body": [
+              "The follower count was never the asset. The asset was proof that the mechanic works.",
+              "Taste plus speed plus publishing, applied without permission, gets you into rooms that credentials do not. I had no network in that world, no referral, no relevant employment history. I had the ability to see what a scene needed visually and the willingness to make it before anyone asked. That is a repeatable process, not a lucky run.",
+              "The other thing it proved is that the gap between working a retail shift and having your work in front of Marc Andreessen is not a career ladder. It's a single act of publishing, repeated until something lands.",
+              "Most people are one permissionless piece of work away from a completely different set of options. They just keep waiting to be picked."
+            ]
+          },
+          {
+            "kind": "cites",
+            "heading": "Cites",
+            "body": [
+              "<span class=\"case-fn\">1</span> Jack Butcher, <em>Permissionless Apprenticeship</em>, Visualize Value. <a class=\"inline-link\" href=\"https://visualizevalue.com/concepts/permissionless-apprenticeship?utm_source=tylerpixel.com&utm_medium=referral&utm_campaign=elon-musk-stole-my-meme\" target=\"_blank\" rel=\"noopener noreferrer\">visualizevalue.com/concepts/permissionless-apprenticeship</a>",
+              "<span class=\"case-fn\">2</span> <em>Effective accelerationism</em>, Wikipedia. <a class=\"inline-link\" href=\"https://en.wikipedia.org/wiki/Effective_accelerationism\" target=\"_blank\" rel=\"noopener noreferrer\">en.wikipedia.org/wiki/Effective_accelerationism</a>",
+              "<span class=\"case-fn\">3</span> <em>Guillaume Verdon</em>, Wikipedia. Verdon wrote as BasedBeffJezos and co-founded Extropic, which builds hardware that computes with probabilistic bits rather than deterministic ones; Forbes identified him in December 2023. <a class=\"inline-link\" href=\"https://en.wikipedia.org/wiki/Guillaume_Verdon\" target=\"_blank\" rel=\"noopener noreferrer\">en.wikipedia.org/wiki/Guillaume_Verdon</a>",
+              "<span class=\"case-fn\">4</span> Marc Andreessen, <em>The Techno-Optimist Manifesto</em>, Andreessen Horowitz, October 2023. <a class=\"inline-link\" href=\"https://a16z.com/the-techno-optimist-manifesto/?utm_source=tylerpixel.com&utm_medium=referral&utm_campaign=elon-musk-stole-my-meme\" target=\"_blank\" rel=\"noopener noreferrer\">a16z.com/the-techno-optimist-manifesto</a>",
+              "<span class=\"case-fn\">5</span> <em>Removal of Sam Altman from OpenAI</em>, Wikipedia. <a class=\"inline-link\" href=\"https://en.wikipedia.org/wiki/Removal_of_Sam_Altman_from_OpenAI\" target=\"_blank\" rel=\"noopener noreferrer\">en.wikipedia.org/wiki/Removal_of_Sam_Altman_from_OpenAI</a>",
+              "<span class=\"case-fn\">6</span> <em>Anduril unveils Roadrunner &amp; Roadrunner-M</em>, Anduril Industries, December 2023. <a class=\"inline-link\" href=\"https://www.anduril.com/news/anduril-unveils-roadrunner-and-roadrunner-m?utm_source=tylerpixel.com&utm_medium=referral&utm_campaign=elon-musk-stole-my-meme\" target=\"_blank\" rel=\"noopener noreferrer\">anduril.com/news/anduril-unveils-roadrunner-and-roadrunner-m</a>"
+            ]
+          }
+        ]
+      }
+    ]
   },
   "store": {
     "_comment": "Short card blurbs keyed by Fourthwall product name. The full product description still comes from Fourthwall and is shown on the detail page; these just keep the listing to one tidy line each. Products without an entry fall back to their Fourthwall copy.",
