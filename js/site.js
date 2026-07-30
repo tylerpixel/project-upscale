@@ -1683,18 +1683,38 @@ function renderWriting(writing, label) {
   writingPosts.forEach((post, i) => {
     const item = document.createElement("div");
     item.className = "writing-item";
-    item.innerHTML = `
-      <div class="writing-item-head">
-        <p class="writing-item-title">${esc(post.title)}</p>
-        ${post.date ? `<span class="work-chip work-chip--year">${esc(post.date)}</span>` : ""}
-      </div>
+
+    // Optional banner above the title, the same shape and treatment a work
+    // card's thumbnail gets. A post without one still reads correctly — the row
+    // just starts at the title.
+    if (post.thumb) {
+      const thumb = document.createElement("img");
+      thumb.className = "writing-thumb";
+      thumb.src = post.thumb;
+      // Decorative by default: the row is already labelled "Read <title>" by
+      // makeActivatable, so a described thumbnail would announce twice.
+      thumb.alt = post.thumbAlt || "";
+      thumb.loading = "lazy";
+      thumb.decoding = "async";
+      attachImageFallback(thumb, "writing-thumb");
+      item.appendChild(thumb);
+    }
+
+    const head = document.createElement("div");
+    head.className = "writing-item-head";
+    head.innerHTML = `
+      <p class="writing-item-title">${esc(post.title)}</p>
+      ${post.date ? `<span class="work-chip work-chip--year">${esc(post.date)}</span>` : ""}
     `;
+    item.appendChild(head);
+
     if (post.summary) {
       const summary = document.createElement("p");
       summary.className = "writing-item-summary";
       setHtml(summary, post.summary);
       item.appendChild(summary);
     }
+
     makeActivatable(item, `Read ${post.title}`, () => openPost(post));
     markStagger(item, i + 1);
     list.appendChild(item);
@@ -1722,13 +1742,33 @@ function openPost(post) {
   markStagger(back, 0);
   panel.appendChild(back);
 
+  let idx = 1;
+
+  // Same image the Writing list uses as the row's banner, carried through as
+  // the post's hero so the two views open on the same picture. Shares
+  // .work-detail-image with a case study's hero rather than restating its
+  // sizing — a post's hero is the same element in a different panel.
+  if (post.thumb) {
+    const hero = document.createElement("img");
+    hero.className = "work-detail-image post-hero";
+    hero.src = post.thumb;
+    // The title sits directly beneath it, so a described hero would say the
+    // same thing twice. thumbAlt overrides when the image carries meaning the
+    // title does not.
+    hero.alt = post.thumbAlt || "";
+    hero.decoding = "async";
+    attachImageFallback(hero, "work-detail-image");
+    markStagger(hero, idx++);
+    panel.appendChild(hero);
+  }
+
   const head = document.createElement("div");
   head.className = "post-head";
   head.innerHTML = `
     <p class="work-title work-detail-title">${esc(post.title)}</p>
     <p class="post-meta">By ${esc(authorName)}${post.date ? ` · ${esc(post.date)}` : ""}</p>
   `;
-  markStagger(head, 1);
+  markStagger(head, idx++);
   panel.appendChild(head);
 
   // A post is either a plain run of paragraphs or the same block structure a
@@ -1736,13 +1776,13 @@ function openPost(post) {
   // latter, since a plain post's entries are all strings.
   const body = post.body || [];
   if (body.some((entry) => entry && typeof entry === "object")) {
-    buildCaseStudy(panel, body, 2);
+    buildCaseStudy(panel, body, idx);
   } else {
     body.forEach((text, i) => {
       const p = document.createElement("p");
       p.className = "post-paragraph";
       setHtml(p, text);
-      markStagger(p, i + 2);
+      markStagger(p, idx + i);
       panel.appendChild(p);
     });
   }

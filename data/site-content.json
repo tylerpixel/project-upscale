@@ -1,5 +1,5 @@
 {
-  "version": "1.0.14",
+  "version": "1.0.15",
   "profile": {
     "name": "Tyler Patterson",
     "role": "Design Engineer"
@@ -439,6 +439,7 @@
         "slug": "elon-musk-stole-my-meme",
         "title": "Elon Musk Stole My Meme",
         "date": "30 July 2026",
+        "thumb": "images/figs/elon-musk-stole-my-meme.webp",
         "summary": "Between August 2023 and the middle of 2024 I went from around 600 followers to over 2,000, sold merch into Silicon Valley, Japan and Canada, and had one of my images reposted by Elon Musk to 45 million people.",
         "body": [
           {

@@ -110,11 +110,16 @@ const ROUTE_META = {
       "Between August 2023 and the middle of 2024 I went from around 600 followers to over 2,000, sold merch into Silicon Valley, Japan and Canada, and had one of my images reposted by Elon Musk to 45 million people.",
     canonical: "https://tylerpixel.com/writing/elon-musk-stole-my-meme",
     type: "article",
-    image: "https://tylerpixel.com/images/figs/elon-starship-tweet.png",
-    imageWidth: "720",
-    imageHeight: "603",
+    // The post's own title card, padded to 1200x630 on its own background
+    // colour. The card is 2.39:1, and at that ratio both X and Facebook crop
+    // the sides into the type; padding to the standard card size lets the
+    // whole thing show. PNG rather than the WebP the page uses, to stay inside
+    // what every scraper handles.
+    image: "https://tylerpixel.com/images/figs/elon-musk-stole-my-meme-share.png",
+    imageWidth: "1200",
+    imageHeight: "630",
     imageAlt:
-      "Elon Musk's post of the meme, captioned Starship with a cigarette emoji, showing 45M views, 490K likes and 39K reposts",
+      "Title card reading ELON MUSK STOLE MY MEME in heavy black type on orange, beside a red halftone portrait of Elon Musk",
   },
 };
 
