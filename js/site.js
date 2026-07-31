@@ -26,6 +26,27 @@ const NAV_ICONS = {
 // glyph. Phosphor "image" (regular).
 const IMAGE_EMPTY_ICON = `<svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V158.75l-26.07-26.06a16,16,0,0,0-22.63,0l-20,20-44-44a16,16,0,0,0-22.62,0L40,149.37V56ZM40,172l52-52,80,80H40Zm176,28H194.63l-36-36,20-20L216,181.38V200ZM144,100a12,12,0,1,1,12,12A12,12,0,0,1,144,100Z"/></svg>`;
 
+// The same five, in Phosphor's Fill weight — what a tab wears once it's the
+// one you're on. Both weights ship and CSS swaps them on aria-selected, so
+// selecting a tab doesn't touch the DOM and the icon can't fall out of step
+// with the state the indicator and the toast are already reading.
+const NAV_ICONS_FILL = {
+  intro: `<svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M224,120v96a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V120a15.87,15.87,0,0,1,4.69-11.32l80-80a16,16,0,0,1,22.62,0l80,80A15.87,15.87,0,0,1,224,120Z"/></svg>`,
+  work: `<svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M225.86,102.82c-3.77-3.94-7.67-8-9.14-11.57-1.36-3.27-1.44-8.69-1.52-13.94-.15-9.76-.31-20.82-8-28.51s-18.75-7.85-28.51-8c-5.25-.08-10.67-.16-13.94-1.52-3.56-1.47-7.63-5.37-11.57-9.14C146.28,23.51,138.44,16,128,16s-18.27,7.51-25.18,14.14c-3.94,3.77-8,7.67-11.57,9.14C88,40.64,82.56,40.72,77.31,40.8c-9.76.15-20.82.31-28.51,8S41,67.55,40.8,77.31c-.08,5.25-.16,10.67-1.52,13.94-1.47,3.56-5.37,7.63-9.14,11.57C23.51,109.72,16,117.56,16,128s7.51,18.27,14.14,25.18c3.77,3.94,7.67,8,9.14,11.57,1.36,3.27,1.44,8.69,1.52,13.94.15,9.76.31,20.82,8,28.51s18.75,7.85,28.51,8c5.25.08,10.67.16,13.94,1.52,3.56,1.47,7.63,5.37,11.57,9.14C109.72,232.49,117.56,240,128,240s18.27-7.51,25.18-14.14c3.94-3.77,8-7.67,11.57-9.14,3.27-1.36,8.69-1.44,13.94-1.52,9.76-.15,20.82-.31,28.51-8s7.85-18.75,8-28.51c.08-5.25.16-10.67,1.52-13.94,1.47-3.56,5.37-7.63,9.14-11.57C232.49,146.28,240,138.44,240,128S232.49,109.73,225.86,102.82Zm-52.2,6.84-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32Z"/></svg>`,
+  store: `<svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M231.69,93.81,217.35,43.6A16.07,16.07,0,0,0,202,32H54A16.07,16.07,0,0,0,38.65,43.6L24.31,93.81A7.94,7.94,0,0,0,24,96v16a40,40,0,0,0,16,32v72a8,8,0,0,0,8,8H208a8,8,0,0,0,8-8V144a40,40,0,0,0,16-32V96A7.94,7.94,0,0,0,231.69,93.81ZM88,112a24,24,0,0,1-35.12,21.26,7.88,7.88,0,0,0-1.82-1.06A24,24,0,0,1,40,112v-8H88Zm64,0a24,24,0,0,1-48,0v-8h48Zm64,0a24,24,0,0,1-11.07,20.2,8.08,8.08,0,0,0-1.8,1.05A24,24,0,0,1,168,112v-8h48Z"/></svg>`,
+  writing: `<svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,176H96a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16Zm0-32H96a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16Zm-8-56V44l44,44Z"/></svg>`,
+  contact: `<svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M230.93,220a8,8,0,0,1-6.93,4H32a8,8,0,0,1-6.92-12c15.23-26.33,38.7-45.21,66.09-54.16a72,72,0,1,1,73.66,0c27.39,8.95,50.86,27.83,66.09,54.16A8,8,0,0,1,230.93,220Z"/></svg>`,
+};
+
+// The message row in the jump palette wears the FAB's own icon, and its line
+// weight is cloned from the FAB rather than repeated here. Only the Fill
+// weight has nowhere to be cloned from, so it lives here alone.
+const MESSAGE_ICON_FILL = `<svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M232,128A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Z"/></svg>`;
+
+// The same stroked chevron the work-nav buttons and the 404's home link carry
+// inline in index.html, for the one place that builds its button in JS.
+const CHEVRON_RIGHT_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>`;
+
 // Shown in the Writing panel's empty state.
 // Trailing chevron for a .cta-button — the mirror of the leading one the 404's
 // back-link and the Previous-project control use.
@@ -262,6 +283,11 @@ function revealPanel(panel) {
   const footer = document.querySelector(".site-footer");
   if (footer) {
     footer.classList.remove("is-shown");
+    // Cleared here rather than on the exit timer, so the fade-out is still on
+    // screen right up to the moment the entrance replaces it. Dropping it puts
+    // the lines back on the base .t-stagger-line state — which is also opacity
+    // 0, so this hands over without a flash.
+    footer.classList.remove("is-hiding");
     if (!isIntro) {
       // Dropping .is-shown starts a 1 -> 0 transition on the footer's lines, it
       // does not put them at 0. showAfterReflow() then re-adds the class on the
@@ -334,6 +360,16 @@ function transitionPanels(current, next) {
   }
   current.classList.remove("is-shown");
   current.classList.add("is-hiding");
+  // The footer leaves with the panel it was sitting under. Without this it had
+  // an entrance and no exit: it held still through the outgoing panel's fade
+  // and then re-entered, which read as the one part of the page that hadn't
+  // changed. .is-hiding is the same quiet 200ms fade the panel's own lines
+  // take, and STAGGER_EXIT_MS is that long, so the two finish together.
+  const footer = document.querySelector(".site-footer");
+  if (footer) {
+    footer.classList.remove("is-shown");
+    footer.classList.add("is-hiding");
+  }
   setTimeout(() => {
     current.hidden = true;
     current.classList.remove("is-hiding");
@@ -1212,6 +1248,42 @@ function renderIntro(intro) {
     panel.appendChild(row);
   }
 
+  // The two ways out of the intro. Until now the panel ended on the logo strip
+  // and left the bottom nav as the only way on, which asks a first-time visitor
+  // to work out what the five unlabelled icons are before they can go anywhere.
+  const cta = document.createElement("div");
+  cta.className = "intro-cta";
+  markStagger(cta, idx++);
+
+  // A real href, so middle-click and cmd-click open a tab the way they should;
+  // the handler takes only the plain left click. Same arrangement as the header
+  // wordmark — see initWordmarkHome.
+  const browse = document.createElement("a");
+  browse.className = "cta-button cta-button--trailing";
+  browse.href = TAB_PATHS.work;
+  browse.textContent = "Browse Portfolio";
+  // Appended rather than assigned: innerHTML would take the label back out.
+  // A module constant, never content — see the note on setHtml.
+  browse.insertAdjacentHTML("beforeend", CHEVRON_RIGHT_ICON);
+  browse.addEventListener("click", (e) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    // Assigned by initNav, which has always run by the time this can be clicked.
+    if (selectTab) selectTab("work");
+  });
+
+  // A button, not a link: it opens the tray rather than going anywhere, so
+  // there's no URL for a modified click to honour. Same treatment as the
+  // Store's Cart action, which is a button for the same reason.
+  const hire = document.createElement("button");
+  hire.type = "button";
+  hire.className = "resume-download intro-cta-link";
+  hire.textContent = "Work with me";
+  hire.addEventListener("click", openMessageTray);
+
+  cta.append(browse, hire);
+  panel.appendChild(cta);
+
   initInlineLinkTooltips(panel);
 }
 
@@ -1999,25 +2071,37 @@ function initNav(tabs) {
   // are: the labels are content, and a hardcoded copy would drift from them.
   const jumpList = document.getElementById("jumpList");
   if (jumpList) {
-    jumpList.replaceChildren();
+    // Only the rows — the thumb is markup and has to outlive a rebuild, which
+    // replaceChildren() would take with it.
+    jumpList.querySelectorAll(".jump-row").forEach((r) => r.remove());
     const rows = tabs.map((tab, i) => ({ digit: String(i + 1), label: tab.label, tab: tab.id }));
     rows.push({ digit: String(tabs.length + 1), label: "Message", tab: null });
-    rows.forEach(({ digit, label, tab }) => {
+    rows.forEach(({ digit, label, tab }, i) => {
       const row = document.createElement("button");
       row.type = "button";
       row.className = "jump-row";
       row.dataset.jump = digit;
 
+      // Both weights, stacked, exactly as the bar's own tabs carry them — so a
+      // row lights up the same way a tab does when it's the one you're on.
       const icon = document.createElement("span");
       icon.className = "jump-icon";
+      const line = document.createElement("span");
+      line.className = "nav-icon nav-icon--line";
+      const solid = document.createElement("span");
+      solid.className = "nav-icon nav-icon--solid";
       if (tab) {
-        // Keyed lookup into a constant map — never the content's own markup.
-        icon.innerHTML = NAV_ICONS[tab] || "";
+        // Keyed lookups into constant maps — never the content's own markup.
+        line.innerHTML = NAV_ICONS[tab] || "";
+        solid.innerHTML = NAV_ICONS_FILL[tab] || "";
       } else {
-        // Clone the FAB's glyph rather than ship that path a second time.
+        // Clone the FAB's glyph rather than ship that path a second time; only
+        // the fill weight has no original to clone.
         const fabIcon = document.querySelector(".fab svg");
-        if (fabIcon) icon.appendChild(fabIcon.cloneNode(true));
+        if (fabIcon) line.appendChild(fabIcon.cloneNode(true));
+        solid.innerHTML = MESSAGE_ICON_FILL;
       }
+      icon.append(line, solid);
 
       const name = document.createElement("span");
       name.className = "jump-label";
@@ -2031,7 +2115,80 @@ function initNav(tabs) {
 
       row.append(icon, name, cap);
       row.addEventListener("click", () => runJump(Number(digit)));
+      // Hovering moves focus rather than lighting the row on its own. One
+      // notion of "the active row" for both input methods, so the thumb, the
+      // solid glyph and what Enter would take can never point at three
+      // different rows.
+      row.addEventListener("mouseenter", () => {
+        row.focus();
+        setActiveRow(row);
+      });
+      // Catches the ways in that don't go through the two calls above — Tab,
+      // and a click landing on a row.
+      row.addEventListener("focus", () => setActiveRow(row));
+      // Rows join the site's stagger like any other list of content.
+      markStagger(row, i);
       jumpList.appendChild(row);
+    });
+  }
+
+  // Puts the block behind a row and marks the row so its contents invert. The
+  // block doesn't travel, so this is only ever a placement.
+  const jumpFocus = document.getElementById("jumpFocus");
+  function setActiveRow(row) {
+    if (!jumpList) return;
+    jumpList.querySelectorAll(".jump-row.is-active").forEach((r) => {
+      if (r !== row) r.classList.remove("is-active");
+    });
+    if (!row) {
+      if (jumpFocus) jumpFocus.classList.remove("is-on");
+      return;
+    }
+    row.classList.add("is-active");
+    if (!jumpFocus) return;
+    // Inset 2px inside the row on every side.
+    jumpFocus.style.width = `${row.offsetWidth - 4}px`;
+    jumpFocus.style.height = `${row.offsetHeight - 4}px`;
+    jumpFocus.style.transform = `translate(${row.offsetLeft + 2}px, ${row.offsetTop + 2}px)`;
+    jumpFocus.classList.add("is-on");
+  }
+
+  // Walking the palette. Bound to the list rather than the document because
+  // the keys only mean this while focus is inside it, and a row is a <button>,
+  // so the event reaches here by bubbling from whichever one holds focus.
+  //
+  // Enter and Space are left alone — a button already answers both, and
+  // claiming them here would fire the row twice.
+  if (jumpList) {
+    jumpList.addEventListener("keydown", (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      const rows = Array.from(jumpList.querySelectorAll(".jump-row"));
+      if (!rows.length) return;
+      const at = rows.indexOf(document.activeElement);
+
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        // Otherwise the arrows scroll the list out from under the selection.
+        e.preventDefault();
+        const step = e.key === "ArrowDown" ? 1 : -1;
+        // Wraps, like the arrow keys do along the bar itself.
+        const next = rows[((at === -1 ? 0 : at) + step + rows.length) % rows.length];
+        if (next) {
+          next.focus();
+          // Said outright rather than left to next's focus handler: this knows
+          // which row it moved to, and the thumb shouldn't depend on a focus
+          // event to find out. setActiveRow is idempotent, so the handler
+          // firing too is harmless.
+          setActiveRow(next);
+        }
+        return;
+      }
+
+      // Right goes *into* the row — the same direction the row's own chevron
+      // would point, and the counterpart to stepping down the list.
+      if (e.key === "ArrowRight" && at > -1) {
+        e.preventDefault();
+        rows[at].click();
+      }
     });
   }
 
@@ -2051,10 +2208,18 @@ function initNav(tabs) {
 
   function openJumpTray() {
     openTray("jump", "Jump to");
+    // The rows cascade in on the site's own stagger, the same entrance every
+    // other list of content gets. Replayed on each open: the rows are built
+    // once and stay in the DOM, so without resetting the state they'd simply
+    // be sitting there already revealed the second time.
+    if (jumpList) replayReveal(jumpList);
     // Land on the first row so the palette is immediately walkable by Tab, and
     // so a screen reader announces something other than the dialog's own name.
     const first = jumpList && jumpList.querySelector(".jump-row");
-    if (first) first.focus();
+    if (first) {
+      setActiveRow(first);
+      first.focus();
+    }
   }
 
   // What a row does, whether it was clicked or reached by its digit — one path,
@@ -2085,6 +2250,7 @@ function initNav(tabs) {
   // modifier, and this one is nothing but. Toggles, so the key that opened the
   // palette also dismisses it.
   document.addEventListener("keydown", (e) => {
+    if (e.defaultPrevented) return;
     if (e.key !== "k" && e.key !== "K") return;
     if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) return;
     if (jumpTrayOpen()) {
@@ -2124,8 +2290,12 @@ function initNav(tabs) {
       panel.setAttribute("role", "tabpanel");
       panel.setAttribute("aria-labelledby", `tab-${tab.id}`);
     }
-    // Icon comes from the constant map; only the label is content.
-    btn.innerHTML = `${NAV_ICONS[tab.id] || ""}<span class="nav-toast">${esc(tab.label)}</span>`;
+    // Icons come from the constant maps; only the label is content. Both
+    // weights are rendered and CSS shows one — see .nav-icon.
+    btn.innerHTML =
+      `<span class="nav-icon nav-icon--line">${NAV_ICONS[tab.id] || ""}</span>` +
+      `<span class="nav-icon nav-icon--solid">${NAV_ICONS_FILL[tab.id] || ""}</span>` +
+      `<span class="nav-toast">${esc(tab.label)}</span>`;
     btn.addEventListener("click", () => {
       selectPanel(tab.id);
       flashToast(btn);
@@ -2166,6 +2336,44 @@ function initNav(tabs) {
     indicator.style.transform = `translateX(${x}px)`;
   }
 
+  // The block is sized off a tab, so a resize has to re-place it.
+  function repositionNavFocus() {
+    if (!navFocus || !navFocus.classList.contains("is-on")) return;
+    const focused = nav.querySelector(".nav-tab:focus");
+    if (focused) placeNavFocus(focused);
+  }
+
+  // ── Keyboard-focus block ──
+  // Sits behind whichever tab has focus. 12px in from the pill on both sides —
+  // the vertical inset is in the stylesheet, since every tab is the pill's
+  // full height.
+  const navFocus = document.getElementById("navFocus");
+  function placeNavFocus(tab) {
+    if (!navFocus || !tab) return;
+    navFocus.style.width = `${tab.offsetWidth - 24}px`;
+    navFocus.style.transform = `translateX(${tab.offsetLeft + 12}px)`;
+  }
+
+  // focusin/out rather than per-tab handlers: they bubble, so this keeps
+  // working for tabs built after this runs.
+  nav.addEventListener("focusin", (e) => {
+    const tab = e.target.closest && e.target.closest(".nav-tab");
+    if (!tab || !navFocus) return;
+    // Only for focus the browser considers worth showing — a click on a tab
+    // focuses it too, and a ring appearing under the cursor is noise.
+    if (!tab.matches(":focus-visible")) return;
+    placeNavFocus(tab);
+    navFocus.classList.add("is-on");
+  });
+
+  nav.addEventListener("focusout", (e) => {
+    if (!navFocus) return;
+    // Ignore a hop between two tabs — relatedTarget is where focus is going,
+    // and focusout fires before the matching focusin.
+    if (e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(".nav-tab")) return;
+    navFocus.classList.remove("is-on");
+  });
+
   syncNavSelection = (id) => {
     nav.querySelectorAll(".nav-tab").forEach((t) => {
       t.setAttribute("aria-selected", t.dataset.tab === id ? "true" : "false");
@@ -2174,13 +2382,64 @@ function initNav(tabs) {
     if (id) positionIndicator();
   };
 
+  // The shared name chip above the bar. One element and one timer for the whole
+  // nav, so stepping quickly replaces the name in place instead of lighting up
+  // a per-tab toast that then has to time out on its own — which is what left a
+  // trail of them when you moved faster than 1.2s a tab.
+  const navFlash = document.getElementById("navFlash");
+  const navFlashLabel = document.getElementById("navFlashLabel");
+  let navFlashTimer;
+
+  function flashNavName(label, dir) {
+    if (!navFlash || !navFlashLabel) return;
+
+    // Width has to be a number at both ends for the chip to grow between two
+    // names rather than snap. Measure what this name wants, then animate the
+    // chip from whatever it currently is to that.
+    const wasUp = navFlash.classList.contains("is-up");
+    const from = wasUp ? navFlash.offsetWidth : 0;
+    navFlashLabel.textContent = label;
+    navFlash.style.width = "auto";
+    const to = navFlash.offsetWidth;
+    if (wasUp) {
+      navFlash.style.width = `${from}px`;
+      void navFlash.offsetWidth; // commit the start width before changing it
+    }
+    navFlash.style.width = `${to}px`;
+    navFlash.classList.add("is-up");
+
+    // Enter from the side you're travelling away from. There's no exit
+    // animation on purpose: on a fast run of presses the outgoing name would
+    // still be leaving as the next one arrived, and the chip would show two
+    // half-faded words at once.
+    navFlashLabel.style.setProperty("--nav-flash-from", dir < 0 ? "-10px" : "10px");
+    navFlashLabel.classList.remove("is-in");
+    void navFlashLabel.offsetWidth; // restart the entrance from the new side
+    navFlashLabel.classList.add("is-in");
+
+    // One clock for the chip, restarted here, so a run of presses dismisses
+    // once after the last one rather than once per tab you passed through.
+    clearTimeout(navFlashTimer);
+    navFlashTimer = setTimeout(() => navFlash.classList.remove("is-up"), 1100);
+  }
+
   // Moves to a tab and does the two things every route change through the bar
-  // does: raise the toast that names where you landed, and hand focus back only
-  // if the nav already had it — so this stays a page-wide shortcut elsewhere
-  // instead of yanking focus down to the bar.
-  function jumpToTab(target, focused) {
+  // does: name where you landed, and hand focus back only if the nav already
+  // had it — so this stays a page-wide shortcut elsewhere instead of yanking
+  // focus down to the bar.
+  //
+  // `dir` is the direction the chip's name should travel against. The arrow
+  // keys pass their own step, because wrapping from the last tab to the first
+  // is still a rightward move and comparing indexes would call it a long jump
+  // left. Everything else can be derived from where you were.
+  function jumpToTab(target, focused, dir) {
+    const tabButtons = Array.from(nav.querySelectorAll(".nav-tab"));
+    if (!dir) {
+      const at = tabButtons.findIndex((b) => b.getAttribute("aria-selected") === "true");
+      dir = tabButtons.indexOf(target) < at ? -1 : 1;
+    }
     selectPanel(target.dataset.tab);
-    flashToast(target, true);
+    flashNavName(tabLabels[target.dataset.tab] || target.dataset.tab, dir);
     if (nav.contains(focused)) target.focus();
   }
 
@@ -2196,6 +2455,12 @@ function initNav(tabs) {
   //           it gets the digit after the last tab rather than a key of its
   //           own to remember.
   document.addEventListener("keydown", (e) => {
+    // Something nearer the target already claimed this — the palette's own
+    // Right, which activates a row. That click closes the tray synchronously,
+    // so by the time the event bubbles up here the overlay guard below has
+    // nothing left to catch it on, and the same press would step one tab
+    // further than the row you picked.
+    if (e.defaultPrevented) return;
     const isArrow = e.key === "ArrowLeft" || e.key === "ArrowRight";
     // Not parseInt: it would take "1abc", and e.key for a digit is exactly one
     // character anyway.
@@ -2239,10 +2504,14 @@ function initNav(tabs) {
 
     e.preventDefault();
     flashShortcutKey(e.key);
-    jumpToTab(target, focused);
+    // The key's own direction, not the index delta — see jumpToTab.
+    jumpToTab(target, focused, step);
   });
 
-  window.addEventListener("resize", positionIndicator);
+  window.addEventListener("resize", () => {
+    positionIndicator();
+    repositionNavFocus();
+  });
   requestAnimationFrame(positionIndicator);
 }
 

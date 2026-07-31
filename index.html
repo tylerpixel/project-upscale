@@ -323,6 +323,21 @@
 
     <!-- Bottom nav — fixed overlay, sits outside .site so it never shifts with content -->
     <div class="navwrap">
+      <!-- Name chip for keyboard navigation. One chip for the whole bar rather
+           than a toast per tab: stepping quickly used to leave a trail of them
+           timing out one after another, because each tab was running its own
+           1.2s clock. This has a single clock that restarts on every press, and
+           the name inside it changes.
+
+           Anchored above .navwrap rather than above the nav pill so it clears
+           the Next/Previous row when a case study puts one there, and centred
+           on .navwrap, which is centred on the page — the pill itself sits off
+           centre by the width of the FAB beside it. aria-hidden for the same
+           reason the tab toasts are: the route change is already announced. -->
+      <div class="nav-flash" id="navFlash" aria-hidden="true">
+        <span class="nav-flash-label" id="navFlashLabel"></span>
+      </div>
+
       <!-- Only shown on a work item's case study — jumps straight to the
            neighboring project. Hidden elsewhere (see updateWorkNav in site.js). -->
       <div class="work-nav-row" id="workNavRow" hidden>
@@ -338,6 +353,10 @@
       <div class="navwrap-row">
         <nav class="nav" role="tablist" aria-label="Sections" id="navTabs">
           <span class="nav-ind" id="navInd"></span>
+          <!-- Keyboard-focus thumb. One element that slides between the tabs
+               rather than a ring appearing on each in turn, so moving along the
+               bar reads as one marker travelling. Positioned by initNav. -->
+          <span class="nav-focus" id="navFocus" aria-hidden="true"></span>
           <!-- Placeholders for the five tabs, which are built from the content
                file. initNav() removes them before it measures anything, so the
                sliding indicator never sees them. -->
@@ -374,7 +393,11 @@
              the palette both goes places and teaches the shortcuts. Built by
              initNav(); empty here because the tab list is content. -->
         <div class="tray-view" data-view="jump" hidden>
-          <div class="jump-list" id="jumpList"></div>
+          <div class="jump-list t-stagger" id="jumpList">
+            <!-- The same travelling thumb as the bar's, turned on its side.
+                 First child so it paints under the rows. -->
+            <span class="jump-focus" id="jumpFocus" aria-hidden="true"></span>
+          </div>
         </div>
 
         <!-- Cart view -->

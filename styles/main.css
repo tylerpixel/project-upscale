@@ -32,6 +32,14 @@
      which is what keeps its outer edges on the text column's lines. */
   --gutter: 24px;
   --sortcash: #ff5500;
+  /* Everything that slides along the bottom bar moves on this and nothing
+     else: the selected-tab indicator, the focus thumb in the nav, the focus
+     thumb in the ⌘K tray. They travel side by side, so any difference in
+     duration or curve reads immediately as two things disagreeing — one token
+     is what stops that happening by accident. A hard deceleration with no
+     overshoot, which is also how the spring behind a segmented control
+     settles. */
+  --nav-move: 0.32s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 @media (min-width: 640px) {
@@ -1547,6 +1555,33 @@ body.is-intro .site-footer {
   padding: 11px 12px 11px 16px;
 }
 
+/* ── Intro call-to-action row ──
+   The pair that closes the intro panel: the filled button into the work, and
+   the quieter text link into the message tray. Compound selector so the row
+   stays flex even though .t-stagger-line (declared later, added by
+   markStagger) forces display: block on staggered elements.
+
+   Wraps because "Browse Portfolio" and "Work with me" together are close to
+   the full 360px measure — at the largest accessibility text sizes they need
+   the second line rather than a squashed button. */
+.intro-cta.t-stagger-line,
+.intro-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin-top: 28px;
+}
+
+/* The secondary of the two, so it gets body weight and the muted underline
+   rather than competing with the filled button beside it. Sized to match the
+   button's own label instead of the 12pt the heading actions use, since here
+   the two sit side by side and any difference reads as a mistake. */
+.intro-cta-link {
+  font-size: 11pt;
+  font-weight: 500;
+}
+
 .cta-button:hover {
   opacity: 0.88;
 }
@@ -1737,6 +1772,8 @@ body.is-intro .site-footer {
    it directly. Rows are real buttons: the palette has to be usable by pointer,
    which is the whole reason it exists rather than the digits alone. */
 .jump-list {
+  /* Positioning context for the travelling thumb. */
+  position: relative;
   display: flex;
   flex-direction: column;
   /* The rows carry their own padding; a gap on top of it would read as gaps in
@@ -1750,7 +1787,16 @@ body.is-intro .site-footer {
   padding: 0 6px;
 }
 
+/* Compound selector so a row stays flex once markStagger has added
+   .t-stagger-line, which forces display: block — the same collision the footer
+   rule row and the intro CTA hit. */
+.jump-row.t-stagger-line,
 .jump-row {
+  /* Positioned, so it paints over .jump-focus rather than under it — both are
+     positioned and the block comes first in the markup, which is what decides
+     the order. Without this the row is static, the block wins, and it covers
+     the label it's meant to sit behind. */
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -1762,20 +1808,42 @@ body.is-intro .site-footer {
   color: var(--fg);
   text-align: left;
   cursor: pointer;
-  transition: background-color 0.12s ease;
+}
+
+/* The bar's block, turned on its side. Sits behind the rows — it comes first
+   in the markup and the rows are positioned, so they paint over it — and takes
+   its new row outright rather than travelling down the list.
+
+   Inset 2px inside a 10px row corner, so it draws at 8px: nested, the same
+   arithmetic as the bar's. */
+.jump-focus {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-radius: 8px;
+  background: var(--brand);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.jump-focus.is-on {
+  opacity: 1;
 }
 
 /* Hover and keyboard focus land on the same treatment on purpose — the palette
    is driven both ways, and a row you've tabbed to is the row you're about to
    pick. */
-.jump-row:hover,
+/* The thumb is the indicator, so the UA's ring would be a second one. Safe to
+   drop only because .jump-focus tracks focus exactly — setActiveRow() moves it
+   from the focus event itself, and hovering a row moves focus rather than
+   lighting up separately, so there is never a highlighted row that Enter
+   wouldn't take. */
+.jump-row:focus,
 .jump-row:focus-visible {
-  background: rgba(0, 0, 0, 0.05);
   outline: none;
-}
-
-.jump-row:active {
-  background: rgba(0, 0, 0, 0.08);
 }
 
 .jump-icon {
@@ -1793,9 +1861,33 @@ body.is-intro .site-footer {
   height: 18px;
 }
 
-.jump-row:hover .jump-icon,
-.jump-row:focus-visible .jump-icon {
-  color: var(--fg);
+/* On the block, the row's contents go white and its icon solid — the bar's
+   treatment, in a row. Driven by .is-active rather than by :hover and
+   :focus-visible separately, so the block and what's drawn on it are moved by
+   one thing and can't end up on different rows. */
+.jump-row.is-active {
+  color: #fff;
+}
+
+.jump-row.is-active .jump-icon {
+  color: #fff;
+}
+
+.jump-row.is-active .nav-icon--line {
+  opacity: 0;
+}
+
+.jump-row.is-active .nav-icon--solid {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* The digit re-reads as a chip on blue: a wash of the block's own white rather
+   than the black-on-white it wears against the sheet. */
+.jump-row.is-active .shortcuts-key {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
 }
 
 /* Takes the slack so the digit stays pinned to the right edge. */
@@ -2513,6 +2605,75 @@ body.is-404 .attribution {
   gap: 12px;
 }
 
+/* ── Keyboard-nav name chip ──
+   The nav's toast vocabulary — dark pill, 9px uppercase — but one shared chip
+   above the whole bar instead of one per tab. Sits where the tab toasts sit,
+   10px above the bar, and centres on the page rather than on the pill.
+
+   Width is set in px by flashNavName() so it can be transitioned between one
+   name and the next; `auto` has nothing to interpolate. translateX(-50%)
+   resolves against that animating width, so it stays centred as it grows. */
+.nav-flash {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  padding: 5px 9px;
+  background: var(--fg);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  /* Clips the name to the chip, which is what makes it read as sliding in from
+     the edge rather than drifting in from off-screen. */
+  overflow: hidden;
+  border-radius: 6px;
+  opacity: 0;
+  transform: translateX(-50%) translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease,
+    width 0.26s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.nav-flash.is-up {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* --nav-flash-from is set per press: positive when you're moving right, so the
+   name enters from the right and travels left — against the direction you're
+   navigating, the way the contents of a carousel move against the button you
+   pressed. */
+.nav-flash-label {
+  display: block;
+  opacity: 0;
+  transform: translateX(var(--nav-flash-from, 0));
+}
+
+/* The class is removed and re-added on every press to restart this from the
+   new side; without that, a second press mid-slide would find the property
+   already at its end value and simply not animate. */
+.nav-flash-label.is-in {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.14s ease, transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* The chip still appears and still says where you are — it just stops
+   travelling to get there. */
+@media (prefers-reduced-motion: reduce) {
+  .nav-flash {
+    transition: opacity 0.15s ease;
+  }
+
+  .nav-flash-label,
+  .nav-flash-label.is-in {
+    transform: none;
+  }
+}
+
 /* Next/Previous project row — sits above the nav pill, only shown on a work
    item's case study (see updateWorkNav in site.js). */
 .work-nav-row {
@@ -2680,14 +2841,116 @@ body.is-404 .attribution {
   transform: translateX(-50%) translateY(0);
 }
 
+/* The tab you're on takes the wordmark's blue, so the one selected thing on
+   screen is the one thing wearing the brand colour. */
 .nav-tab[aria-selected="true"] {
-  color: var(--fg);
+  color: var(--brand);
+}
+
+/* Both icon weights ship inside every tab and CSS picks one, rather than JS
+   rewriting the button on each change: the swap then rides on the same
+   aria-selected the indicator and the toast already read, and can't fall out
+   of step with them. Two icon sets cost ~2.5 KiB of source (well under a KiB
+   gzipped) — cheaper than the state bug.
+
+   Both sit in the same grid cell rather than being toggled with `display`,
+   which is what makes the swap animatable at all: they overlap, so one can
+   dissolve as the other arrives instead of one replacing the other outright.
+   (.nav-toast is absolutely positioned, so it claims no cell of its own.) */
+.nav-icon {
+  grid-area: 1 / 1;
+  /* Two clocks on purpose. The fade is short so the two weights are never both
+     half-present long enough to read as a smudge; the scale runs longer and
+     overshoots a touch, which is where the snap comes from. Doing both on one
+     duration gives you either a mushy fade or a twitchy pop. */
+  transition: opacity 150ms ease, transform 280ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+/* The solid weight waits just under full size, so selecting a tab settles it
+   into place rather than sliding it in from somewhere. */
+.nav-icon--solid {
+  opacity: 0;
+  transform: scale(0.72);
+}
+
+.nav-tab[aria-selected="true"] .nav-icon--line {
+  opacity: 0;
+}
+
+.nav-tab[aria-selected="true"] .nav-icon--solid {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .nav-tab svg {
   display: block;
   width: 20px;
   height: 20px;
+}
+
+/* Keep the cross-fade — it's what stops the weights swapping mid-blink — but
+   drop the scale, which is the part that's motion rather than a state change. */
+@media (prefers-reduced-motion: reduce) {
+  .nav-icon {
+    transition: opacity 150ms ease;
+  }
+
+  .nav-icon--solid {
+    transform: none;
+  }
+}
+
+/* ── Keyboard-focus block ──
+   A segmented control's thumb: one marker that travels to the focused tab,
+   instead of a ring blinking out on one tab and in on the next. Stepping along
+   the bar then reads as a single object moving, which is the whole difference
+   — the eye follows it rather than re-finding it each press.
+
+   Sizing is set by initNav from the tab it's on; only the vertical inset is
+   fixed here, since every tab is the pill's full height.
+
+   12px in from the pill's edge, which is what clears the indicator line lying
+   along the bottom, and 6px of corner: the nested radius (outer − inset) for
+   something 12px inside an 18px pill, so the thumb stays concentric with the
+   bar it's travelling along. */
+.nav-focus {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 0;
+  width: 0;
+  border-radius: 6px;
+  background: var(--brand);
+  opacity: 0;
+  pointer-events: none;
+  /* Opacity only. The block doesn't travel between tabs — it takes its new
+     position outright and fades, which is why nothing here needs to carry a
+     copy of the icon: there's no in-between moment where a white glyph would
+     be sitting on white. The tabs paint over it (no z-index, and they come
+     later in the markup), so the icon on top is the tab's own. */
+  transition: opacity 0.15s ease;
+}
+
+.nav-focus.is-on {
+  opacity: 1;
+}
+
+/* On the block, the tab's own icon goes white and solid. Keyed to
+   :focus-visible, the same condition .nav-focus is shown under — and the UA's
+   own ring goes here too, since the block is the focus indicator now and two
+   would be one too many. */
+.nav-tab:focus-visible {
+  outline: none;
+  color: #fff;
+}
+
+.nav-tab:focus-visible .nav-icon--line {
+  opacity: 0;
+}
+
+.nav-tab:focus-visible .nav-icon--solid {
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* Hidden on the 404, which no tab owns — matching the explicit [hidden]
@@ -2702,9 +2965,11 @@ body.is-404 .attribution {
   left: 0;
   height: 2px;
   width: 22px;
-  background: var(--fg);
+  /* Matches the selected tab's icon above it — the line and the glyph are one
+     indicator in two parts, so they can't be two different colours. */
+  background: var(--brand);
   border-radius: 1px;
-  transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform var(--nav-move);
   will-change: transform;
 }
 
