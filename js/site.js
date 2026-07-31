@@ -263,6 +263,21 @@ function revealPanel(panel) {
   if (footer) {
     footer.classList.remove("is-shown");
     if (!isIntro) {
+      // Dropping .is-shown starts a 1 -> 0 transition on the footer's lines, it
+      // does not put them at 0. showAfterReflow() then re-adds the class on the
+      // next frame, so without this the entrance runs from 1 back to 1 and
+      // nothing appears to move. A reflow alone can't fix that: it commits the
+      // style change but leaves the transition to animate smoothly from wherever
+      // it is.
+      //
+      // Panels never hit this because they pass through `hidden` between states
+      // and display:none cancels a transition outright. The footer stays in the
+      // layout on every route except the intro, where body.is-intro hides it —
+      // which is why the intro was the one case that looked right.
+      //
+      // Finishing the transitions snaps the lines to the 0 they were heading
+      // for, so the replay has somewhere to travel from.
+      footer.getAnimations({ subtree: true }).forEach((animation) => animation.finish());
       void footer.offsetWidth;
       showAfterReflow(footer);
     }
