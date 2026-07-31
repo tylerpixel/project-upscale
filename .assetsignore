@@ -21,5 +21,8 @@ lighthouse
 # so it isn't part of first paint and stays a file of its own.
 *.parked
 .backups
+# Source art for images/pfp.webp — 1440px and 217 KB, kept in the repo so the
+# avatar can be re-encoded, never served. Nothing links to it.
+images/pfp.png
 README.md
 wrangler.jsonc

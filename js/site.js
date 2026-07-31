@@ -434,7 +434,13 @@ function openTray(view, title) {
   const overlay = document.getElementById("trayOverlay");
   if (!overlay) return;
   document.getElementById("trayTitle").textContent = title;
-  document.getElementById("traySheet").setAttribute("aria-label", title);
+  const sheet = document.getElementById("traySheet");
+  sheet.setAttribute("aria-label", title);
+  // Which view is up, published for CSS. The cart and the message form both fit
+  // the column the rest of the site is measured to; a month of a calendar does
+  // not, so the booking view sizes the sheet off this rather than every view
+  // being pinned to the widest one's needs.
+  sheet.dataset.view = view;
   document.querySelectorAll(".tray-view").forEach((v) => {
     v.hidden = v.dataset.view !== view;
   });
@@ -595,6 +601,59 @@ function showMsgDone(title, note) {
   document.getElementById("msgFoot").hidden = true;
   setMsgError("");
   msgSent = true;
+}
+
+// ── Booking tray — the cal.com inline embed behind "Work with me" ──
+//
+// Bootstrapped on first open rather than at load. cal's loader appends
+// embed.js on the first Cal() call, so deferring the whole thing means a
+// visitor who never asks to book never fetches a byte of it — which is the
+// only reason a third-party script is acceptable on a site with no
+// dependencies. Everything after the loader is cal's own snippet, kept in
+// their shape so it can be diffed against their docs.
+let calBooted = false;
+
+function bootCal() {
+  if (calBooted) return;
+  calBooted = true;
+
+  /* eslint-disable */
+  // prettier-ignore
+  (function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if (typeof namespace === "string") { cal.ns[namespace] = cal.ns[namespace] || api; p(cal.ns[namespace], ar); p(cal, ["initNamespace", namespace]); } else p(cal, ar); return; } p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
+  /* eslint-enable */
+
+  Cal("init", "30min", { origin: "https://app.cal.com" });
+  Cal.config = Cal.config || {};
+  Cal.config.forwardQueryParams = true;
+
+  Cal.ns["30min"]("inline", {
+    elementOrSelector: "#my-cal-inline-30min",
+    // theme belongs here, not in the ui call below: this config is what cal
+    // builds the iframe's query string from, and the theme has to be in the
+    // URL to be true from the first paint. Passed to ui() alone it never
+    // reaches the frame at all.
+    config: { layout: "month_view", useSlotsViewOnSmallScreen: "true", theme: "light" },
+    calLink: "tylerpixel/30min",
+  });
+
+  Cal.ns["30min"]("ui", {
+    // Both themes carry the wordmark's blue — the same #0060e5 as --brand in
+    // main.css. Set in both so the accent is on-brand whichever one renders,
+    // rather than depending on the pin below staying put.
+    cssVarsPerTheme: { light: { "cal-brand": "#0060e5" }, dark: { "cal-brand": "#0060e5" } },
+    hideEventTypeDetails: false,
+    layout: "month_view",
+    // Pinned in the inline config above, where cal would otherwise follow the
+    // visitor's OS setting. This site has no dark styles at all, so a dark
+    // calendar would only ever appear inside a white sheet on a white page.
+    // One line to drop the day the site grows a dark mode.
+    theme: "light",
+  });
+}
+
+function openBookingTray() {
+  bootCal();
+  openTray("book", "Work with me");
 }
 
 function openMessageTray() {
@@ -1279,7 +1338,7 @@ function renderIntro(intro) {
   hire.type = "button";
   hire.className = "resume-download intro-cta-link";
   hire.textContent = "Work with me";
-  hire.addEventListener("click", openMessageTray);
+  hire.addEventListener("click", openBookingTray);
 
   cta.append(browse, hire);
   panel.appendChild(cta);
@@ -1953,29 +2012,43 @@ function renderContact(contact, label) {
   let idx = 1;
 
   if (contact.portrait) {
-    const row = document.createElement("div");
-    row.className = "about-portrait-row";
+    // The avatar is what's on show; the photograph is what hovering reveals.
+    // Both live in one fixed 96px box, so the swap moves nothing around it.
+    const frame = document.createElement("div");
+    frame.className = "about-portrait";
 
     const portrait = document.createElement("img");
-    portrait.className = "about-portrait";
+    portrait.className = "about-portrait-img";
     portrait.src = contact.portrait;
     portrait.alt = contact.portraitAlt || "";
     // Square source, rendered in a 96px square box — the attributes just
-    // reserve it so the greeting beside it doesn't jump when the file lands.
+    // reserve it so the copy below doesn't jump when the file lands.
     portrait.width = 96;
     portrait.height = 96;
     // The photo is optional — if it hasn't been added yet, drop it rather than
     // leaving a broken-image box in the middle of the story.
-    portrait.addEventListener("error", () => portrait.remove());
-    row.appendChild(portrait);
+    portrait.addEventListener("error", () => frame.remove());
+    frame.appendChild(portrait);
 
-    const greeting = document.createElement("p");
-    greeting.className = "about-greeting";
-    greeting.innerHTML = `<span class="about-greeting-wave" aria-hidden="true">👋</span> Hi, I'm Tyler Pixel!`;
-    row.appendChild(greeting);
+    // The reveal: the drawing gives way to the face behind it. Built only
+    // where there's a pointer that can hover — otherwise it's a second
+    // portrait downloaded to sit in the DOM unused, and the avatar is the
+    // intended resting state anyway.
+    if (supportsHover && contact.portraitHover) {
+      const alt = document.createElement("img");
+      alt.className = "about-portrait-img about-portrait-img--alt";
+      // Decorative: it's the same person the image above it already names, and
+      // announcing a second portrait would just be a duplicate.
+      alt.alt = "";
+      alt.setAttribute("aria-hidden", "true");
+      alt.src = contact.portraitHover;
+      alt.width = 96;
+      alt.height = 96;
+      frame.appendChild(alt);
+    }
 
-    markStagger(row, idx++);
-    panel.appendChild(row);
+    markStagger(frame, idx++);
+    panel.appendChild(frame);
   }
 
   (contact.about || []).forEach((text) => {

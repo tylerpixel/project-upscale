@@ -388,6 +388,16 @@
           </button>
         </div>
 
+        <!-- Booking view — what "Work with me" opens. The cal.com inline embed
+             mounts into the div below; the loader that mounts it lives in
+             js/site.js rather than in an inline <script> here, because the CSP
+             is `script-src 'self'` with no 'unsafe-inline' and an inline block
+             would simply be refused. It runs on first open, so nothing of
+             cal's is fetched by a visitor who never asks to book. -->
+        <div class="tray-view" data-view="book" hidden>
+          <div class="cal-embed" id="my-cal-inline-30min"></div>
+        </div>
+
         <!-- Jump view — what ⌘K opens. The rows are the bar's own tabs plus the
              message FAB, each carrying the digit that reaches it directly, so
              the palette both goes places and teaches the shortcuts. Built by

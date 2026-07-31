@@ -1767,6 +1767,122 @@ body.is-intro .site-footer {
   display: none;
 }
 
+/* ── Booking view — the cal.com embed ──
+   The one thing on the site that can't live inside the 360px measure: a month
+   grid squeezed to the column is unusable, so this view alone widens the sheet.
+   The sheet keeps the 360px measure every other view uses; the embed's own
+   `useSlotsViewOnSmallScreen` gives a column of times rather than a squeezed
+   month grid at that width. What it gets instead of room is all of it: 9px of
+   padding rather than 16, and no head row at all — the close button is lifted
+   out of the flow into the sheet's own corner, so the embed starts at the top
+   of the sheet instead of a line below it.
+
+   No height here. cal measures its own content and writes a pixel height onto
+   its iframe, so pinning the sheet as well just leaves dead space under a
+   short month. The sheet's max-height still caps it, and the embed scrolls if
+   a long one runs past that. */
+.tray-sheet[data-view="book"] {
+  /* The corner the close button anchors to. The sheet is already a containing
+     block by way of its transform, but say so — an absolute child shouldn't
+     depend on an animation property staying put. */
+  position: relative;
+  padding: 9px;
+}
+
+.tray-sheet[data-view="book"] .page-title {
+  display: none;
+}
+
+/* Out of the flow entirely, so it reserves no height above the embed. */
+.tray-sheet[data-view="book"] .tray-head {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 1;
+  margin: 0;
+}
+
+/* It's over the embed now, and the embed scrolls beneath it — so it carries
+   the sheet's own background rather than letting a time slot slide under the
+   glyph. */
+.tray-sheet[data-view="book"] .tray-close {
+  background: var(--bg);
+}
+
+.tray-view[data-view="book"] {
+  flex: 1 1 auto;
+}
+
+.cal-embed {
+  flex: 1 1 auto;
+  /* Without this a flex item won't shrink below its content, and the embed
+     would push the sheet past its own max-height — the same reason .cart-items
+     carries it. */
+  min-height: 0;
+  width: 100%;
+  overflow: auto;
+  /* Reserved whether or not it's needed. cal sizes its iframe to its own
+     content, so a bar appearing would narrow the frame, make cal re-measure,
+     report a new height, and possibly remove the need for the bar again —
+     a loop the layout can oscillate in. Holding the gutter open costs 6px and
+     settles it. */
+  scrollbar-gutter: stable;
+}
+
+/* Undoes cal's `scrollbar-width: none`, which hides the bar outright and takes
+   the ::-webkit-scrollbar rules below down with it — a scrollbar suppressed by
+   the standard property can't be painted back by the pseudo-element.
+   Specifically `auto`, not `thin`: any explicit value other than auto makes
+   Blink and WebKit switch to the standard property and stop honouring those
+   rules, which is how this got a fading system overlay bar instead of the
+   styled one. */
+.tray-sheet .cal-embed {
+  scrollbar-width: auto;
+}
+
+/* Firefox only, and last so it wins there. Behind @supports because Chrome and
+   Safari honour these too, and the moment they do they ignore everything
+   below. The query is false in Blink/WebKit, so they keep the styled,
+   always-visible bar while Firefox gets a thin one. */
+@supports not selector(::-webkit-scrollbar) {
+  .tray-sheet .cal-embed {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.22) transparent;
+  }
+}
+
+/* WebKit/Blink. Styling these at all opts macOS out of overlay scrollbars, so
+   the bar takes real width — which is the point: it should be visible against
+   a long month rather than only while the finger is moving.
+
+   Every rule here is scoped through .tray-sheet purely to outrank cal. Its
+   embed.js injects a stylesheet into this page that hides the bar on the
+   container it mounts into — `.cal-inline-container { scrollbar-width: none }`
+   and a matching ::-webkit-scrollbar { display: none }. Those are single-class
+   selectors like a bare .cal-embed would be, and they arrive at runtime, so
+   source order handed them the win. Two classes takes it back without
+   !important. */
+.tray-sheet .cal-embed::-webkit-scrollbar {
+  /* Explicit, because cal's rule is `display: none` and the cascade resolves
+     one property at a time — out-specifying it on `width` alone leaves its
+     `display` untouched and the bar still gone. */
+  display: block;
+  width: 6px;
+}
+
+.tray-sheet .cal-embed::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tray-sheet .cal-embed::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.tray-sheet .cal-embed::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.36);
+}
+
 /* ── Jump list — the tray view behind ⌘K ──
    The bar's tabs as a vertical list, each row carrying the digit that reaches
    it directly. Rows are real buttons: the palette has to be usable by pointer,
@@ -2237,84 +2353,55 @@ body.is-intro .site-footer {
 }
 
 /* ── About ── */
-/* Compound selector so the row stays flex even though .t-stagger-line
-   (declared later) forces display: block on staggered elements. */
-.about-portrait-row.t-stagger-line,
-.about-portrait-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
+/* A fixed box holding both portraits stacked, so the hover swap can't move
+   anything beside it. overflow keeps the blur inside the rounded corner —
+   without it the softened edge bleeds past the radius as it fades. */
 .about-portrait {
+  position: relative;
   width: 96px;
   height: 96px;
-  object-fit: cover;
+  /* Was the row's margin when a greeting sat beside it; the portrait carries
+     its own spacing now that it stands alone. */
+  margin-bottom: 20px;
   border-radius: 10px;
+  overflow: hidden;
   background: #f6f6f6;
 }
 
-/* Speech bubble next to the portrait. It pops in on its own springy curve
-   *after* the row's stagger reveal has landed, so the photo arrives first
-   and the greeting reads as a reaction to it. */
-.about-greeting {
-  position: relative;
-  margin: 0;
-  padding: 10px 14px;
-  background: #f6f6f6;
-  border-radius: 14px;
-  border-bottom-left-radius: 4px;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
+.about-portrait-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 320ms var(--stagger-ease), filter 320ms var(--stagger-ease);
+}
+
+/* Each face blurs on its way out and sharpens on its way in, so the two never
+   simply dissolve through one another — the swap reads as one image resolving
+   into the other. :not() rather than source order, so the pair can't be broken
+   by a later edit moving these rules around. */
+.about-portrait-img--alt {
   opacity: 0;
-  transform: scale(0.5) rotate(-8deg);
-  transform-origin: left bottom;
-  transition:
-    opacity 300ms ease,
-    transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  transition-delay: 350ms;
+  filter: blur(8px);
 }
 
-.t-stagger.is-shown .about-greeting {
+.about-portrait:hover .about-portrait-img:not(.about-portrait-img--alt) {
+  opacity: 0;
+  filter: blur(8px);
+}
+
+.about-portrait:hover .about-portrait-img--alt {
   opacity: 1;
-  transform: scale(1) rotate(0deg);
+  filter: blur(0);
 }
 
-/* Exit joins the panel-wide quiet fade — no reverse pop. */
-.t-stagger.is-hiding .about-greeting {
-  opacity: 0;
-  transform: scale(1) rotate(0deg);
-  transition: opacity 200ms ease, transform 0s linear;
-  transition-delay: 0s;
-}
-
-.about-greeting-wave {
-  display: inline-block;
-  transform-origin: 70% 70%; /* pivot at the wrist */
-}
-
-.t-stagger.is-shown .about-greeting-wave {
-  animation: about-wave 1.2s ease-in-out 900ms 1 both;
-}
-
-@keyframes about-wave {
-  0%, 100% { transform: rotate(0deg); }
-  15% { transform: rotate(18deg); }
-  35% { transform: rotate(-10deg); }
-  55% { transform: rotate(14deg); }
-  75% { transform: rotate(-6deg); }
-}
-
+/* The face still changes — it's the point — it just arrives rather than
+   resolving through a blur. */
 @media (prefers-reduced-motion: reduce) {
-  .about-greeting {
-    transition: none;
-    opacity: 1;
-    transform: none;
-  }
-  .t-stagger.is-shown .about-greeting-wave {
-    animation: none;
+  .about-portrait-img {
+    filter: none !important;
+    transition: opacity 150ms ease;
   }
 }
 
@@ -2588,11 +2675,15 @@ body.is-404 .attribution {
   bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
-  /* Same measure + gutter as .site, so the nav's outer edges line up with the
-     text column even though it's fixed. */
-  width: 100%;
-  max-width: calc(var(--content-width) + var(--gutter) * 2);
-  padding: 0 var(--gutter);
+  /* The bar is the measure itself, with no gutter of its own — so it stays
+     360px wide instead of surrendering 2×--gutter to the screen edges on a
+     narrow phone, where it used to come out at 327px and read as a shrunken
+     version of the same bar.
+
+     Identical to the old `360 + 2×gutter` box minus its padding on any screen
+     wide enough for both, so desktop is unchanged; it only bites below that.
+     The 12px keeps it off the bezel on anything narrower than ~372px. */
+  width: min(var(--content-width), calc(100% - 12px));
   display: flex;
   flex-direction: column;
   gap: 10px;

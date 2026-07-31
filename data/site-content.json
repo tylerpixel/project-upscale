@@ -1,6 +1,6 @@
 {
-  "version": "1.0.18",
-  "versionDate": "2026-07-31T06:55:24.091Z",
+  "version": "1.0.19",
+  "versionDate": "2026-07-31T08:46:08.933Z",
   "profile": {
     "name": "Tyler Patterson",
     "role": "Design Engineer"
@@ -650,7 +650,8 @@
   },
   "contact": {
     "email": "dm@tylerpixel.com",
-    "portrait": "images/portrait.webp",
+    "portrait": "images/pfp.webp",
+    "portraitHover": "images/portrait.webp",
     "portraitAlt": "Tyler Patterson",
     "about": [
       "I'm Tyler Pixel (legally Tyler Patterson), a design engineer working across brand and product. Nine years in, I still care most about the thing I cared about on day one: context. Why something exists, who it's for, and what it has to do, long before it needs to look like anything.",

@@ -23,13 +23,22 @@ const WWW_DOMAIN = `www.${ROOT_DOMAIN}`;
 // read over fetch, and its product photos are served from its image proxy and
 // (for older uploads) Firebase storage. The beacon reports back to
 // cloudflareinsights.com, a different host from the one it's served off.
+//
+// app.cal.com is the booking embed behind "Work with me". It needs three
+// things and is granted exactly those: script-src to load embed.js, frame-src
+// for the iframe that script mounts, and connect-src for the calls it makes
+// back to its own API. Note what it is *not* given — 'unsafe-inline' still
+// isn't in script-src, which is why the loader lives in js/site.js instead of
+// as the inline <script> cal's docs hand you. Whatever the embed renders
+// inside its iframe is governed by cal.com's own CSP, not this one.
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' https://static.cloudflareinsights.com",
+  "script-src 'self' https://static.cloudflareinsights.com https://app.cal.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https://imgproxy.fourthwall.dev https://firebasestorage.googleapis.com",
   "font-src 'self'",
-  "connect-src 'self' https://storefront-api.fourthwall.com https://cloudflareinsights.com",
+  "connect-src 'self' https://storefront-api.fourthwall.com https://cloudflareinsights.com https://app.cal.com",
+  "frame-src https://app.cal.com",
   "form-action 'self'",
   "frame-ancestors 'none'",
   // 'self', not 'none': the document sets <base href="/"> so that nested
