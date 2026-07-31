@@ -590,6 +590,7 @@ body.is-intro .site-footer {
    version is stamped into site-content.json by scripts/ship.sh on every deploy,
    so the chip can never name a build other than the deployed one. */
 .site-footer-version {
+  position: relative; /* anchors its "Updated …" tooltip */
   flex: 0 0 auto;
   padding: 4px 9px;
   border-radius: 999px;
@@ -606,6 +607,34 @@ body.is-intro .site-footer {
 .site-footer-version:hover {
   background: rgba(0, 0, 0, 0.08);
   color: var(--fg);
+}
+
+/* Alone among the tooltips, this one sits beside its trigger rather than above
+   it. Above is where the wordmark is — the rule row clears it by 24px and the
+   chip is only 17px tall, so a floating tooltip lands on the letterforms. To
+   the left is the hairline: empty by definition, and long enough that the
+   tooltip can be as wide as it needs to be. It slides in along that axis for
+   the same reason, since it has room there and none upward. */
+.site-footer-version .nav-toast {
+  top: 50%;
+  right: calc(100% + 8px);
+  bottom: auto;
+  left: auto;
+  transform: translateY(-50%) translateX(4px);
+}
+
+@media (hover: hover) {
+  .site-footer-version:hover .nav-toast {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+/* Its own rule for the same reason — the shared .show-toast rule re-applies the
+   centring translateX this variant doesn't use. */
+.site-footer-version.show-toast .nav-toast {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
 }
 
 /* Compound selector for the same reason as the rule row above. */
@@ -1703,6 +1732,82 @@ body.is-intro .site-footer {
   display: none;
 }
 
+/* ── Jump list — the tray view behind ⌘K ──
+   The bar's tabs as a vertical list, each row carrying the digit that reaches
+   it directly. Rows are real buttons: the palette has to be usable by pointer,
+   which is the whole reason it exists rather than the digits alone. */
+.jump-list {
+  display: flex;
+  flex-direction: column;
+  /* The rows carry their own padding; a gap on top of it would read as gaps in
+     a menu rather than a list of rows. */
+  gap: 2px;
+  min-height: 0;
+  overflow-y: auto;
+  /* Cancels the sheet's own padding on this edge so a scrolling list runs to
+     the sheet's inner edge instead of stopping short of it. */
+  margin: 0 -6px;
+  padding: 0 6px;
+}
+
+.jump-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+/* Hover and keyboard focus land on the same treatment on purpose — the palette
+   is driven both ways, and a row you've tabbed to is the row you're about to
+   pick. */
+.jump-row:hover,
+.jump-row:focus-visible {
+  background: rgba(0, 0, 0, 0.05);
+  outline: none;
+}
+
+.jump-row:active {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.jump-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  color: var(--fg-muted);
+}
+
+.jump-icon svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.jump-row:hover .jump-icon,
+.jump-row:focus-visible .jump-icon {
+  color: var(--fg);
+}
+
+/* Takes the slack so the digit stays pinned to the right edge. */
+.jump-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 11pt;
+}
+
 .cart-items {
   flex: 1;
   /* Without min-height:0 a flex item won't shrink below its content, so a long
@@ -2622,6 +2727,173 @@ body.is-404 .attribution {
 
 .fab:active {
   transform: scale(0.94);
+}
+
+/* ── Shortcuts ──
+   An info dot in the bottom-left corner of the viewport with the keyboard
+   shortcuts folded up inside it. Hovering the dot raises the panel; nothing
+   else about the page moves, because the whole thing is fixed and out past the
+   content column on either axis.
+
+   The dot is the only part with a hit area — the panel is pointer-events: none
+   — so there's no gap between them for the pointer to fall through and no way
+   to end up with a panel that covers something you were reaching for. */
+.shortcuts {
+  display: none;
+  position: fixed;
+  left: 24px;
+  /* The nav pill's own offset plus half the difference in their heights, which
+     lines the dot up with the middle of the bar rather than its bottom edge —
+     the two read as one row across the bottom of the screen. */
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px) + 14px);
+  z-index: 200;
+}
+
+/* Wide enough that the panel clears the text column, tall enough that it
+   doesn't run off the top, and a pointing device precise enough to imply a
+   real keyboard — the panel is hover-only, so a touch device could never open
+   it, and its contents would be a lie there anyway. */
+@media (min-width: 900px) and (min-height: 560px) and (hover: hover) and (pointer: fine) {
+  .shortcuts:not([hidden]) {
+    display: block;
+  }
+}
+
+/* The dot. Muted at rest so a corner of the page isn't competing with the
+   content, full strength once it's the thing you're pointing at. */
+.shortcuts-nub {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  background: var(--bg);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  color: var(--fg-muted);
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.shortcuts-nub svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.shortcuts:hover .shortcuts-nub {
+  color: var(--fg);
+  transform: translateY(-1px);
+}
+
+/* Anchored to the dot's top edge rather than laid out above it in flow, so the
+   container's box stays dot-sized and the hover target stays the dot. */
+.shortcuts-panel {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  min-width: 172px;
+  padding: 12px 14px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  background: var(--bg);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.shortcuts:hover .shortcuts-panel {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Same 9px uppercase label vocabulary as the nav tooltips and the work-nav
+   buttons, so the panel reads as part of the bar it sits beside. */
+.shortcuts-title {
+  margin: 0 0 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--underline);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: var(--fg);
+}
+
+.shortcuts-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.shortcuts-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 0;
+}
+
+/* Fixed width so every label starts on the same line however many caps sit to
+   its left — one for a digit, two for the arrows. */
+.shortcuts-keys {
+  flex: 0 0 42px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.shortcuts-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+
+/* Key caps: the nav pill's vocabulary — hairline border, soft face — shrunk to
+   keyboard size and held a step darker than the panel so they read as raised
+   off it. */
+.shortcuts-key {
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--fg-muted);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  transition: color 0.12s ease, transform 0.12s ease, background-color 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.shortcuts-key svg {
+  display: block;
+  width: 11px;
+  height: 11px;
+}
+
+/* ⌘K is two glyphs where the others are one — let it size to its text. */
+.shortcuts-key--wide {
+  letter-spacing: 0.02em;
+}
+
+/* Depressed by the real key, not by a click — the caps aren't controls. It
+   turns the panel from a list into a demonstration for the case it's built
+   for: you've opened it to read the shortcuts and you're trying them with it
+   still up. See flashShortcutKey(). */
+.shortcuts-key.is-pressed {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--bg);
+  transform: scale(0.9);
 }
 
 /* Transitions.dev — Texts reveal */

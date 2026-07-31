@@ -76,13 +76,17 @@ if git rev-parse -q --verify "refs/tags/v$NEXT" >/dev/null; then
   exit 1
 fi
 
-# Rewrite only the version field, preserving key order and formatting so the
-# diff is one line and the local CMS keeps round-tripping the file cleanly.
+# Rewrite only the version fields, preserving key order and formatting so the
+# diff is two lines and the local CMS keeps round-tripping the file cleanly.
+# versionDate is stamped from the same run as the bump, so the footer chip's
+# "Updated N hrs ago" tooltip is measuring the build it names — the CMS posts
+# the whole object back untouched, so a copy edit can't move it.
 node -e "
   const fs = require('fs');
   const path = '$CONTENT';
   const content = JSON.parse(fs.readFileSync(path, 'utf8'));
   content.version = '$NEXT';
+  content.versionDate = new Date().toISOString();
   fs.writeFileSync(path, JSON.stringify(content, null, 2) + '\n');
 "
 

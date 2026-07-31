@@ -1040,6 +1040,44 @@ function renderSocialRow(row, social) {
   });
 }
 
+// How long ago the build on the page was shipped, in the coarsest unit that
+// still says something: seconds are noise on a site that ships a few times a
+// week, and "3 weeks" and "21 days" carry the same information. Every step
+// floors rather than rounds, so the chip can never claim a build is newer than
+// it is. Days run to 31 before months take over — a month is the first unit
+// that isn't exact, and holding it back that far keeps the imprecise one off
+// the chip for anything shipped this month.
+const MINUTE = 60000;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+
+function relativeTime(iso) {
+  const then = Date.parse(iso);
+  if (!Number.isFinite(then)) return "";
+  // A clock behind the deploy's reads as a negative age; "just now" is the
+  // honest answer there, and it's what the first minute says anyway.
+  const ms = Math.max(0, Date.now() - then);
+
+  if (ms < MINUTE) return "just now";
+
+  const mins = Math.floor(ms / MINUTE);
+  if (mins < 60) return `${mins} ${mins === 1 ? "min" : "mins"} ago`;
+
+  const hrs = Math.floor(ms / HOUR);
+  if (hrs < 24) return `${hrs} ${hrs === 1 ? "hr" : "hrs"} ago`;
+
+  const days = Math.floor(ms / DAY);
+  if (days <= 31) return `${days} ${days === 1 ? "day" : "days"} ago`;
+
+  // 30.44 and 365.25 are the average month and year — using 30 and 365 would
+  // let "12 months" appear a fortnight before the first birthday.
+  const months = Math.floor(days / 30.44);
+  if (months < 12) return `${months} ${months === 1 ? "month" : "months"} ago`;
+
+  const years = Math.floor(days / 365.25);
+  return `${years} ${years === 1 ? "year" : "years"} ago`;
+}
+
 // The shell's footer, shown under every panel: the wordmark at full column
 // width, then the hairline + build chip, then the sign-off row. Rendered here
 // rather than left static in index.html because the version and the social list
@@ -1053,9 +1091,36 @@ function renderSiteFooter(content) {
 
   const version = document.getElementById("siteFooterVersion");
   if (version && content.version) {
-    version.textContent = `v${content.version}`;
+    version.replaceChildren(document.createTextNode(`v${content.version}`));
     version.setAttribute("aria-label", `Version ${content.version} — view the source on GitHub`);
     version.hidden = false;
+
+    // How old that build is, on the same hover tooltip the nav and the inline
+    // links use. Recomputed on every hover rather than written once here: a
+    // tab left open overnight would otherwise still be insisting the build
+    // shipped two minutes ago.
+    if (content.versionDate) {
+      const tip = document.createElement("span");
+      tip.className = "nav-toast";
+      version.appendChild(tip);
+      const stamp = () => {
+        const ago = relativeTime(content.versionDate);
+        if (!ago) return;
+        tip.textContent = `Updated ${ago}`;
+        // The chip's own label carries it too — the tooltip is hover-only, and
+        // hover is exactly what a screen reader doesn't have.
+        version.setAttribute(
+          "aria-label",
+          `Version ${content.version}, updated ${ago} — view the source on GitHub`
+        );
+      };
+      stamp();
+      version.addEventListener("pointerenter", stamp);
+      version.addEventListener("focus", stamp);
+      // Touch has no hover, so the tooltip only ever appears via flashToast —
+      // which fires on the tap that's also following the link away.
+      version.addEventListener("click", () => flashToast(version));
+    }
   }
 
   const copyright = document.getElementById("siteFooterCopyright");
@@ -1911,6 +1976,133 @@ function initNav(tabs) {
   // is positioned below, which measures the nav's children.
   nav.querySelectorAll(".nav-skeleton").forEach((el) => el.remove());
 
+  // Now that there are tabs to name, the corner panel has something true to
+  // say. CSS still decides whether the viewport has room for it.
+  const shortcuts = document.getElementById("shortcuts");
+  if (shortcuts) shortcuts.hidden = false;
+
+  // Depresses every cap bound to the key just pressed — the arrows in the
+  // corner panel, the digits in the jump tray — so whichever of the two is on
+  // screen answers the press and reads as the reason the page moved.
+  function flashShortcutKey(key) {
+    document.querySelectorAll(`.shortcuts-key[data-key="${key}"]`).forEach((cap) => {
+      cap.classList.add("is-pressed");
+      clearTimeout(cap._pressTimer);
+      cap._pressTimer = setTimeout(() => cap.classList.remove("is-pressed"), 180);
+    });
+  }
+
+  // ── The jump tray: what ⌘K opens ──
+  // One row per tab, then one for the message form — the bar's own contents in
+  // the bar's own order, so the digits are just "how far along the bar it is".
+  // Built here rather than written into index.html for the same reason the tabs
+  // are: the labels are content, and a hardcoded copy would drift from them.
+  const jumpList = document.getElementById("jumpList");
+  if (jumpList) {
+    jumpList.replaceChildren();
+    const rows = tabs.map((tab, i) => ({ digit: String(i + 1), label: tab.label, tab: tab.id }));
+    rows.push({ digit: String(tabs.length + 1), label: "Message", tab: null });
+    rows.forEach(({ digit, label, tab }) => {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "jump-row";
+      row.dataset.jump = digit;
+
+      const icon = document.createElement("span");
+      icon.className = "jump-icon";
+      if (tab) {
+        // Keyed lookup into a constant map — never the content's own markup.
+        icon.innerHTML = NAV_ICONS[tab] || "";
+      } else {
+        // Clone the FAB's glyph rather than ship that path a second time.
+        const fabIcon = document.querySelector(".fab svg");
+        if (fabIcon) icon.appendChild(fabIcon.cloneNode(true));
+      }
+
+      const name = document.createElement("span");
+      name.className = "jump-label";
+      // textContent, not innerHTML — the label is content-file copy.
+      name.textContent = label;
+
+      const cap = document.createElement("span");
+      cap.className = "shortcuts-key";
+      cap.dataset.key = digit;
+      cap.textContent = digit;
+
+      row.append(icon, name, cap);
+      row.addEventListener("click", () => runJump(Number(digit)));
+      jumpList.appendChild(row);
+    });
+  }
+
+  const trayOverlay = document.getElementById("trayOverlay");
+  const jumpView = document.querySelector('.tray-view[data-view="jump"]');
+
+  // The sheet is shared with the cart and the message form, so "is the tray
+  // up?" isn't the question — "is the tray up showing *this* view?" is.
+  //
+  // Asks openOverlays rather than the hidden attribute: hideOverlay clears the
+  // attribute only once the fade has run, so for 400ms after a close the tray
+  // still reads as open. Long enough that ⌘K twice in a row would close it and
+  // then refuse to reopen it.
+  function jumpTrayOpen() {
+    return !!trayOverlay && openOverlays.has(trayOverlay) && !!jumpView && !jumpView.hidden;
+  }
+
+  function openJumpTray() {
+    openTray("jump", "Jump to");
+    // Land on the first row so the palette is immediately walkable by Tab, and
+    // so a screen reader announces something other than the dialog's own name.
+    const first = jumpList && jumpList.querySelector(".jump-row");
+    if (first) first.focus();
+  }
+
+  // What a row does, whether it was clicked or reached by its digit — one path,
+  // so the palette and the bare shortcut can't drift apart.
+  function runJump(digit) {
+    const tabButtons = Array.from(nav.querySelectorAll(".nav-tab"));
+    // Past the last tab is the FAB. The message form is another view of the
+    // same sheet, so this swaps what's inside the tray rather than closing it
+    // and opening it again.
+    if (digit === tabButtons.length + 1) {
+      openMessageTray();
+      return;
+    }
+    const target = tabButtons[digit - 1];
+    if (!target) return;
+    if (jumpTrayOpen()) {
+      // The row holding focus is about to be hidden. Hand it to the tab the
+      // palette just took you to rather than letting it drop to the body,
+      // which would send the next Tab back to the top of the page.
+      closeTray();
+      jumpToTab(target, target);
+      return;
+    }
+    jumpToTab(target, document.activeElement);
+  }
+
+  // ⌘K — its own listener because every other shortcut here requires *no*
+  // modifier, and this one is nothing but. Toggles, so the key that opened the
+  // palette also dismisses it.
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "k" && e.key !== "K") return;
+    if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) return;
+    if (jumpTrayOpen()) {
+      e.preventDefault();
+      closeTray();
+      return;
+    }
+    // The cart, the message form and the lightbox each own the screen while
+    // they're up; swapping the sheet out from under one would lose whatever is
+    // in it, a half-typed message included.
+    if (openOverlays.size) return;
+    // Only claim the key once there's somewhere to go.
+    if (!nav.querySelector(".nav-tab")) return;
+    e.preventDefault();
+    flashShortcutKey("k");
+    openJumpTray();
+  });
+
   tabLabels = Object.fromEntries(tabs.map((t) => [t.id, t.label]));
 
 
@@ -1982,20 +2174,43 @@ function initNav(tabs) {
     if (id) positionIndicator();
   };
 
-  // Left/right step through the tabs and activate as they go, which is the
-  // expected keyboard behaviour for a role="tablist" — and unlike hovering, a
-  // key press is unambiguously deliberate.
+  // Moves to a tab and does the two things every route change through the bar
+  // does: raise the toast that names where you landed, and hand focus back only
+  // if the nav already had it — so this stays a page-wide shortcut elsewhere
+  // instead of yanking focus down to the bar.
+  function jumpToTab(target, focused) {
+    selectPanel(target.dataset.tab);
+    flashToast(target, true);
+    if (nav.contains(focused)) target.focus();
+  }
+
+  // The keyboard half of the bar, listed in the shortcuts panel:
   //
-  // Left/right only, on purpose: up/down are the page's vertical scroll, and
-  // taking those would cost more than this adds.
+  //   ← / →   step through the tabs, the expected behaviour for a
+  //           role="tablist", and unlike hovering a key press is
+  //           unambiguously deliberate. Left/right only, on purpose: up/down
+  //           are the page's vertical scroll, and taking those would cost more
+  //           than this adds.
+  //   1…n     jump straight to a tab, in bar order.
+  //   n+1     open the message tray — the FAB is the last thing on the bar, so
+  //           it gets the digit after the last tab rather than a key of its
+  //           own to remember.
   document.addEventListener("keydown", (e) => {
-    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-    // Cmd/Ctrl/Alt + Left is browser back on one platform or another.
+    const isArrow = e.key === "ArrowLeft" || e.key === "ArrowRight";
+    // Not parseInt: it would take "1abc", and e.key for a digit is exactly one
+    // character anyway.
+    const digit = /^[1-9]$/.test(e.key) ? Number(e.key) : 0;
+    if (!isArrow && !digit) return;
+    // Cmd/Ctrl/Alt + Left is browser back on one platform or another, and the
+    // modified digits are the browser's own tab switching.
     if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
-    // The tray and the lightbox both own arrows while they're up — the lightbox
-    // steps its gallery with them.
-    if (openOverlays.size) return;
-    // Never take them from a caret.
+    // The tray and the lightbox own the keyboard while they're up — the
+    // lightbox steps its gallery with the arrows. The one exception is the jump
+    // tray, where the digits are the whole point of what's on screen.
+    const inJump = jumpTrayOpen();
+    if (openOverlays.size && !(digit && inJump)) return;
+    // Never take them from a caret. Matters more for the digits than the
+    // arrows: typing a number into the message form has to type a number.
     const focused = document.activeElement;
     if (focused && (focused.isContentEditable || /^(input|textarea|select)$/i.test(focused.tagName))) {
       return;
@@ -2003,6 +2218,16 @@ function initNav(tabs) {
 
     const tabButtons = Array.from(nav.querySelectorAll(".nav-tab"));
     if (!tabButtons.length) return;
+
+    if (digit) {
+      // Anything past the message row isn't a shortcut, and falls through
+      // unclaimed rather than being swallowed.
+      if (digit > tabButtons.length + 1) return;
+      e.preventDefault();
+      flashShortcutKey(e.key);
+      runJump(digit);
+      return;
+    }
 
     // Read the position off aria-selected rather than tracking it separately, so
     // this agrees with the nav whatever put it in its current state — including
@@ -2013,13 +2238,8 @@ function initNav(tabs) {
     if (!target) return;
 
     e.preventDefault();
-    selectPanel(target.dataset.tab);
-    // The same toast a tap raises on touch, forced on: it's the only thing that
-    // names the icon you just landed on.
-    flashToast(target, true);
-    // Take focus only if the nav already had it, so this stays a page-wide
-    // shortcut elsewhere instead of yanking focus down to the bar.
-    if (nav.contains(focused)) target.focus();
+    flashShortcutKey(e.key);
+    jumpToTab(target, focused);
   });
 
   window.addEventListener("resize", positionIndicator);

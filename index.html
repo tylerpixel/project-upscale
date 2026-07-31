@@ -280,6 +280,47 @@
       <a href="https://creativecommons.org/licenses/by/2.0/" class="light-link" target="_blank" rel="noopener noreferrer">CC BY</a>
     </div>
 
+    <!-- Shortcuts — an info dot pinned to the bottom-left corner of the
+         viewport, hiding a list of the keyboard shortcuts until it's hovered.
+         Fixed to the corner rather than attached to the nav so it stays out of
+         the way of the content column at any width.
+
+         Desktop only: it's hover-driven, so a touch device could never open
+         it, and it's a claim about a keyboard — CSS gates it on both, plus the
+         room the panel needs. aria-hidden because it's a picture of a keyboard,
+         not a control; every shortcut in it works whether or not this is on
+         screen. Ships hidden and is unhidden by initNav(), so it can't sit in
+         the corner under the loading skeleton offering shortcuts to pages that
+         don't exist yet.
+
+         Two rows only: the numbered page shortcuts live inside what ⌘K opens,
+         beside the pages they reach, instead of being listed twice. -->
+    <div class="shortcuts" id="shortcuts" aria-hidden="true" hidden>
+      <div class="shortcuts-panel">
+        <p class="shortcuts-title">Shortcuts</p>
+        <ul class="shortcuts-list">
+          <li class="shortcuts-row">
+            <span class="shortcuts-keys"><span class="shortcuts-key shortcuts-key--wide" data-key="k">⌘K</span></span>
+            <span class="shortcuts-label">Jump to</span>
+          </li>
+          <li class="shortcuts-row">
+            <span class="shortcuts-keys">
+              <span class="shortcuts-key" data-key="ArrowLeft">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
+              </span>
+              <span class="shortcuts-key" data-key="ArrowRight">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+              </span>
+            </span>
+            <span class="shortcuts-label">Step</span>
+          </li>
+        </ul>
+      </div>
+      <span class="shortcuts-nub">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 11v5" /><path d="M12 7.75v.5" /></svg>
+      </span>
+    </div>
+
     <!-- Bottom nav — fixed overlay, sits outside .site so it never shifts with content -->
     <div class="navwrap">
       <!-- Only shown on a work item's case study — jumps straight to the
@@ -326,6 +367,14 @@
               <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z" />
             </svg>
           </button>
+        </div>
+
+        <!-- Jump view — what ⌘K opens. The rows are the bar's own tabs plus the
+             message FAB, each carrying the digit that reaches it directly, so
+             the palette both goes places and teaches the shortcuts. Built by
+             initNav(); empty here because the tab list is content. -->
+        <div class="tray-view" data-view="jump" hidden>
+          <div class="jump-list" id="jumpList"></div>
         </div>
 
         <!-- Cart view -->
