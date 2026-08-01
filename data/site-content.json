@@ -1,6 +1,6 @@
 {
-  "version": "1.0.19",
-  "versionDate": "2026-07-31T08:46:08.933Z",
+  "version": "1.0.20",
+  "versionDate": "2026-08-01T12:48:48.847Z",
   "profile": {
     "name": "Tyler Patterson",
     "role": "Design Engineer"
@@ -148,35 +148,28 @@
       ],
       "link": {
         "label": "Visit sort.cash",
-        "url": "https://sort.cash"
+        "url": "https://sort.cash/?utm_source=tylerpixel.com&utm_medium=referral&utm_campaign=sort-cash"
       },
-      "writingSlug": "sort-dot-cash"
+      "writingSlug": "sort-dot-cash",
+      "date": "2026-03",
+      "pinned": true
     },
     {
-      "slug": "pinetree",
-      "title": "Pinetree",
-      "year": "2022-2023",
+      "slug": "casey-stevenson",
+      "title": "Casey Stevenson",
+      "year": "2026",
       "types": [
-        "UX/UI",
-        "Brand"
+        "Brand",
+        "UX/UI"
       ],
-      "description": "Design across a web3 video platform's screens, from landing pages and onboarding to subscriptions and live transcription.",
-      "image": "images/work/pinetree/65332f2a7ff872a786b1268e_netbox-logo.webp",
-      "images": [
-        {
-          "src": "images/work/pinetree/65332f2d3ca73a376051b3f2_netbox-web1.webp",
-          "caption": "Landing page design."
-        },
-        {
-          "src": "images/work/pinetree/65332f2f9beb31368417e27e_netbox-web2.webp",
-          "caption": "Onboarding flow."
-        },
-        {
-          "src": "images/work/pinetree/65332f31645a5e764694cc8f_netbox-web3.webp",
-          "caption": "Subscription flow."
-        }
-      ],
-      "caseStudy": "Pinetree, formerly Netbox, was a groundbreaking startup in the web3 space, offering a video-sharing platform in the spirit of YouTube. Brought on for design, I worked across the web app's screens — crafting landing pages, onboarding flows, subscription flows, a trending section, and a live-transcription feature. Each screen was designed to lift engagement and deliver a stronger user experience, blending familiar video-platform conventions with web3-native features."
+      "description": "A site and identity for an actor — one place for his work, his portraits, and the way to reach him.",
+      "image": "images/work/caseystevenson/caseystevenson.webp",
+      "caseStudy": "Casey Stevenson is an actor, and my cousin. He needed one place to market his work, show his portraits, and be contacted from. I designed and built the site and the identity behind it. The identity stays deliberately minimal: an actor this early is still working out what he is on screen, and a look that commits hard now is one that has to be undone later. What's here is a foundation — type, spacing, and a way of framing the portraits — with room to carry more as his career does.",
+      "link": {
+        "label": "Visit caseystevenson.com",
+        "url": "https://caseystevenson.com/?utm_source=tylerpixel.com&utm_medium=referral&utm_campaign=casey-stevenson"
+      },
+      "date": "2026-05"
     },
     {
       "slug": "hnry",
@@ -201,7 +194,8 @@
           "caption": "Out-of-home advertising concept."
         }
       ],
-      "caseStudy": "A redesign of the Hnry brand that respectfully preserves the iconic circular 'H' glyph while maturing it for a more modern feel. The refreshed identity introduces a subtly expanded color palette for a more vibrant, forward-thinking look. On the product side, several app screens were updated to make key flows — like invoicing and expense tracking — more explicit and intuitive, honoring Hnry's evolving brand while staying true to its roots."
+      "caseStudy": "A redesign of the Hnry brand that respectfully preserves the iconic circular 'H' glyph while maturing it for a more modern feel. The refreshed identity introduces a subtly expanded color palette for a more vibrant, forward-thinking look. On the product side, several app screens were updated to make key flows — like invoicing and expense tracking — more explicit and intuitive, honoring Hnry's evolving brand while staying true to its roots.",
+      "date": "2023-10"
     },
     {
       "slug": "engulf-studio",
@@ -227,7 +221,58 @@
           "caption": "Studio website design."
         }
       ],
-      "caseStudy": "Engulf Studio is my own independent design practice (currently on hiatus) — a web3-centric studio spanning brand identity, art direction, UX/UI, web, and app work. It's where I take on projects that let me push further creatively than client work usually allows."
+      "caseStudy": "Engulf Studio is my own independent design practice (currently on hiatus) — a web3-centric studio spanning brand identity, art direction, UX/UI, web, and app work. It's where I take on projects that let me push further creatively than client work usually allows.",
+      "date": "2023-09"
+    },
+    {
+      "slug": "pinetree",
+      "title": "Pinetree",
+      "year": "2022-2023",
+      "types": [
+        "UX/UI",
+        "Brand"
+      ],
+      "description": "Design across a web3 video platform's screens, from landing pages and onboarding to subscriptions and live transcription.",
+      "image": "images/work/pinetree/65332f2a7ff872a786b1268e_netbox-logo.webp",
+      "images": [
+        {
+          "src": "images/work/pinetree/65332f2d3ca73a376051b3f2_netbox-web1.webp",
+          "caption": "Landing page design."
+        },
+        {
+          "src": "images/work/pinetree/65332f2f9beb31368417e27e_netbox-web2.webp",
+          "caption": "Onboarding flow."
+        },
+        {
+          "src": "images/work/pinetree/65332f31645a5e764694cc8f_netbox-web3.webp",
+          "caption": "Subscription flow."
+        }
+      ],
+      "caseStudy": "Pinetree, formerly Netbox, was a groundbreaking startup in the web3 space, offering a video-sharing platform in the spirit of YouTube. Brought on for design, I worked across the web app's screens — crafting landing pages, onboarding flows, subscription flows, a trending section, and a live-transcription feature. Each screen was designed to lift engagement and deliver a stronger user experience, blending familiar video-platform conventions with web3-native features.",
+      "date": "2022-03"
+    },
+    {
+      "slug": "northbound-gear",
+      "title": "Northbound Gear",
+      "year": "2021-2022",
+      "types": [
+        "Brand",
+        "Ecomm"
+      ],
+      "description": "A brand platform and identity refresh for an outdoor apparel label, carried across packaging, landing pages, apparel and social.",
+      "image": "images/work/northbound-gear/northbound-gear-logo.webp",
+      "images": [
+        {
+          "src": "images/work/northbound-gear/northbound-gear-beaniedesign.webp",
+          "caption": "Beanie design, carrying the refreshed identity on a woven label."
+        }
+      ],
+      "caseStudy": "Northbound Gear is an outdoor apparel label. Working remotely with founder Sunny Gosal, I developed the Onwards & Upwards brand platform and the refreshed identity that sits on it, then took it across everything it had to live on: print and packaging collateral, landing pages, the apparel itself, and social ads. The clearest result came from the smallest object — a beanie, designed to the new identity, that went on to drive over $24,000 CAD in revenue.",
+      "link": {
+        "label": "Visit northboundgear.co",
+        "url": "https://northboundgear.co/?utm_source=tylerpixel.com&utm_medium=referral&utm_campaign=northbound-gear"
+      },
+      "date": "2022-03"
     },
     {
       "slug": "vtnz",
@@ -252,7 +297,8 @@
           "caption": "3D visualization for on-location screen advertising."
         }
       ],
-      "caseStudy": "Working closely with the Marketing and Product Development leads, I helped create customer-facing marketing materials across print, digital advertising, social media, email, videography, motion graphics, templates, and on-location screen advertising. The accompanying logo redesign shown here was a personal concept explored in my own time, not an official VTNZ rebrand."
+      "caseStudy": "Working closely with the Marketing and Product Development leads, I helped create customer-facing marketing materials across print, digital advertising, social media, email, videography, motion graphics, templates, and on-location screen advertising. The accompanying logo redesign shown here was a personal concept explored in my own time, not an official VTNZ rebrand.",
+      "date": "2021-10"
     },
     {
       "slug": "healthcar",
@@ -277,7 +323,8 @@
           "caption": "Website and app mockups."
         }
       ],
-      "caseStudy": "healthCar is a sub-brand partnership between VTNZ and Provident Insurance. I led the brand identity development — creating brand guidelines, choosing typography, building app and website mockups, and designing a logo from sketches through more than 30 iterations. Collaborating with Catch Design on the website and logo gave me valuable insight into how agencies approach design."
+      "caseStudy": "healthCar is a sub-brand partnership between VTNZ and Provident Insurance. I led the brand identity development — creating brand guidelines, choosing typography, building app and website mockups, and designing a logo from sketches through more than 30 iterations. Collaborating with Catch Design on the website and logo gave me valuable insight into how agencies approach design.",
+      "date": "2021-07"
     },
     {
       "slug": "warchest",
@@ -302,7 +349,8 @@
           "caption": "App advert concept."
         }
       ],
-      "caseStudy": "Warchest is a concept financial analytics product, inspired by the UI and brand identity of SaaS companies like Baremetrics, Stripe, and Uphold. A personal exploration in interface and brand design outside of client work."
+      "caseStudy": "Warchest is a concept financial analytics product, inspired by the UI and brand identity of SaaS companies like Baremetrics, Stripe, and Uphold. A personal exploration in interface and brand design outside of client work.",
+      "date": "2019-12"
     },
     {
       "slug": "rebels-and-rebellions",
@@ -327,7 +375,8 @@
           "caption": "Packaging, in situ."
         }
       ],
-      "caseStudy": "Rebels And Rebellions is a concept top-shelf liquor brand. Its identity draws on the rebellious American attitude of the American Revolution, the Whiskey Rebellion, and the Boston Tea Party, translated into a contemporary luxury aesthetic."
+      "caseStudy": "Rebels And Rebellions is a concept top-shelf liquor brand. Its identity draws on the rebellious American attitude of the American Revolution, the Whiskey Rebellion, and the Boston Tea Party, translated into a contemporary luxury aesthetic.",
+      "date": "2019-12"
     },
     {
       "slug": "eight360",
@@ -353,7 +402,8 @@
           "caption": "Branded merchandise."
         }
       ],
-      "caseStudy": "Eight360 is a virtual reality motion company founded by Terry Miller and George Heather-Smith. They brought me on to overhaul their brand identity and web design, and eventually to create demo content for their flagship NOVA motion platform."
+      "caseStudy": "Eight360 is a virtual reality motion company founded by Terry Miller and George Heather-Smith. They brought me on to overhaul their brand identity and web design, and eventually to create demo content for their flagship NOVA motion platform.",
+      "date": "2019-09"
     },
     {
       "slug": "secret-kings",
@@ -379,7 +429,8 @@
           "caption": "Brand identity."
         }
       ],
-      "caseStudy": "Secret Kings is a personal concept I've worked on since May 2015. Built on Instagram, the project grew an audience of over 16,000 followers at its peak. It taught me micro-brand marketing, business strategy, and copywriting — skills well beyond design."
+      "caseStudy": "Secret Kings is a personal concept I've worked on since May 2015. Built on Instagram, the project grew an audience of over 16,000 followers at its peak. It taught me micro-brand marketing, business strategy, and copywriting — skills well beyond design.",
+      "date": "2019-01"
     },
     {
       "slug": "signal",
@@ -404,7 +455,8 @@
           "caption": "Brand and print materials."
         }
       ],
-      "caseStudy": "Signal is a virtual reality experience using storytelling to explore mystery, nostalgia, and evolving technology. Combining print and VR, it challenges biased perceptions of VR through cross-reality asymmetrical multiplayer gameplay with an early-80s aesthetic. Within the story, Universe Amalgamation Systems (UAS) makes parallel universes accessible to all lifeforms, and the player group Monarch must take down a corrupt faction within it."
+      "caseStudy": "Signal is a virtual reality experience using storytelling to explore mystery, nostalgia, and evolving technology. Combining print and VR, it challenges biased perceptions of VR through cross-reality asymmetrical multiplayer gameplay with an early-80s aesthetic. Within the story, Universe Amalgamation Systems (UAS) makes parallel universes accessible to all lifeforms, and the player group Monarch must take down a corrupt faction within it.",
+      "date": "2018-10"
     },
     {
       "slug": "tesla",
@@ -429,7 +481,8 @@
           "caption": "Feature concept exploration."
         }
       ],
-      "caseStudy": "This Tesla rebrand was an assignment for an Image & Identity class in my final year of university. The project explored the fundamentals of how brands function in terms of image and identity, and how to portray a brand in line with its core principles and aims."
+      "caseStudy": "This Tesla rebrand was an assignment for an Image & Identity class in my final year of university. The project explored the fundamentals of how brands function in terms of image and identity, and how to portray a brand in line with its core principles and aims.",
+      "date": "2018-05"
     }
   ],
   "writing": {

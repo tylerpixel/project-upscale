@@ -747,6 +747,24 @@ body.is-intro .site-footer {
   transition: opacity 0.2s ease;
 }
 
+/* A hairline inside the edge of every work image. The thumbs run to the page's
+   own white — Casey's title card and the sort.cash icon tile are both largely
+   white — so without it the picture has no edge and the rounded corner reads as
+   an accident. The same rgba(0,0,0,0.08) the nav pill and the work-nav buttons
+   are drawn with, so it's the site's existing hairline rather than a new one.
+
+   `outline` with a negative offset rather than a border or an inset shadow: a
+   border would eat into the box and shift the crop, and an inset box-shadow on
+   a replaced element paints *behind* the image, so it would never be seen at
+   all. An outline paints on top, follows the border-radius, and costs no
+   layout. */
+.work-thumb,
+.work-detail-image,
+.work-gallery-image {
+  outline: 1px solid rgba(0, 0, 0, 0.08);
+  outline-offset: -1px;
+}
+
 .work-card:hover .work-thumb {
   opacity: 0.9;
 }
@@ -2366,6 +2384,9 @@ body.is-intro .site-footer {
   border-radius: 10px;
   overflow: hidden;
   background: #f6f6f6;
+  /* It answers a tap on touch, and iOS paints a grey box over anything that
+     does. The blur crossfade is the feedback. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 .about-portrait-img {
@@ -2386,12 +2407,16 @@ body.is-intro .site-footer {
   filter: blur(8px);
 }
 
-.about-portrait:hover .about-portrait-img:not(.about-portrait-img--alt) {
+/* Two ways in, one state. :hover on a pointer device, .is-flipped from a tap
+   where there's no hover to give — see the click binding in renderContact. */
+.about-portrait:hover .about-portrait-img:not(.about-portrait-img--alt),
+.about-portrait.is-flipped .about-portrait-img:not(.about-portrait-img--alt) {
   opacity: 0;
   filter: blur(8px);
 }
 
-.about-portrait:hover .about-portrait-img--alt {
+.about-portrait:hover .about-portrait-img--alt,
+.about-portrait.is-flipped .about-portrait-img--alt {
   opacity: 1;
   filter: blur(0);
 }

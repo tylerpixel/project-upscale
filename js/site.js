@@ -1346,10 +1346,41 @@ function renderIntro(intro) {
   initInlineLinkTooltips(panel);
 }
 
+// Selected Works runs newest first, ordered by a `date` that never appears on
+// the page. The year chip can't do the job: it's display copy — "2022-2023",
+// "2015-2019", "2018" — so it can't be compared, and two projects inside one
+// year have nothing to separate them. `date` holds the single moment a project
+// should be ranked by, its end or its only date, as YYYY-MM, which sorts
+// correctly as a plain string with no parsing.
+//
+// Sorted here rather than by hand in the content file so that adding a project
+// is one entry with a date on it, not an entry plus a decision about where to
+// put it. A missing date sorts last, not first — a half-filled entry shouldn't
+// be able to take the top of the page.
+//
+// Ties keep content-file order: Array.prototype.sort is stable, which is what
+// separates Pinetree and Northbound Gear, both of which end in March 2022.
+//
+// `pinned` overrides the date entirely and holds a project at the top. It
+// exists because "most recent" and "what I most want read" are not the same
+// question: sort.cash started in March 2026 and is still running, so by end
+// date it sits under work that finished after it started, which is the wrong
+// answer for the thing currently being built. Pinned projects sort among
+// themselves by date like everything else.
+function sortWorkByDate(work) {
+  return work.slice().sort((a, b) => {
+    if (!a.pinned !== !b.pinned) return a.pinned ? -1 : 1;
+    return (b.date || "").localeCompare(a.date || "");
+  });
+}
+
 function renderWork(work, label) {
   const panel = document.getElementById("panel-work");
   if (!panel) return;
-  workProjects = work || [];
+  // Sorted once, here, because workProjects is also what Next/Previous steps
+  // through — the bar at the foot of a case study has to agree with the list.
+  work = sortWorkByDate(work || []);
+  workProjects = work;
   panel.replaceChildren();
   renderHeading(panel, label || "Selected Works");
 
@@ -2030,11 +2061,8 @@ function renderContact(contact, label) {
     portrait.addEventListener("error", () => frame.remove());
     frame.appendChild(portrait);
 
-    // The reveal: the drawing gives way to the face behind it. Built only
-    // where there's a pointer that can hover — otherwise it's a second
-    // portrait downloaded to sit in the DOM unused, and the avatar is the
-    // intended resting state anyway.
-    if (supportsHover && contact.portraitHover) {
+    // The reveal: the drawing gives way to the face behind it.
+    if (contact.portraitHover) {
       const alt = document.createElement("img");
       alt.className = "about-portrait-img about-portrait-img--alt";
       // Decorative: it's the same person the image above it already names, and
@@ -2045,6 +2073,15 @@ function renderContact(contact, label) {
       alt.width = 96;
       alt.height = 96;
       frame.appendChild(alt);
+
+      // Hover does this on its own in CSS. Touch has no hover, so there it's a
+      // tap to turn the picture over and a second tap to turn it back — the
+      // class is the same state the :hover rule sets, so both routes land on
+      // one appearance. Bound only where hover is missing: on a pointer device
+      // a click would fight the hover it's already under.
+      if (!supportsHover) {
+        frame.addEventListener("click", () => frame.classList.toggle("is-flipped"));
+      }
     }
 
     markStagger(frame, idx++);
