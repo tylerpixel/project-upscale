@@ -261,7 +261,33 @@ function markStagger(el, index) {
   el.style.transitionDelay = `calc(var(--stagger-stagger) * ${index})`;
 }
 
-const STAGGER_EXIT_MS = 200;
+// ── Motion ──
+//
+// Every intro and outro on the site runs at one duration, and that duration is
+// declared once — as --motion-dur in the control panel at the top of
+// styles/main.css. The moves themselves are pure CSS, but the sequencing isn't:
+// a panel swap has to wait for the outgoing panel's fade before it can raise
+// the next one, and an overlay has to stay in the DOM until its own fade is
+// over. Those waits used to be hand-written constants sitting beside the CSS
+// values they were supposed to match, which is a standing invitation to change
+// one and forget the other.
+//
+// So they're read back out of the stylesheet instead. One dial moves the CSS
+// and the JS together, and neither can drift.
+const MOTION_DUR_MS = (() => {
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue("--motion-dur")
+    .trim();
+  const ms = raw.endsWith("ms") ? parseFloat(raw) : parseFloat(raw) * 1000;
+  // The fallback matters: this runs at parse time, and a stylesheet that hasn't
+  // applied yet (or a token someone renamed) would otherwise hand every timer
+  // NaN and strand panels mid-transition.
+  return Number.isFinite(ms) && ms > 0 ? ms : 320;
+})();
+
+// How long to leave the outgoing panel on screen before raising the next one —
+// exactly its own fade, so the two hand over without a gap or an overlap.
+const STAGGER_EXIT_MS = MOTION_DUR_MS;
 
 function revealPanel(panel) {
   // A real panel is going up, so the static placeholder has done its job. Done
@@ -363,8 +389,8 @@ function transitionPanels(current, next) {
   // The footer leaves with the panel it was sitting under. Without this it had
   // an entrance and no exit: it held still through the outgoing panel's fade
   // and then re-entered, which read as the one part of the page that hadn't
-  // changed. .is-hiding is the same quiet 200ms fade the panel's own lines
-  // take, and STAGGER_EXIT_MS is that long, so the two finish together.
+  // changed. .is-hiding is the same quiet fade the panel's own lines take, and
+  // STAGGER_EXIT_MS is that long, so the two finish together.
   const footer = document.querySelector(".site-footer");
   if (footer) {
     footer.classList.remove("is-shown");
@@ -386,11 +412,13 @@ function transitionPanels(current, next) {
 // Ordered, so Escape closes the topmost layer rather than everything at once.
 const openOverlays = new Set();
 
-// Long enough to outlast the CSS fade. Also the reason the close doesn't rely
-// on transitionend alone: under prefers-reduced-motion the transition is
-// removed entirely and that event never fires, which would leave the tray
-// invisible but still swallowing clicks.
-const OVERLAY_FADE_MS = 400;
+// The overlay's own fade plus a small guard, so the element is only pulled from
+// the DOM once that fade has definitely landed — equal-to-the-frame timing would
+// occasionally cut the last frame off. Also the reason the close doesn't rely on
+// transitionend alone: under prefers-reduced-motion the transition is removed
+// entirely and that event never fires, which would leave the tray invisible but
+// still swallowing clicks.
+const OVERLAY_FADE_MS = MOTION_DUR_MS + 80;
 
 function showOverlay(el) {
   el.hidden = false;
@@ -1765,16 +1793,15 @@ function buildWorkDetailContent(panel, project) {
 // How far (px) the Next/Previous project transition slides content horizontally.
 const WORK_NAV_SLIDE_PX = 28;
 
-// The Next/Previous transition uses its own short, fixed timing instead of
-// the default --stagger-dur/--stagger-stagger (500ms / 40ms per line) — at
-// the default pace, a gallery-heavy project's exit alone could take the
-// better part of a second, leaving a long blank gap before the new project
-// even starts appearing. Old content is destroyed on rebuild regardless of
-// how far its own fade got, so cutting the exit short is free; overriding
-// the CSS vars keeps the visible motion's speed matched to that cut.
-const WORK_NAV_EXIT_MS = 160;
-const WORK_NAV_STAGGER_DUR_MS = 200;
-const WORK_NAV_STAGGER_GAP_MS = 10;
+// Paging between case studies moves at the same speed as everything else — what
+// it changes is the *spacing* of the cascade, not the pace of any line in it.
+// A gallery-heavy project can be dozens of staggered lines deep, and at the
+// standard 40ms gap the last of them wouldn't have started moving by the time
+// the panel is rebuilt one --motion-dur later; they'd vanish where they stood.
+// `.t-stagger--tight` closes the gap (see --stagger-gap-tight in the control
+// panel) so the whole cascade fits inside that one window, every line still
+// travelling at the site's own speed.
+const WORK_NAV_EXIT_MS = MOTION_DUR_MS;
 
 // Bumped on every openWorkDetail call so a pending directional rebuild (see
 // below) can tell it's been superseded — by a second quick Next/Previous
@@ -1796,10 +1823,9 @@ function openWorkDetail(project, direction) {
     // the button points to — both moves share one direction, like a
     // filmstrip sliding past rather than two separate fades. `t-stagger--h-only`
     // strips the normal vertical rise + blur for this one transition so it
-    // reads as pure left/right motion, not a diagonal entrance. The
-    // shortened --stagger-dur/--stagger-stagger keep the gap where nothing's
-    // on screen (between the exit finishing and the new content appearing)
-    // short instead of stretching out with the default, slower pace.
+    // reads as pure left/right motion, not a diagonal entrance, and
+    // `t-stagger--tight` closes up the per-line gap so the whole cascade fits
+    // inside the one --motion-dur before the rebuild.
     window.scrollTo(0, 0);
     const exitX = direction === "prev" ? WORK_NAV_SLIDE_PX : -WORK_NAV_SLIDE_PX;
     const enterX = -exitX;
@@ -1808,9 +1834,7 @@ function openWorkDetail(project, direction) {
     const navRow = document.getElementById("workNavRow");
 
     panel.style.setProperty("--stagger-slide-x", `${exitX}px`);
-    panel.style.setProperty("--stagger-dur", `${WORK_NAV_STAGGER_DUR_MS}ms`);
-    panel.style.setProperty("--stagger-stagger", `${WORK_NAV_STAGGER_GAP_MS}ms`);
-    panel.classList.add("t-stagger--h-only");
+    panel.classList.add("t-stagger--h-only", "t-stagger--tight");
     panel.classList.remove("is-shown");
     panel.classList.add("is-hiding-slide");
     setRoute(`/work/${project.slug || ""}`, project.title);
@@ -1840,11 +1864,9 @@ function openWorkDetail(project, direction) {
   setRoute(`/work/${project.slug || ""}`, project.title);
   buildWorkDetailContent(panel, project);
   // Clear any leftover state from a previous Next/Previous transition so a
-  // plain (card-click) open always reveals straight up, at the normal pace.
+  // plain (card-click) open always reveals straight up, on the standard cascade.
   panel.style.removeProperty("--stagger-slide-x");
-  panel.style.removeProperty("--stagger-dur");
-  panel.style.removeProperty("--stagger-stagger");
-  panel.classList.remove("t-stagger--h-only");
+  panel.classList.remove("t-stagger--h-only", "t-stagger--tight");
   transitionPanels(document.querySelector(".panel:not([hidden])"), panel);
   initInlineLinkTooltips(panel);
   updateWorkNav(project);

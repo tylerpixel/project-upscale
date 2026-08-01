@@ -10,19 +10,88 @@
   src: url("../fonts/DMSans-Variable.woff2") format("woff2");
 }
 
-/* ── Tokens ── */
+/* ═════════════════════════════════════════════════════════════════════════
+   ── CONTROL PANEL ──
+
+   Every design token the site uses, in one place. This is the only block in
+   the file that declares a value rather than referring to one, so a colour,
+   a radius, a type size or a speed can be changed here and it moves
+   everywhere it is used. Rules below this point reach for a token.
+
+   The dial that matters most is --motion-dur. Every intro and outro on the
+   site runs on it and on --motion-ease: the panel and footer reveals, the
+   tray sheet, the lightbox, the shortcuts panel, the message-form steps and
+   the Next/Previous project slide. js/site.js reads --motion-dur back out of
+   this block at startup (see MOTION_DUR_MS) and drives its own sequencing
+   timers from it, so the scripted half of a transition can't drift out of
+   step with the CSS half. One number sets the pace of the whole site.
+   ═════════════════════════════════════════════════════════════════════════ */
 :root {
+  /* ── Colour ───────────────────────────────────────────────────────────
+     The site is black text on white with exactly two accents: the wordmark
+     blue for anything that is the site's own furniture, and sort.cash's
+     orange only where that product is what's being shown. */
   --fg: #111111;
   /* 55%, not 40%: over --bg this lands at 4.76:1, just clear of the 4.5:1
      floor for body text. At 40% it was 2.84:1 and failed WCAG AA everywhere
      it was used. */
   --fg-muted: rgba(0, 0, 0, 0.55);
-  --underline: #d9d9d9;
-  --underline-hover: #666666;
   --bg: #ffffff;
+  /* The counterpart to --fg: glyphs and labels painted *on* a dark fill —
+     a filled button, the selected jump row, the lightbox chrome. A surface
+     that happens to be white uses --bg. */
+  --on-dark: #ffffff;
   /* The wordmark blue — shared by the header mark and the footer's full-width
      repeat of it, so the two can't drift. */
   --brand: #0060e5;
+  --sortcash: #ff5500;
+  /* Form errors, the cart's dead-item flag, the message form's field errors. */
+  --danger: #ef4444;
+  --underline: #d9d9d9;
+  --underline-hover: #666666;
+
+  /* ── Surfaces ─────────────────────────────────────────────────────────
+     The greys behind media and the washes that sit on white. The washes are
+     alpha rather than flat greys so a chip reads the same over any of them. */
+  /* Reserved behind every image, so a slow load shows a neutral box rather
+     than the page's own white. */
+  --media-bg: #f5f5f5;
+  /* A step darker, for the icon tile a missing image falls back to — it has
+     to read as deliberate rather than as an image that hasn't arrived. */
+  --tile-bg: #f2f2f2;
+  --tile-fg: #c2c2c2;
+  --wash-faint: rgba(0, 0, 0, 0.03);
+  --wash: rgba(0, 0, 0, 0.05);
+  --wash-strong: rgba(0, 0, 0, 0.06);
+  --wash-hover: rgba(0, 0, 0, 0.08);
+  --sortcash-wash: rgba(255, 85, 0, 0.1);
+  --sortcash-rule: rgba(255, 85, 0, 0.2);
+  --disabled-bg: #e6e6e6;
+  --disabled-border: #eeeeee;
+  /* Backdrops. The tray dims the page behind it; the lightbox replaces it. */
+  --scrim: rgba(0, 0, 0, 0.35);
+  --scrim-deep: rgba(0, 0, 0, 0.85);
+  --scrim-chrome: rgba(255, 255, 255, 0.12);
+  --scrim-chrome-hover: rgba(255, 255, 255, 0.22);
+  --on-scrim: rgba(255, 255, 255, 0.75);
+  --on-scrim-muted: rgba(255, 255, 255, 0.6);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.22);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.36);
+
+  /* ── Edges ────────────────────────────────────────────────────────────
+     One hairline for everything that floats above the page — the nav pill,
+     the work-nav buttons, the shortcuts panel and its key caps — and the
+     same line drawn inside every work image, so a shot that runs to white
+     still has an edge. */
+  --hairline: rgba(0, 0, 0, 0.08);
+  /* Raised chrome, the FAB (heavier, because it's the one filled control),
+     the shortcuts panel, and the tray sheet lifting off a dimmed page. */
+  --shadow-raised: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-fab: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --shadow-panel: 0 8px 30px rgba(0, 0, 0, 0.1);
+  --shadow-sheet: 0 12px 48px rgba(0, 0, 0, 0.18);
+
+  /* ── Layout ───────────────────────────────────────────────────────────── */
   /* The measure everything lines up to. This is the *content* width — the
      gutter is added on top — so the text column, the bottom nav and the tray
      sheet all end up exactly this wide inside their padding. */
@@ -31,15 +100,110 @@
      reads the same as the space beside it. The bottom nav shares this token,
      which is what keeps its outer edges on the text column's lines. */
   --gutter: 24px;
-  --sortcash: #ff5500;
+  /* The bar's own height and its distance off the bottom of the viewport.
+     --nav-clearance is what anything sitting above it has to clear: the tray
+     sheet and the 404's attribution both hang off this one number. */
+  --nav-height: 56px;
+  --nav-offset: 16px;
+  --nav-clearance: 88px;
+
+  /* ── Radius ───────────────────────────────────────────────────────────
+     Nested corners are computed from these rather than tokenised themselves
+     (a thumb 12px inside an 18px pill draws at 6px), so the odd 5px and 7px
+     below are arithmetic, not new sizes. */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 14px;
+  --radius-3xl: 18px;
+  --radius-pill: 999px;
+
+  /* ── Type ─────────────────────────────────────────────────────────────
+     Body copy is --text-body; everything else is named for the job it does.
+     The two --text-cap sizes are in px rather than pt on purpose — they're
+     uppercase furniture (chips, tooltips, key caps) that shouldn't grow with
+     the reading sizes around them. */
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --text-title: 14pt;
+  --text-lede: 13pt;
+  --text-body: 12pt;
+  --text-sub: 11.5pt;
+  --text-ui: 11pt;
+  --text-legal: 10.5pt;
+  --text-small: 10pt;
+  --text-fine: 9.5pt;
+  --text-tiny: 9pt;
+  --text-micro: 8.5pt;
+  --text-cap: 9px;
+  --text-cap-lg: 11px;
+  /* 460, not 400: DM Sans is a variable font and the extra 60 is what keeps
+     the single-story g from looking thin at 12pt. */
+  --weight-body: 460;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --leading-body: 1.6;
+
+  /* ── Motion ───────────────────────────────────────────────────────────
+     Three dials, and everything on the site is on one of them.
+
+     --motion-dur + --motion-ease is the intro/outro pace: anything arriving
+     on or leaving the screen. It is deliberately one number for both
+     directions — an exit that undercuts its own entrance reads as two
+     different pieces of software. --motion-quick is hover and focus
+     feedback, which has to answer the pointer rather than perform; and
+     --motion-press is the dip under a finger, shorter again because it has
+     to land inside the press itself.
+
+     The curve is a hard deceleration: fast off the mark, long settle, no
+     overshoot. */
+  --motion-dur: 320ms;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-quick: 0.15s ease;
+  --motion-press: 0.12s ease;
+  /* The icon-weight swap in the nav is the one place a spring is wanted —
+     the solid glyph settles into place instead of sliding in — so it keeps
+     its own overshoot curve. Duration follows the site's pace. */
+  --motion-pop: var(--motion-dur) cubic-bezier(0.34, 1.4, 0.64, 1);
   /* Everything that slides along the bottom bar moves on this and nothing
      else: the selected-tab indicator, the focus thumb in the nav, the focus
-     thumb in the ⌘K tray. They travel side by side, so any difference in
-     duration or curve reads immediately as two things disagreeing — one token
-     is what stops that happening by accident. A hard deceleration with no
-     overshoot, which is also how the spring behind a segmented control
-     settles. */
-  --nav-move: 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+     thumb in the ⌘K tray, the keyboard-nav name chip. They travel side by
+     side, so any difference in duration or curve reads immediately as two
+     things disagreeing — one token is what stops that happening by accident.
+     A hard deceleration with no overshoot, which is also how the spring
+     behind a segmented control settles. */
+  --nav-move: var(--motion-dur) cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Staggered reveal (see the Transitions.dev block at the foot of the file).
+     Duration and curve are the site's own, so a panel's entrance is the same
+     move as the tray's or the lightbox's — only spread across its lines. The
+     distance, blur and per-line gap are what make it a cascade rather than a
+     fade, and are the only numbers here that are the stagger's alone. */
+  --stagger-dur: var(--motion-dur);
+  --stagger-ease: var(--motion-ease);
+  --stagger-distance: 12px;
+  --stagger-blur: 3px;
+  --stagger-gap: 40ms;
+  /* Next/Previous project only. The cascade, not the speed: paging between
+     case studies rebuilds the panel after one --motion-dur, so on a
+     gallery-heavy project the default gap would leave later lines cut off
+     mid-move. Tightening the spacing keeps every line inside the same
+     window at the same speed. See .t-stagger--tight. */
+  --stagger-gap-tight: 10ms;
+  --stagger-stagger: var(--stagger-gap);
+
+  /* Ambient loops — neither of these is an intro or an outro, so neither is
+     on --motion-dur. */
+  --pulse-dur: 1.4s;
+  --marquee-dur: 20s;
+
+  /* ── Layers ───────────────────────────────────────────────────────────── */
+  --z-page: 2;
+  --z-nav: 200;
+  --z-tray: 300;
+  --z-lightbox: 400;
 }
 
 @media (min-width: 640px) {
@@ -57,17 +221,17 @@ html {
   /* Site-wide default typeface — set here (not just on body) so it's the
      true page default, with `button`/`input`/etc. explicitly opted back
      into inheriting it below, since form controls don't by default. */
-  font-family: "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
 }
 
 body {
   margin: 0;
   font-family: inherit;
   font-feature-settings: "ss03"; /* single-story g */
-  font-weight: 460;
+  font-weight: var(--weight-body);
   letter-spacing: -0.25pt;
-  font-size: 12pt;
-  line-height: 1.6;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
   color: var(--fg);
   background-color: var(--bg);
   overflow-x: hidden;
@@ -89,7 +253,7 @@ select {
 h2 {
   margin: 0;
   font-family: inherit;
-  font-size: 12pt;
+  font-size: var(--text-body);
 }
 
 /* ── Inline links: thin gray underline that darkens on hover, tooltip reveal ── */
@@ -100,7 +264,7 @@ h2 {
   text-decoration-color: var(--underline);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.14em;
-  transition: text-decoration-color 0.2s ease;
+  transition: text-decoration-color var(--motion-quick);
 }
 
 .inline-link:hover {
@@ -164,7 +328,7 @@ h2 {
 /* The role line under the wordmark. h2 rather than h3 — the wordmark is the
    page's h1, and skipping a level breaks the outline for screen readers. */
 .identity-text h2 {
-  font-weight: 460;
+  font-weight: var(--weight-body);
   font-style: normal;
   color: var(--fg-muted);
   margin-top: 6px;
@@ -183,7 +347,7 @@ nav.identity-links {
   width: 24px;
   height: 24px;
   color: var(--fg-muted);
-  transition: color 0.15s ease;
+  transition: color var(--motion-quick);
 }
 
 .identity-links a:hover {
@@ -211,9 +375,9 @@ nav.identity-links {
 .skeleton-bar,
 .nav-skeleton::before {
   display: block;
-  background: rgba(0, 0, 0, 0.06);
-  border-radius: 4px;
-  animation: skeleton-pulse 1.4s ease-in-out infinite;
+  background: var(--wash-strong);
+  border-radius: var(--radius-xs);
+  animation: skeleton-pulse var(--pulse-dur) ease-in-out infinite;
 }
 
 @keyframes skeleton-pulse {
@@ -271,7 +435,7 @@ nav.identity-links {
   width: 100%;
   aspect-ratio: 16 / 9;
   margin-bottom: 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 .skeleton-bar--square {
@@ -288,14 +452,14 @@ nav.identity-links {
   width: 96px;
   height: 96px;
   flex: 0 0 auto;
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
 }
 
 /* The greeting bubble beside it. */
 .skeleton-bar--pill {
   width: 148px;
   height: 34px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 /* ── Groups ── */
@@ -426,10 +590,10 @@ nav.identity-links {
   width: 100%;
   aspect-ratio: 2.39 / 1;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   margin-bottom: 12px;
-  background: #f5f5f5;
-  transition: opacity 0.2s ease;
+  background: var(--media-bg);
+  transition: opacity var(--motion-quick);
 }
 
 .writing-item:hover .writing-thumb {
@@ -454,8 +618,8 @@ nav.identity-links {
    `.work-list .work-title` below. */
 .writing-list .writing-item-title {
   margin: 0;
-  font-size: 12pt;
-  font-weight: 500;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
   line-height: 1.35;
   letter-spacing: -0.3pt;
   color: var(--fg);
@@ -463,7 +627,7 @@ nav.identity-links {
 
 #panel-writing .writing-item-summary {
   margin: 3px 0 0;
-  font-size: 11pt;
+  font-size: var(--text-ui);
   color: var(--fg-muted);
   line-height: 1.45;
 }
@@ -477,8 +641,8 @@ nav.identity-links {
 
 #panel-writing-detail .work-detail-title {
   margin: 0;
-  font-size: 14pt;
-  font-weight: 600;
+  font-size: var(--text-title);
+  font-weight: var(--weight-semibold);
   line-height: 1.2;
   letter-spacing: -0.4pt;
   color: var(--fg);
@@ -486,13 +650,13 @@ nav.identity-links {
 
 #panel-writing-detail .post-meta {
   margin: 0;
-  font-size: 9.5pt;
+  font-size: var(--text-fine);
   color: var(--fg-muted);
 }
 
 #panel-writing-detail .post-paragraph {
   margin: 0 0 14px;
-  font-size: 11pt;
+  font-size: var(--text-ui);
   line-height: 1.55;
   color: var(--fg);
 }
@@ -521,8 +685,8 @@ nav.identity-links {
   justify-content: center;
   width: 44px;
   height: 44px;
-  border-radius: 12px;
-  background: rgba(255, 85, 0, 0.1);
+  border-radius: var(--radius-xl);
+  background: var(--sortcash-wash);
   color: var(--sortcash);
   transform: rotate(-8deg);
 }
@@ -535,14 +699,14 @@ nav.identity-links {
 
 #panel-writing .writing-empty-title {
   margin: 4px 0 0;
-  font-size: 12pt;
-  font-weight: 600;
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
   color: var(--fg);
 }
 
 #panel-writing .writing-empty-subtitle {
   margin: 0;
-  font-size: 12pt;
+  font-size: var(--text-body);
   color: var(--fg-muted);
 }
 
@@ -601,19 +765,19 @@ body.is-intro .site-footer {
   position: relative; /* anchors its "Updated …" tooltip */
   flex: 0 0 auto;
   padding: 4px 9px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.05);
-  font-size: 9px;
-  font-weight: 700;
+  border-radius: var(--radius-pill);
+  background: var(--wash);
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
   letter-spacing: 0.02em;
   line-height: 1;
   color: var(--fg-muted);
   text-decoration: none;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color var(--motion-quick), color var(--motion-quick);
 }
 
 .site-footer-version:hover {
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--wash-hover);
   color: var(--fg);
 }
 
@@ -657,7 +821,7 @@ body.is-intro .site-footer {
 
 .site-footer-copyright {
   margin: 0;
-  font-size: 9.5pt;
+  font-size: var(--text-fine);
   color: var(--fg-muted);
 }
 
@@ -682,7 +846,7 @@ body.is-intro .site-footer {
 .company-logos-track {
   display: flex;
   width: max-content;
-  animation: company-logos-scroll 20s linear infinite;
+  animation: company-logos-scroll var(--marquee-dur) linear infinite;
 }
 
 .company-logos-set {
@@ -705,7 +869,7 @@ body.is-intro .site-footer {
   object-fit: contain;
   filter: grayscale(1) contrast(0.65) brightness(0.75);
   opacity: 0.75;
-  transition: opacity 0.2s ease, filter 0.2s ease;
+  transition: opacity var(--motion-quick), filter var(--motion-quick);
 }
 
 .company-logo:hover {
@@ -734,24 +898,24 @@ body.is-intro .site-footer {
 .work-card:focus-visible {
   outline: 2px solid var(--fg);
   outline-offset: 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
 }
 
 .work-thumb {
   width: 100%;
   aspect-ratio: 2.39 / 1;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   margin-bottom: 10px;
-  background: #f5f5f5;
-  transition: opacity 0.2s ease;
+  background: var(--media-bg);
+  transition: opacity var(--motion-quick);
 }
 
 /* A hairline inside the edge of every work image. The thumbs run to the page's
    own white — Casey's title card and the sort.cash icon tile are both largely
    white — so without it the picture has no edge and the rounded corner reads as
-   an accident. The same rgba(0,0,0,0.08) the nav pill and the work-nav buttons
-   are drawn with, so it's the site's existing hairline rather than a new one.
+   an accident. It's --hairline, the same line the nav pill and the work-nav
+   buttons are drawn with, rather than a new one.
 
    `outline` with a negative offset rather than a border or an inset shadow: a
    border would eat into the box and shift the crop, and an inset box-shadow on
@@ -761,7 +925,7 @@ body.is-intro .site-footer {
 .work-thumb,
 .work-detail-image,
 .work-gallery-image {
-  outline: 1px solid rgba(0, 0, 0, 0.08);
+  outline: 1px solid var(--hairline);
   outline-offset: -1px;
 }
 
@@ -794,8 +958,8 @@ body.is-intro .site-footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f2f2f2;
-  color: #c2c2c2;
+  background: var(--tile-bg);
+  color: var(--tile-fg);
 }
 
 .image-empty svg {
@@ -818,7 +982,7 @@ body.is-intro .site-footer {
 .company-logo.image-empty {
   width: 44px;
   height: 20px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   filter: none;
 }
 
@@ -841,8 +1005,8 @@ body.is-intro .site-footer {
    20px bottom margin and default color silently override these. */
 .work-list .work-title {
   margin: 0;
-  font-size: 12pt;
-  font-weight: 500;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
   line-height: 1.3;
   color: var(--fg);
 }
@@ -856,8 +1020,8 @@ body.is-intro .site-footer {
 }
 
 .work-chip {
-  font-size: 9px;
-  font-weight: 700;
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   line-height: 1;
@@ -872,8 +1036,8 @@ body.is-intro .site-footer {
    these are just structural, plus a neutral fallback. */
 .work-chip--type {
   padding: 4px 7px;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius-xs);
+  background: var(--wash-strong);
   color: var(--underline-hover);
 }
 
@@ -900,9 +1064,9 @@ body.is-intro .site-footer {
 
 .work-detail-image {
   width: 100%;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   margin: 0 0 20px;
-  background: #f5f5f5;
+  background: var(--media-bg);
 }
 
 /* Photos use their own intrinsic ratio; the icon tile has none, so give it one.
@@ -927,8 +1091,8 @@ body.is-intro .site-footer {
 
 #panel-work-detail .work-detail-title {
   margin: 0;
-  font-size: 14pt;
-  font-weight: 600;
+  font-size: var(--text-title);
+  font-weight: var(--weight-semibold);
   color: var(--fg);
 }
 
@@ -948,10 +1112,10 @@ body.is-intro .site-footer {
 
 .work-gallery-image {
   width: 100%;
-  border-radius: 8px;
-  background: #f5f5f5;
+  border-radius: var(--radius-md);
+  background: var(--media-bg);
   cursor: zoom-in;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--motion-quick);
 }
 
 .work-gallery-image:hover {
@@ -965,7 +1129,7 @@ body.is-intro .site-footer {
 
 .work-gallery-caption {
   margin: 8px 0 0;
-  font-size: 10pt;
+  font-size: var(--text-small);
   line-height: 1.4;
   color: var(--fg-muted);
 }
@@ -1000,7 +1164,7 @@ body.is-intro .site-footer {
   margin: 0;
   padding: 7px 0;
   border-top: 1px solid var(--underline);
-  font-size: 10pt;
+  font-size: var(--text-small);
   line-height: 1.4;
 }
 
@@ -1017,8 +1181,8 @@ body.is-intro .site-footer {
    it carries the only step up in size on the page. */
 .case-block .case-lede {
   margin: 0;
-  font-size: 13pt;
-  font-weight: 500;
+  font-size: var(--text-lede);
+  font-weight: var(--weight-medium);
   line-height: 1.45;
   letter-spacing: -0.4pt;
   color: var(--fg);
@@ -1044,8 +1208,8 @@ body.is-intro .site-footer {
   margin: 0 0 14px;
   padding-top: 22px;
   border-top: 1px solid var(--underline);
-  font-size: 12pt;
-  font-weight: 600;
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
   line-height: 1.3;
   letter-spacing: -0.3pt;
   color: var(--fg);
@@ -1053,7 +1217,7 @@ body.is-intro .site-footer {
 
 .case-block .case-paragraph {
   margin: 0 0 12px;
-  font-size: 11pt;
+  font-size: var(--text-ui);
   line-height: 1.55;
   color: var(--fg);
 }
@@ -1081,8 +1245,8 @@ body.is-intro .site-footer {
 
 .case-block .case-beat-label {
   margin: 0 0 3px;
-  font-size: 8.5pt;
-  font-weight: 600;
+  font-size: var(--text-micro);
+  font-weight: var(--weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--fg-muted);
@@ -1095,13 +1259,13 @@ body.is-intro .site-footer {
 .case-block--decision {
   margin-bottom: 26px;
   padding-left: 14px;
-  border-left: 2px solid rgba(255, 85, 0, 0.2);
+  border-left: 2px solid var(--sortcash-rule);
 }
 
 .case-block .case-decision-title {
   margin: 0 0 14px;
-  font-size: 11.5pt;
-  font-weight: 600;
+  font-size: var(--text-sub);
+  font-weight: var(--weight-semibold);
   line-height: 1.3;
   letter-spacing: -0.3pt;
   color: var(--fg);
@@ -1110,8 +1274,8 @@ body.is-intro .site-footer {
 .case-block .case-number {
   display: block;
   margin-bottom: 3px;
-  font-size: 9pt;
-  font-weight: 600;
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-semibold);
   letter-spacing: 0.08em;
   font-variant-numeric: tabular-nums;
   color: var(--sortcash);
@@ -1127,7 +1291,7 @@ body.is-intro .site-footer {
   margin: 0;
   padding-top: 12px;
   border-top: 1px solid var(--underline);
-  font-size: 9.5pt;
+  font-size: var(--text-fine);
   line-height: 1.45;
   color: var(--fg-muted);
 }
@@ -1140,7 +1304,7 @@ body.is-intro .site-footer {
   font-size: 0.7em;
   vertical-align: super;
   line-height: 0;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   color: var(--brand);
 }
 
@@ -1166,7 +1330,7 @@ body.is-intro .site-footer {
 
 .case-block--cites .case-paragraph {
   margin: 0 0 7px;
-  font-size: 9.5pt;
+  font-size: var(--text-fine);
   line-height: 1.45;
   color: var(--fg-muted);
 }
@@ -1235,7 +1399,7 @@ body.is-intro .site-footer {
 .store-thumb {
   aspect-ratio: 3 / 4;
   object-fit: cover;
-  background: #f6f6f6;
+  background: var(--media-bg);
   margin-bottom: 14px;
 }
 
@@ -1286,8 +1450,8 @@ body.is-intro .site-footer {
   justify-content: center;
   width: 44px;
   height: 44px;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-xl);
+  background: var(--wash);
   color: var(--fg-muted);
 }
 
@@ -1301,8 +1465,8 @@ body.is-intro .site-footer {
    under the text, which would read as extra space below the title. */
 .cart-empty-title {
   margin: 0;
-  font-size: 12pt;
-  font-weight: 600;
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
   line-height: 1.3;
   color: var(--fg);
 }
@@ -1353,11 +1517,11 @@ body.is-intro .site-footer {
   border-radius: 0;
   background: none;
   font: inherit;
-  font-size: 9pt;
+  font-size: var(--text-tiny);
   line-height: inherit;
   color: var(--fg-muted);
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: color var(--motion-quick);
 }
 
 .store-currency:hover {
@@ -1377,8 +1541,8 @@ body.is-intro .site-footer {
   width: 100%;
   aspect-ratio: 3 / 4;
   object-fit: cover;
-  border-radius: 8px;
-  background: #f6f6f6;
+  border-radius: var(--radius-md);
+  background: var(--media-bg);
 }
 
 .store-thumbs {
@@ -1393,11 +1557,11 @@ body.is-intro .site-footer {
   height: 44px;
   padding: 0;
   border: 1px solid var(--underline);
-  border-radius: 6px;
-  background: #f6f6f6;
+  border-radius: var(--radius-sm);
+  background: var(--media-bg);
   cursor: pointer;
   overflow: hidden;
-  transition: border-color 0.15s ease;
+  transition: border-color var(--motion-quick);
 }
 
 .store-thumb-btn.active {
@@ -1421,8 +1585,8 @@ body.is-intro .site-footer {
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
-  font-size: 14pt;
-  font-weight: 600;
+  font-size: var(--text-title);
+  font-weight: var(--weight-semibold);
   line-height: 1.25;
   color: var(--fg);
 }
@@ -1444,8 +1608,8 @@ body.is-intro .site-footer {
 
 .store-options-label {
   margin: 0 0 10px;
-  font-size: 9px;
-  font-weight: 700;
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--fg-muted);
@@ -1467,7 +1631,7 @@ body.is-intro .site-footer {
   border-radius: 50%;
   background: none;
   cursor: pointer;
-  transition: border-color 0.15s ease;
+  transition: border-color var(--motion-quick);
 }
 
 .store-swatch.active {
@@ -1485,23 +1649,23 @@ body.is-intro .site-footer {
   min-width: 40px;
   padding: 7px 10px;
   border: 1px solid var(--underline);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: none;
   font: inherit;
-  font-size: 10pt;
+  font-size: var(--text-small);
   color: var(--fg);
   cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: border-color var(--motion-quick), color var(--motion-quick);
 }
 
 .store-size.active {
   border-color: var(--fg);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 
 .store-size:disabled {
   color: var(--underline);
-  border-color: #eeeeee;
+  border-color: var(--disabled-border);
   cursor: not-allowed;
   text-decoration: line-through;
 }
@@ -1515,14 +1679,14 @@ body.is-intro .site-footer {
   width: 100%;
   padding: 14px 16px;
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
   background: var(--fg);
-  color: #ffffff;
+  color: var(--on-dark);
   font: inherit;
-  font-size: 11pt;
-  font-weight: 600;
+  font-size: var(--text-ui);
+  font-weight: var(--weight-semibold);
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--motion-quick);
 }
 
 .store-add:hover:not(:disabled),
@@ -1534,13 +1698,13 @@ body.is-intro .site-footer {
 .store-add:disabled,
 .cart-checkout:disabled,
 .msg-next:disabled {
-  background: #e6e6e6;
+  background: var(--disabled-bg);
   color: var(--fg-muted);
   cursor: not-allowed;
 }
 
 .store-add {
-  transition: opacity 0.15s ease, transform 0.12s ease;
+  transition: opacity var(--motion-quick), transform var(--motion-press);
 }
 
 .store-add:active:not(:disabled) {
@@ -1558,14 +1722,14 @@ body.is-intro .site-footer {
   gap: 6px;
   padding: 11px 16px 11px 12px;
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
   background: var(--fg);
-  color: #ffffff;
-  font-size: 11pt;
-  font-weight: 600;
+  color: var(--on-dark);
+  font-size: var(--text-ui);
+  font-weight: var(--weight-semibold);
   text-decoration: none;
   cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.12s ease;
+  transition: opacity var(--motion-quick), transform var(--motion-press);
 }
 
 /* Icon after the label rather than before it, so the tight side flips. */
@@ -1596,8 +1760,8 @@ body.is-intro .site-footer {
    button's own label instead of the 12pt the heading actions use, since here
    the two sit side by side and any difference reads as a mistake. */
 .intro-cta-link {
-  font-size: 11pt;
-  font-weight: 500;
+  font-size: var(--text-ui);
+  font-weight: var(--weight-medium);
 }
 
 .cta-button:hover {
@@ -1628,7 +1792,7 @@ body.is-intro .site-footer {
   margin-top: 44px;
   padding-top: 20px;
   border-top: 1px solid var(--underline);
-  font-size: 9.5pt;
+  font-size: var(--text-fine);
   color: var(--fg-muted);
 }
 
@@ -1644,14 +1808,14 @@ body.is-intro .site-footer {
 
 #panel-legal .legal-updated {
   margin: 0 0 24px;
-  font-size: 9.5pt;
+  font-size: var(--text-fine);
   color: var(--fg-muted);
 }
 
 /* These run to tens of thousands of words, so they get a slightly smaller,
    tighter setting than the site's body copy. */
 #panel-legal .legal-body {
-  font-size: 10.5pt;
+  font-size: var(--text-legal);
   line-height: 1.55;
 }
 
@@ -1662,21 +1826,21 @@ body.is-intro .site-footer {
 
 #panel-legal .legal-body .legal-heading {
   margin: 28px 0 8px;
-  font-size: 12pt;
-  font-weight: 600;
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
   line-height: 1.3;
   color: var(--fg);
 }
 
 #panel-legal .legal-body .legal-subheading {
   margin: 18px 0 6px;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   color: var(--fg);
 }
 
 #panel-legal .legal-body strong {
   color: var(--fg);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 
 #panel-legal .legal-body ul,
@@ -1705,12 +1869,12 @@ body.is-intro .site-footer {
 .tray-overlay {
   position: fixed;
   inset: 0;
-  z-index: 300;
+  z-index: var(--z-tray);
   display: flex;
   align-items: flex-end;
   justify-content: center;
   background: rgba(0, 0, 0, 0);
-  transition: background 0.28s ease;
+  transition: background var(--motion-dur) var(--motion-ease);
 }
 
 .tray-overlay[hidden] {
@@ -1718,7 +1882,7 @@ body.is-intro .site-footer {
 }
 
 .tray-overlay.open {
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--scrim);
 }
 
 .tray-sheet {
@@ -1732,14 +1896,15 @@ body.is-intro .site-footer {
   /* No side margin: the gutter is the sheet's own padding, so its contents land
      on the same lines as .site. Below the max-width it goes full-bleed, which is
      the usual bottom-sheet behaviour on a phone anyway. */
-  margin: 0 0 calc(88px + env(safe-area-inset-bottom, 0px));
+  margin: 0 0 calc(var(--nav-clearance) + env(safe-area-inset-bottom, 0px));
   padding: 16px;
-  border-radius: 18px;
+  border-radius: var(--radius-3xl);
   background: var(--bg);
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--shadow-sheet);
   transform: translateY(16px);
   opacity: 0;
-  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease;
+  transition: transform var(--motion-dur) var(--motion-ease),
+    opacity var(--motion-dur) var(--motion-ease);
 }
 
 .tray-overlay.open .tray-sheet {
@@ -1766,7 +1931,7 @@ body.is-intro .site-footer {
   background: none;
   color: var(--fg-muted);
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: color var(--motion-quick);
 }
 
 .tray-close:hover {
@@ -1865,7 +2030,7 @@ body.is-intro .site-footer {
 @supports not selector(::-webkit-scrollbar) {
   .tray-sheet .cal-embed {
     scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.22) transparent;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
   }
 }
 
@@ -1893,12 +2058,12 @@ body.is-intro .site-footer {
 }
 
 .tray-sheet .cal-embed::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.22);
+  border-radius: var(--radius-pill);
+  background: var(--scrollbar-thumb);
 }
 
 .tray-sheet .cal-embed::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.36);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* ── Jump list — the tray view behind ⌘K ──
@@ -1937,7 +2102,7 @@ body.is-intro .site-footer {
   width: 100%;
   padding: 10px;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: none;
   color: var(--fg);
   text-align: left;
@@ -1956,11 +2121,11 @@ body.is-intro .site-footer {
   left: 0;
   width: 0;
   height: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--brand);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--motion-quick);
 }
 
 .jump-focus.is-on {
@@ -2000,11 +2165,11 @@ body.is-intro .site-footer {
    :focus-visible separately, so the block and what's drawn on it are moved by
    one thing and can't end up on different rows. */
 .jump-row.is-active {
-  color: #fff;
+  color: var(--on-dark);
 }
 
 .jump-row.is-active .jump-icon {
-  color: #fff;
+  color: var(--on-dark);
 }
 
 .jump-row.is-active .nav-icon--line {
@@ -2021,7 +2186,7 @@ body.is-intro .site-footer {
 .jump-row.is-active .shortcuts-key {
   border-color: rgba(255, 255, 255, 0.28);
   background: rgba(255, 255, 255, 0.16);
-  color: #fff;
+  color: var(--on-dark);
 }
 
 /* Takes the slack so the digit stays pinned to the right edge. */
@@ -2031,7 +2196,7 @@ body.is-intro .site-footer {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 11pt;
+  font-size: var(--text-ui);
 }
 
 .cart-items {
@@ -2061,8 +2226,8 @@ body.is-intro .site-footer {
   height: 52px;
   flex: 0 0 52px;
   object-fit: contain;
-  border-radius: 6px;
-  background: #f6f6f6;
+  border-radius: var(--radius-sm);
+  background: var(--media-bg);
 }
 
 .cart-item-info {
@@ -2072,14 +2237,14 @@ body.is-intro .site-footer {
 
 .cart-item-name {
   margin: 0;
-  font-size: 11pt;
-  font-weight: 500;
+  font-size: var(--text-ui);
+  font-weight: var(--weight-medium);
   color: var(--fg);
 }
 
 .cart-item-variant {
   margin: 2px 0 0;
-  font-size: 10pt;
+  font-size: var(--text-small);
   color: var(--fg-muted);
 }
 
@@ -2103,7 +2268,7 @@ body.is-intro .site-footer {
   line-height: 1;
   color: var(--fg);
   cursor: pointer;
-  transition: border-color 0.15s ease;
+  transition: border-color var(--motion-quick);
 }
 
 .cart-qty-btn:hover {
@@ -2111,13 +2276,13 @@ body.is-intro .site-footer {
 }
 
 .cart-qty-num {
-  font-size: 10pt;
+  font-size: var(--text-small);
   min-width: 12px;
   text-align: center;
 }
 
 .cart-item-price {
-  font-size: 11pt;
+  font-size: var(--text-ui);
   color: var(--fg);
   white-space: nowrap;
 }
@@ -2139,28 +2304,28 @@ body.is-intro .site-footer {
 }
 
 .cart-total-label {
-  font-size: 9px;
-  font-weight: 700;
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--fg-muted);
 }
 
 .cart-total {
-  font-size: 13pt;
-  font-weight: 600;
+  font-size: var(--text-lede);
+  font-weight: var(--weight-semibold);
   color: var(--fg);
 }
 
 .cart-note {
   margin: 8px 0 0;
-  font-size: 9pt;
+  font-size: var(--text-tiny);
   text-align: center;
   color: var(--fg-muted);
 }
 
 .cart-note--error {
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .cart-purge {
@@ -2168,13 +2333,13 @@ body.is-intro .site-footer {
   margin-top: 8px;
   padding: 11px 16px;
   border: 1px solid var(--underline);
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
   background: none;
   font: inherit;
-  font-size: 10pt;
+  font-size: var(--text-small);
   color: var(--fg);
   cursor: pointer;
-  transition: border-color 0.15s ease;
+  transition: border-color var(--motion-quick);
 }
 
 .cart-purge:hover {
@@ -2194,19 +2359,19 @@ body.is-intro .site-footer {
 
 .cart-item-flag {
   margin: 4px 0 0;
-  font-size: 9px;
-  font-weight: 700;
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  color: #ef4444;
+  color: var(--danger);
 }
 
 /* ── Message form (inside the tray) ── */
 .msg-label {
   display: block;
   margin: 0 0 8px;
-  font-size: 11pt;
-  font-weight: 500;
+  font-size: var(--text-ui);
+  font-weight: var(--weight-medium);
   color: var(--fg);
 }
 
@@ -2214,12 +2379,12 @@ body.is-intro .site-footer {
   width: 100%;
   padding: 13px 14px;
   border: 1px solid var(--underline);
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
   background: none;
   font: inherit;
-  font-size: 11pt;
+  font-size: var(--text-ui);
   color: var(--fg);
-  transition: border-color 0.15s ease;
+  transition: border-color var(--motion-quick);
 }
 
 .msg-input:focus {
@@ -2251,9 +2416,9 @@ body.is-intro .site-footer {
 .msg-error {
   margin: 6px 0 0;
   min-height: 11px;
-  font-size: 9pt;
+  font-size: var(--text-tiny);
   line-height: 11px;
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .msg-foot {
@@ -2277,10 +2442,10 @@ body.is-intro .site-footer {
   border: 0;
   background: none;
   font: inherit;
-  font-size: 9pt;
+  font-size: var(--text-tiny);
   color: var(--fg-muted);
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: color var(--motion-quick);
 }
 
 .msg-back:hover {
@@ -2289,7 +2454,7 @@ body.is-intro .site-footer {
 
 .msg-progress {
   margin-left: auto;
-  font-size: 9pt;
+  font-size: var(--text-tiny);
   color: var(--fg-muted);
 }
 
@@ -2300,19 +2465,19 @@ body.is-intro .site-footer {
 
 .msg-done-title {
   margin: 0;
-  font-size: 12pt;
-  font-weight: 600;
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
   color: var(--fg);
 }
 
 .msg-done-note {
   margin: 6px 0 0;
-  font-size: 10pt;
+  font-size: var(--text-small);
   color: var(--fg-muted);
 }
 
 .msg-step-in {
-  animation: msg-step-in 0.25s ease both;
+  animation: msg-step-in var(--motion-dur) var(--motion-ease) both;
 }
 
 @keyframes msg-step-in {
@@ -2352,7 +2517,7 @@ body.is-intro .site-footer {
   border: 0;
   font-family: inherit;
   font-weight: inherit;
-  font-size: 12pt;
+  font-size: var(--text-body);
   color: var(--fg-muted);
 }
 
@@ -2381,9 +2546,9 @@ body.is-intro .site-footer {
   /* Was the row's margin when a greeting sat beside it; the portrait carries
      its own spacing now that it stands alone. */
   margin-bottom: 20px;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: #f6f6f6;
+  background: var(--media-bg);
   /* It answers a tap on touch, and iOS paints a grey box over anything that
      does. The blur crossfade is the feedback. */
   -webkit-tap-highlight-color: transparent;
@@ -2395,7 +2560,8 @@ body.is-intro .site-footer {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: opacity 320ms var(--stagger-ease), filter 320ms var(--stagger-ease);
+  transition: opacity var(--motion-dur) var(--motion-ease),
+    filter var(--motion-dur) var(--motion-ease);
 }
 
 /* Each face blurs on its way out and sharpens on its way in, so the two never
@@ -2426,7 +2592,7 @@ body.is-intro .site-footer {
 @media (prefers-reduced-motion: reduce) {
   .about-portrait-img {
     filter: none !important;
-    transition: opacity 150ms ease;
+    transition: opacity var(--motion-quick);
   }
 }
 
@@ -2447,14 +2613,14 @@ body.is-intro .site-footer {
   background: none;
   font-family: inherit;
   font-weight: inherit;
-  font-size: 12pt;
+  font-size: var(--text-body);
   line-height: inherit;
   color: var(--fg);
   text-decoration: underline;
   text-decoration-color: var(--underline);
   text-underline-offset: 0.14em;
   cursor: pointer;
-  transition: text-decoration-color 0.2s ease;
+  transition: text-decoration-color var(--motion-quick);
 }
 
 .resume-download:hover {
@@ -2477,14 +2643,14 @@ body.is-intro .site-footer {
 
 .resume-list .resume-title {
   margin: 0;
-  font-size: 12pt;
-  font-weight: 500;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
   color: var(--fg);
 }
 
 .resume-list .resume-meta {
   margin: 2px 0 0;
-  font-size: 12pt;
+  font-size: var(--text-body);
   color: var(--fg-muted);
 }
 
@@ -2492,7 +2658,7 @@ body.is-intro .site-footer {
 .lightbox-overlay {
   position: fixed;
   inset: 0;
-  z-index: 400;
+  z-index: var(--z-lightbox);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2500,7 +2666,8 @@ body.is-intro .site-footer {
   background: rgba(0, 0, 0, 0);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease, background 0.2s ease;
+  transition: opacity var(--motion-dur) var(--motion-ease),
+    background var(--motion-dur) var(--motion-ease);
 }
 
 .lightbox-overlay[hidden] {
@@ -2510,7 +2677,7 @@ body.is-intro .site-footer {
 .lightbox-overlay.open {
   opacity: 1;
   pointer-events: auto;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--scrim-deep);
 }
 
 .lightbox-figure {
@@ -2526,15 +2693,15 @@ body.is-intro .site-footer {
   max-width: 100%;
   max-height: calc(100vh - 160px);
   width: auto;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   object-fit: contain;
 }
 
 .lightbox-caption {
   margin: 14px 0 0;
   max-width: 60ch;
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 10pt;
+  color: var(--on-scrim);
+  font-size: var(--text-small);
   line-height: 1.4;
   text-align: center;
 }
@@ -2547,16 +2714,16 @@ body.is-intro .site-footer {
   height: 36px;
   border: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  background: var(--scrim-chrome);
+  color: var(--on-dark);
   cursor: pointer;
   display: grid;
   place-items: center;
-  transition: background 0.15s ease;
+  transition: background var(--motion-quick);
 }
 
 .lightbox-close:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--scrim-chrome-hover);
 }
 
 .lightbox-arrow {
@@ -2567,16 +2734,16 @@ body.is-intro .site-footer {
   height: 44px;
   border: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  background: var(--scrim-chrome);
+  color: var(--on-dark);
   cursor: pointer;
   display: grid;
   place-items: center;
-  transition: background 0.15s ease;
+  transition: background var(--motion-quick);
 }
 
 .lightbox-arrow:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--scrim-chrome-hover);
 }
 
 .lightbox-arrow[hidden] {
@@ -2601,9 +2768,9 @@ body.is-intro .site-footer {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 9px;
-  font-weight: 700;
+  color: var(--on-scrim-muted);
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -2644,8 +2811,8 @@ body.is-intro .site-footer {
 /* Title over subtitle, matching the Writing panel's empty state. */
 #panel-404 .notfound-title {
   margin: 0;
-  font-size: 12pt;
-  font-weight: 600;
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
   color: var(--fg);
 }
 
@@ -2664,13 +2831,13 @@ body.is-intro .site-footer {
 .attribution {
   position: fixed;
   left: 50%;
-  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--nav-clearance) + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
-  z-index: 2;
+  z-index: var(--z-page);
   display: none;
   width: 100%;
   padding: 0 var(--gutter);
-  font-size: 9pt;
+  font-size: var(--text-tiny);
   text-align: center;
   color: var(--fg-muted);
 }
@@ -2685,7 +2852,7 @@ body.is-404 .attribution {
   text-decoration-color: var(--underline);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.14em;
-  transition: text-decoration-color 0.2s ease;
+  transition: text-decoration-color var(--motion-quick);
 }
 
 .light-link:hover {
@@ -2697,7 +2864,7 @@ body.is-404 .attribution {
    same on every breakpoint. Icon assignment pending. ── */
 .navwrap {
   position: fixed;
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--nav-offset) + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   /* The bar is the measure itself, with no gutter of its own — so it stays
@@ -2712,7 +2879,7 @@ body.is-404 .attribution {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  z-index: 200;
+  z-index: var(--z-nav);
 }
 
 .navwrap-row {
@@ -2735,9 +2902,9 @@ body.is-404 .attribution {
   left: 50%;
   padding: 5px 9px;
   background: var(--fg);
-  color: #fff;
-  font-size: 9px;
-  font-weight: 700;
+  color: var(--on-dark);
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   line-height: 1;
@@ -2745,12 +2912,12 @@ body.is-404 .attribution {
   /* Clips the name to the chip, which is what makes it read as sliding in from
      the edge rather than drifting in from off-screen. */
   overflow: hidden;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   opacity: 0;
   transform: translateX(-50%) translateY(4px);
   pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease,
-    width 0.26s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: opacity var(--motion-quick), transform var(--motion-quick),
+    width var(--nav-move);
 }
 
 .nav-flash.is-up {
@@ -2774,14 +2941,14 @@ body.is-404 .attribution {
 .nav-flash-label.is-in {
   opacity: 1;
   transform: translateX(0);
-  transition: opacity 0.14s ease, transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: opacity var(--motion-quick), transform var(--nav-move);
 }
 
 /* The chip still appears and still says where you are — it just stops
    travelling to get there. */
 @media (prefers-reduced-motion: reduce) {
   .nav-flash {
-    transition: opacity 0.15s ease;
+    transition: opacity var(--motion-quick);
   }
 
   .nav-flash-label,
@@ -2808,13 +2975,13 @@ body.is-404 .attribution {
   align-items: center;
   gap: 6px;
   padding: 10px 14px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-2xl);
   background: var(--bg);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-raised);
   color: var(--fg-muted);
   cursor: pointer;
-  transition: color 0.18s ease, transform 0.12s ease;
+  transition: color var(--motion-quick), transform var(--motion-press);
 }
 
 .work-nav-btn:hover {
@@ -2841,12 +3008,12 @@ body.is-404 .attribution {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: var(--text-cap-lg);
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--fg);
-  transition: opacity 180ms ease;
+  transition: opacity var(--motion-quick);
 }
 
 /* While Next/Previous rebuilds the panel, only the project titles cross-fade —
@@ -2861,11 +3028,11 @@ body.is-404 .attribution {
   flex: 1;
   position: relative;
   display: flex;
-  height: 56px;
+  height: var(--nav-height);
   background: var(--bg);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 18px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-3xl);
+  box-shadow: var(--shadow-raised);
 }
 
 .nav-tab {
@@ -2877,7 +3044,7 @@ body.is-404 .attribution {
   display: grid;
   place-items: center;
   color: var(--fg-muted);
-  transition: color 0.18s ease;
+  transition: color var(--motion-quick);
 }
 
 .nav-toast {
@@ -2887,17 +3054,17 @@ body.is-404 .attribution {
   transform: translateX(-50%) translateY(4px);
   padding: 5px 9px;
   background: var(--fg);
-  color: #fff;
-  font-size: 9px;
-  font-weight: 700;
+  color: var(--on-dark);
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   line-height: 1;
   white-space: nowrap;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity var(--motion-quick), transform var(--motion-quick);
 }
 
 /* Inline text links sit inside a tall line box, so the shared 10px gap reads
@@ -2979,7 +3146,7 @@ body.is-404 .attribution {
      half-present long enough to read as a smudge; the scale runs longer and
      overshoots a touch, which is where the snap comes from. Doing both on one
      duration gives you either a mushy fade or a twitchy pop. */
-  transition: opacity 150ms ease, transform 280ms cubic-bezier(0.34, 1.4, 0.64, 1);
+  transition: opacity var(--motion-quick), transform var(--motion-pop);
 }
 
 /* The solid weight waits just under full size, so selecting a tab settles it
@@ -3008,7 +3175,7 @@ body.is-404 .attribution {
    drop the scale, which is the part that's motion rather than a state change. */
 @media (prefers-reduced-motion: reduce) {
   .nav-icon {
-    transition: opacity 150ms ease;
+    transition: opacity var(--motion-quick);
   }
 
   .nav-icon--solid {
@@ -3035,7 +3202,7 @@ body.is-404 .attribution {
   bottom: 12px;
   left: 0;
   width: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--brand);
   opacity: 0;
   pointer-events: none;
@@ -3044,7 +3211,7 @@ body.is-404 .attribution {
      copy of the icon: there's no in-between moment where a white glyph would
      be sitting on white. The tabs paint over it (no z-index, and they come
      later in the markup), so the icon on top is the tab's own. */
-  transition: opacity 0.15s ease;
+  transition: opacity var(--motion-quick);
 }
 
 .nav-focus.is-on {
@@ -3057,7 +3224,7 @@ body.is-404 .attribution {
    would be one too many. */
 .nav-tab:focus-visible {
   outline: none;
-  color: #fff;
+  color: var(--on-dark);
 }
 
 .nav-tab:focus-visible .nav-icon--line {
@@ -3091,19 +3258,19 @@ body.is-404 .attribution {
 
 .fab {
   position: relative;
-  width: 56px;
-  height: 56px;
-  flex: 0 0 56px;
+  width: var(--nav-height);
+  height: var(--nav-height);
+  flex: 0 0 var(--nav-height);
   border: 0;
-  border-radius: 18px;
+  border-radius: var(--radius-3xl);
   cursor: pointer;
   background: var(--fg);
-  color: #fff;
+  color: var(--on-dark);
   display: grid;
   place-items: center;
   text-decoration: none;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  transition: transform 0.12s ease;
+  box-shadow: var(--shadow-fab);
+  transition: transform var(--motion-press);
 }
 
 .fab:active {
@@ -3126,8 +3293,8 @@ body.is-404 .attribution {
   /* The nav pill's own offset plus half the difference in their heights, which
      lines the dot up with the middle of the bar rather than its bottom edge —
      the two read as one row across the bottom of the screen. */
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px) + 14px);
-  z-index: 200;
+  bottom: calc(var(--nav-offset) + env(safe-area-inset-bottom, 0px) + 14px);
+  z-index: var(--z-nav);
 }
 
 /* Wide enough that the panel clears the text column, tall enough that it
@@ -3147,12 +3314,12 @@ body.is-404 .attribution {
   place-items: center;
   width: 28px;
   height: 28px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill);
   background: var(--bg);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-raised);
   color: var(--fg-muted);
-  transition: color 0.18s ease, transform 0.18s ease;
+  transition: color var(--motion-quick), transform var(--motion-quick);
 }
 
 .shortcuts-nub svg {
@@ -3174,14 +3341,15 @@ body.is-404 .attribution {
   left: 0;
   min-width: 172px;
   padding: 12px 14px 10px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-2xl);
   background: var(--bg);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-panel);
   opacity: 0;
   transform: translateY(6px);
   pointer-events: none;
-  transition: opacity 0.18s ease, transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: opacity var(--motion-dur) var(--motion-ease),
+    transform var(--motion-dur) var(--motion-ease);
 }
 
 .shortcuts:hover .shortcuts-panel {
@@ -3195,8 +3363,8 @@ body.is-404 .attribution {
   margin: 0 0 8px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--underline);
-  font-size: 9px;
-  font-weight: 700;
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   line-height: 1;
@@ -3226,8 +3394,8 @@ body.is-404 .attribution {
 }
 
 .shortcuts-label {
-  font-size: 9px;
-  font-weight: 700;
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   line-height: 1;
@@ -3244,15 +3412,15 @@ body.is-404 .attribution {
   min-width: 18px;
   height: 18px;
   padding: 0 4px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--hairline);
   border-radius: 5px;
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--wash-faint);
   color: var(--fg-muted);
-  font-size: 9px;
-  font-weight: 700;
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
   line-height: 1;
-  transition: color 0.12s ease, transform 0.12s ease, background-color 0.12s ease,
-    border-color 0.12s ease;
+  transition: color var(--motion-press), transform var(--motion-press),
+    background-color var(--motion-press), border-color var(--motion-press);
 }
 
 .shortcuts-key svg {
@@ -3288,23 +3456,19 @@ body.is-404 .attribution {
 
   State:
     - Add `.is-shown` to play the staggered entrance.
-    - Add `.is-hiding` (and remove `.is-shown`) to fade
-      out in place over a short 200ms — independent of the
-      entrance timing so the exit doesn't replay the stagger.
+    - Add `.is-hiding` (and remove `.is-shown`) to fade out in place — same
+      duration and curve as the entrance, but without the stagger, so the
+      exit reads as one quiet fade rather than a reverse reveal.
 
   Order comes from markStagger() in js/site.js, which sets each line's
   transition-delay inline as `calc(var(--stagger-stagger) * i)` — so lists
   of any length (work cards, resume rows) stagger correctly without needing
   a numbered CSS class per line.
-*/
 
-:root {
-  --stagger-dur: 500ms;
-  --stagger-distance: 12px;
-  --stagger-stagger: 40ms;
-  --stagger-blur: 3px;
-  --stagger-ease: cubic-bezier(0.22, 1, 0.36, 1);
-}
+  All four values these rules read (--stagger-dur, --stagger-ease,
+  --stagger-distance, --stagger-blur) live in the control panel at the top of
+  this file; the first two are the site-wide --motion-dur/--motion-ease.
+*/
 
 /* Lines start translated down + blurred + invisible; .is-shown
    on the parent flips them to their resting state. The second
@@ -3333,15 +3497,18 @@ body.is-404 .attribution {
 }
 /* Exit decouples from the stagger: same fade for every line,
    no Y return, no blur — so the disappearance reads as a
-   single quiet fade instead of a reverse reveal. */
+   single quiet fade instead of a reverse reveal. The *speed*
+   doesn't decouple, though: it's the same --motion-dur and
+   curve the entrance runs on, so leaving and arriving are
+   one gesture in two directions. */
 .t-stagger.is-hiding .t-stagger-line {
   opacity: 0;
   transform: translateY(0);
   filter: blur(0);
   transition:
-    opacity 200ms ease,
+    opacity   var(--motion-dur) var(--motion-ease),
     transform 0s linear,
-    filter 0s linear;
+    filter    0s linear;
   transition-delay: 0s;
 }
 
@@ -3367,6 +3534,14 @@ body.is-404 .attribution {
 .t-stagger--h-only .t-stagger-line {
   transform: translate(var(--stagger-slide-x, 0px), 0);
   filter: blur(0);
+}
+
+/* Tightens the per-line gap without touching the speed of any line — see
+   --stagger-gap-tight in the control panel for why Next/Previous project
+   needs it. Added and removed alongside .t-stagger--h-only by
+   openWorkDetail() in site.js. */
+.t-stagger--tight {
+  --stagger-stagger: var(--stagger-gap-tight);
 }
 
 @media (prefers-reduced-motion: reduce) {
