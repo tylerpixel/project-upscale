@@ -2958,14 +2958,43 @@ body.is-404 .attribution {
 }
 
 /* Next/Previous project row — sits above the nav pill, only shown on a work
-   item's case study (see updateWorkNav in site.js). */
+   item's case study (see updateWorkNav in site.js).
+
+   It arrives and leaves on the site's own pace, like everything else: the row
+   is part of the case study, so it can't be the one element that snaps into
+   place while the page behind it is still resolving. The 6px rise is the
+   shortcuts panel's, since both are small slabs surfacing next to the bar.
+
+   `hidden` still does the hiding — it's what keeps the buttons out of the tab
+   order on every other route — but display:none is not something a transition
+   can cross, so the visible state is carried by .is-up and showWorkNav()
+   raises the two in the right order. */
 .work-nav-row {
   display: flex;
   gap: 10px;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity var(--motion-dur) var(--motion-ease),
+    transform var(--motion-dur) var(--motion-ease);
+}
+
+.work-nav-row.is-up {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .work-nav-row[hidden] {
   display: none;
+}
+
+/* The row still appears and disappears — it just stops travelling to do it. */
+@media (prefers-reduced-motion: reduce) {
+  .work-nav-row {
+    transition: none;
+    transform: none;
+  }
 }
 
 .work-nav-btn {

@@ -1867,15 +1867,73 @@ function openWorkDetail(project, direction) {
   // plain (card-click) open always reveals straight up, on the standard cascade.
   panel.style.removeProperty("--stagger-slide-x");
   panel.classList.remove("t-stagger--h-only", "t-stagger--tight");
-  transitionPanels(document.querySelector(".panel:not([hidden])"), panel);
+  // Captured before the swap: transitionPanels only spends an exit on an
+  // outgoing panel if there is one, and the row's entrance has to wait exactly
+  // that long so it rises with the case study rather than over the list behind
+  // it. A deep link straight into /work/<slug> has nothing to fade, so it's 0.
+  const outgoing = document.querySelector(".panel:not([hidden])");
+  transitionPanels(outgoing, panel);
   initInlineLinkTooltips(panel);
-  updateWorkNav(project);
+  updateWorkNav(project, outgoing && outgoing !== panel ? STAGGER_EXIT_MS : 0);
 }
 
 // Next/Previous project row, shown above the bottom nav only on a work-item
 // case study — lets you page straight to the neighboring project without
 // backing out to the Selected Works list first.
-function updateWorkNav(project) {
+// Raising and lowering the Next/Previous row. `hidden` is what actually keeps
+// the buttons out of the tab order on every route that isn't a case study, but
+// display:none is not a state a transition can travel across — so showing is
+// two steps (into the layout, then flip .is-up on the next frame, giving the
+// entrance somewhere to come from) and hiding is the reverse, holding the
+// element in the layout until its own fade is over. Same shape as
+// showAfterReflow() and the overlays above.
+// One timer for both directions — the row is either arriving or leaving, never
+// both, and sharing it means a reversal cancels whatever was pending instead of
+// landing on top of it.
+let workNavTimer;
+
+// `delay` covers the case that prompted all this: opening a case study from the
+// work list fades the *outgoing* panel first, so the case study itself isn't on
+// screen for another --motion-dur. Raising the row immediately would have it
+// arrive over the list it's leaving. Paging Next/Previous passes no delay — the
+// panel is already up.
+function showWorkNav(row, delay) {
+  clearTimeout(workNavTimer);
+  // Already up: this is a Next/Previous page, not an arrival. Replaying the
+  // entrance would fight the label cross-fade that transition runs.
+  if (!row.hidden && row.classList.contains("is-up")) return;
+  const raise = () => {
+    row.hidden = false;
+    void row.offsetWidth; // so the entrance has an offset state to travel from
+    // The timer is the guarantee, the frame callback is what makes it look
+    // right — rAF is paused in a backgrounded tab, and this class carries
+    // visibility, not just motion.
+    const up = () => row.classList.add("is-up");
+    requestAnimationFrame(up);
+    setTimeout(up, 120);
+  };
+  // Not gated on prefers-reduced-motion: this is sequencing, not motion. The
+  // panel swap takes --motion-dur either way, so skipping the wait would just
+  // put the row on screen before the case study it belongs to.
+  if (delay > 0) workNavTimer = setTimeout(raise, delay);
+  else raise();
+}
+
+function hideWorkNav(row) {
+  // Before the early return, so a raise that hasn't fired yet is cancelled
+  // rather than landing on a route the row doesn't belong to.
+  clearTimeout(workNavTimer);
+  if (row.hidden) return;
+  row.classList.remove("is-up");
+  workNavTimer = setTimeout(
+    () => {
+      row.hidden = true;
+    },
+    prefersReducedMotion ? 0 : MOTION_DUR_MS
+  );
+}
+
+function updateWorkNav(project, showDelay) {
   const row = document.getElementById("workNavRow");
   const prevBtn = document.getElementById("workPrevBtn");
   const nextBtn = document.getElementById("workNextBtn");
@@ -1883,7 +1941,7 @@ function updateWorkNav(project) {
 
   const i = project ? workProjects.indexOf(project) : -1;
   if (i === -1 || workProjects.length < 2) {
-    row.hidden = true;
+    hideWorkNav(row);
     return;
   }
 
@@ -1898,7 +1956,7 @@ function updateWorkNav(project) {
   prevBtn.onclick = () => openWorkDetail(prevProject, "prev");
   nextBtn.onclick = () => openWorkDetail(nextProject, "next");
 
-  row.hidden = false;
+  showWorkNav(row, showDelay);
 }
 
 // Writing posts are looked up by slug from both the Writing list and any work
