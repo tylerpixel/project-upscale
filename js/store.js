@@ -317,10 +317,10 @@ function buildCurrencyPicker(panel) {
   if (!heading || !store.cartAction) return;
 
   const actions = document.createElement("div");
-  actions.className = "store-heading-actions";
+  actions.className = "heading-actions";
 
   const wrap = document.createElement("span");
-  wrap.className = "store-currency-wrap";
+  wrap.className = "currency-wrap";
 
   const select = document.createElement("select");
   select.className = "store-currency";
@@ -352,7 +352,7 @@ function buildCurrencyPicker(panel) {
   actions.appendChild(wrap);
 
   const dot = document.createElement("span");
-  dot.className = "store-heading-sep";
+  dot.className = "heading-sep";
   dot.setAttribute("aria-hidden", "true");
   dot.textContent = "·";
   actions.appendChild(dot);
@@ -491,7 +491,7 @@ function openProductDetail(product) {
   panel.replaceChildren();
 
   const back = document.createElement("a");
-  back.className = "inline-link work-detail-back";
+  back.className = "inline-link detail-back";
   back.href = "#";
   back.textContent = "← Back to Store";
   back.addEventListener("click", (e) => {
@@ -506,13 +506,13 @@ function openProductDetail(product) {
   const gallery = document.createElement("div");
   gallery.className = "store-gallery";
   gallery.innerHTML = `
-    <img class="store-gallery-main" id="storeMainImg"${srcAttr(imageUrl(images[0]))} alt="${esc(product.name)}" />
+    <img class="gallery-main" id="storeMainImg"${srcAttr(imageUrl(images[0]))} alt="${esc(product.name)}" />
     ${
       images.length > 1
         ? `<div class="store-thumbs">${images
             .map(
               (img, i) =>
-                `<button class="store-thumb-btn${i === 0 ? " active" : ""}" type="button" data-idx="${i}" aria-label="View image ${i + 1}"><img${srcAttr(imageUrl(img))} alt="" /></button>`
+                `<button class="thumb-btn${i === 0 ? " active" : ""}" type="button" data-idx="${i}" aria-label="View image ${i + 1}"><img${srcAttr(imageUrl(img))} alt="" /></button>`
             )
             .join("")}</div>`
         : ""
@@ -521,12 +521,12 @@ function openProductDetail(product) {
   markStagger(gallery, 1);
   panel.appendChild(gallery);
 
-  gallery.querySelectorAll(".store-thumb-btn").forEach((btn) => {
+  gallery.querySelectorAll(".thumb-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const idx = Number(btn.dataset.idx);
       const url = imageUrl(images[idx]);
       if (url) document.getElementById("storeMainImg").src = url;
-      gallery.querySelectorAll(".store-thumb-btn").forEach((b) => b.classList.remove("active"));
+      gallery.querySelectorAll(".thumb-btn").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
     });
   });
@@ -534,7 +534,7 @@ function openProductDetail(product) {
   const head = document.createElement("div");
   head.className = "work-head";
   head.innerHTML = `
-    <p class="work-title work-detail-title">${esc(product.name)}</p>
+    <p class="work-title detail-title">${esc(product.name)}</p>
     <div class="work-chips">${priceChips(product)}</div>
   `;
   markStagger(head, 2);
@@ -556,7 +556,7 @@ function openProductDetail(product) {
   options.innerHTML = `
     ${
       colors.length
-        ? `<p class="store-options-label">Colour</p>
+        ? `<p class="options-label">Colour</p>
            <div class="store-swatches" id="storeSwatches">
              ${colors
                .map(
@@ -569,7 +569,7 @@ function openProductDetail(product) {
     }
     ${
       sizes.length
-        ? `<p class="store-options-label">Size</p>
+        ? `<p class="options-label">Size</p>
            <div class="store-sizes" id="storeSizes">
              ${sizes
                .map((s) => `<button class="store-size" type="button" data-size="${esc(s)}">${esc(s)}</button>`)
@@ -783,18 +783,18 @@ function renderCart() {
       const dead = store.unavailable.has(item.variantId);
       return `
       <div class="cart-item${dead ? " cart-item--dead" : ""}">
-        <img class="cart-item-img"${srcAttr(safeUrl(item.image))} alt="${esc(item.productName)}" />
-        <div class="cart-item-info">
-          <p class="cart-item-name">${esc(item.productName)}</p>
-          <p class="cart-item-variant">${esc(item.variantName)}</p>
-          ${dead ? `<p class="cart-item-flag">No longer available</p>` : ""}
+        <img class="cart-img"${srcAttr(safeUrl(item.image))} alt="${esc(item.productName)}" />
+        <div class="cart-info">
+          <p class="cart-name">${esc(item.productName)}</p>
+          <p class="cart-variant">${esc(item.variantName)}</p>
+          ${dead ? `<p class="cart-flag">No longer available</p>` : ""}
           <div class="cart-qty">
             <button class="cart-qty-btn" type="button" data-action="dec" data-i="${i}" aria-label="Remove one">−</button>
             <span class="cart-qty-num">${item.quantity}</span>
             <button class="cart-qty-btn" type="button" data-action="inc" data-i="${i}" aria-label="Add one">+</button>
           </div>
         </div>
-        <span class="cart-item-price">${esc(fmt(item.price * item.quantity, item.currency))}</span>
+        <span class="cart-price">${esc(fmt(item.price * item.quantity, item.currency))}</span>
       </div>`;
     })
     .join("");

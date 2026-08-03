@@ -706,7 +706,7 @@ nav.identity-links {
   margin-bottom: 0;
 }
 
-.skeleton-portrait-row {
+.skel-portrait {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -811,7 +811,7 @@ nav.identity-links {
   display: flex;
 }
 
-.writing-item-head {
+.item-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -821,7 +821,7 @@ nav.identity-links {
 /* Scoped past `.writing-list` to beat `.panel p`'s specificity — otherwise
    its 20px bottom margin silently overrides this, same issue documented at
    `.work-list .work-title` below. */
-.writing-list .writing-item-title {
+.writing-list .post-title {
   margin: 0;
   font-size: var(--text-body);
   font-weight: var(--weight-medium);
@@ -830,7 +830,7 @@ nav.identity-links {
   color: var(--fg);
 }
 
-#panel-writing .writing-item-summary {
+#panel-writing .post-summary {
   margin: 3px 0 0;
   font-size: var(--text-ui);
   color: var(--fg-muted);
@@ -844,7 +844,7 @@ nav.identity-links {
   margin-bottom: 16px;
 }
 
-#panel-writing-detail .work-detail-title {
+#panel-writing-detail .detail-title {
   margin: 0;
   font-size: var(--text-title);
   font-weight: var(--weight-semibold);
@@ -871,7 +871,7 @@ nav.identity-links {
 }
 
 /* Link rows at the foot of a case study (visit site, read the write-up) */
-#panel-work-detail .detail-link-row {
+#panel-work-detail .link-row {
   margin: 16px 0 0;
 }
 
@@ -884,7 +884,7 @@ nav.identity-links {
   padding: 8px 0 4px;
 }
 
-#panel-writing .writing-empty-icon {
+#panel-writing .blank-icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -896,20 +896,20 @@ nav.identity-links {
   transform: rotate(-8deg);
 }
 
-#panel-writing .writing-empty-icon svg {
+#panel-writing .blank-icon svg {
   display: block;
   width: 22px;
   height: 22px;
 }
 
-#panel-writing .writing-empty-title {
+#panel-writing .blank-title {
   margin: 4px 0 0;
   font-size: var(--text-body);
   font-weight: var(--weight-semibold);
   color: var(--fg);
 }
 
-#panel-writing .writing-empty-subtitle {
+#panel-writing .blank-sub {
   margin: 0;
   font-size: var(--text-body);
   color: var(--fg-muted);
@@ -935,11 +935,11 @@ body.is-intro .site-footer {
 
 /* Sized off the column instead of the header's fixed 13px, so the mark reads as
    a full-width rule of its own. */
-.site-footer-mark {
+.footer-mark {
   color: var(--brand);
 }
 
-.site-footer-mark svg {
+.footer-mark svg {
   display: block;
   width: 100%;
   height: auto;
@@ -949,15 +949,15 @@ body.is-intro .site-footer {
    the rule takes whatever width the chip leaves. Compound selector so the row
    stays flex even though .t-stagger-line (declared later, added by markStagger)
    forces display: block on staggered elements. */
-.site-footer-rule-row.t-stagger-line,
-.site-footer-rule-row {
+.footer-rules.t-stagger-line,
+.footer-rules {
   display: flex;
   align-items: center;
   gap: 9px;
   margin-top: 24px;
 }
 
-.site-footer-rule {
+.footer-rule {
   flex: 1 1 auto;
   height: 1px;
   background: var(--underline);
@@ -966,7 +966,7 @@ body.is-intro .site-footer {
 /* Links the build you're looking at to the commit history it came from. The
    version is stamped into site-content.json by scripts/ship.sh on every deploy,
    so the chip can never name a build other than the deployed one. */
-.site-footer-version {
+.footer-version {
   position: relative; /* anchors its "Updated …" tooltip */
   flex: 0 0 auto;
   padding: 4px 9px;
@@ -981,7 +981,7 @@ body.is-intro .site-footer {
   transition: background-color var(--motion-quick), color var(--motion-quick);
 }
 
-.site-footer-version:hover {
+.footer-version:hover {
   background: var(--wash-hover);
   color: var(--fg);
 }
@@ -992,7 +992,7 @@ body.is-intro .site-footer {
    the left is the hairline: empty by definition, and long enough that the
    tooltip can be as wide as it needs to be. It slides in along that axis for
    the same reason, since it has room there and none upward. */
-.site-footer-version .nav-toast {
+.footer-version .nav-toast {
   top: 50%;
   right: calc(100% + 8px);
   bottom: auto;
@@ -1001,7 +1001,7 @@ body.is-intro .site-footer {
 }
 
 @media (hover: hover) {
-  .site-footer-version:hover .nav-toast {
+  .footer-version:hover .nav-toast {
     opacity: 1;
     transform: translateY(-50%) translateX(0);
   }
@@ -1009,14 +1009,14 @@ body.is-intro .site-footer {
 
 /* Its own rule for the same reason — the shared .show-toast rule re-applies the
    centring translateX this variant doesn't use. */
-.site-footer-version.show-toast .nav-toast {
+.footer-version.show-toast .nav-toast {
   opacity: 1;
   transform: translateY(-50%) translateX(0);
 }
 
 /* Compound selector for the same reason as the rule row above. */
-.site-footer-meta.t-stagger-line,
-.site-footer-meta {
+.footer-meta.t-stagger-line,
+.footer-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1024,7 +1024,7 @@ body.is-intro .site-footer {
   margin-top: 12px;
 }
 
-.site-footer-copyright {
+.footer-copy {
   margin: 0;
   font-size: var(--text-fine);
   color: var(--fg-muted);
@@ -1033,7 +1033,7 @@ body.is-intro .site-footer {
 /* The icon row is 24px boxes around 16px icons, so its last glyph sits 4px
    short of the row's edge — pulled back out so it lines up with the end of the
    hairline above it. */
-.site-footer-meta .identity-links {
+.footer-meta .identity-links {
   margin-right: -4px;
 }
 
@@ -1048,13 +1048,13 @@ body.is-intro .site-footer {
   mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
 }
 
-.company-logos-track {
+.logos-track {
   display: flex;
   width: max-content;
   animation: company-logos-scroll var(--marquee-dur) linear infinite;
 }
 
-.company-logos-set {
+.logos-set {
   display: flex;
   align-items: center;
   gap: 32px;
@@ -1083,7 +1083,7 @@ body.is-intro .site-footer {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .company-logos-track {
+  .logos-track {
     animation: none;
   }
 }
@@ -1128,8 +1128,8 @@ body.is-intro .site-footer {
    all. An outline paints on top, follows the border-radius, and costs no
    layout. */
 .work-thumb,
-.work-detail-image,
-.work-gallery-image {
+.detail-img,
+.gallery-img {
   outline: 1px solid var(--hairline);
   outline-offset: -1px;
 }
@@ -1158,7 +1158,7 @@ body.is-intro .site-footer {
 /* ── Empty-image tiles ──
    Anything whose image is missing (or 404s) renders as a neutral icon tile
    instead of a broken-image glyph; sizing comes from the companion class
-   (.work-thumb / .work-detail-image / .company-logo). */
+   (.work-thumb / .detail-img / .company-logo). */
 .image-empty {
   display: flex;
   align-items: center;
@@ -1174,12 +1174,12 @@ body.is-intro .site-footer {
 }
 
 /* Two-class selectors re-assert `display: flex` over `.t-stagger-line`'s
-   forced `display: block` — same fight as `.work-detail-image.sort-cash-tile`. */
+   forced `display: block` — same fight as `.detail-img.sort-cash-tile`. */
 .work-thumb.image-empty {
   display: flex;
 }
 
-.work-detail-image.image-empty {
+.detail-img.image-empty {
   display: flex;
   aspect-ratio: 2.39 / 1;
 }
@@ -1263,11 +1263,11 @@ body.is-intro .site-footer {
 }
 
 /* ── Work case-study detail page (reachable only via a work card) ── */
-.work-detail-back {
+.detail-back {
   margin-bottom: 20px;
 }
 
-.work-detail-image {
+.detail-img {
   width: 100%;
   border-radius: var(--radius-md);
   margin: 0 0 20px;
@@ -1278,8 +1278,8 @@ body.is-intro .site-footer {
    `display`/`background` are repeated here (as a two-class selector) because this
    element also gets `.t-stagger-line` from markStagger(), which forces
    `display: block` and would otherwise silently kill the centering and knock out
-   the orange fill — same specificity fight as `.work-detail-image` below. */
-.work-detail-image.sort-cash-tile {
+   the orange fill — same specificity fight as `.detail-img` below. */
+.detail-img.sort-cash-tile {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1294,7 +1294,7 @@ body.is-intro .site-footer {
   margin-bottom: 12px;
 }
 
-#panel-work-detail .work-detail-title {
+#panel-work-detail .detail-title {
   margin: 0;
   font-size: var(--text-title);
   font-weight: var(--weight-semibold);
@@ -1311,11 +1311,11 @@ body.is-intro .site-footer {
   margin-top: 4px;
 }
 
-.work-gallery-item {
+.gallery-item {
   margin: 0;
 }
 
-.work-gallery-image {
+.gallery-img {
   width: 100%;
   border-radius: var(--radius-md);
   background: var(--media-bg);
@@ -1323,16 +1323,16 @@ body.is-intro .site-footer {
   transition: opacity var(--motion-quick);
 }
 
-.work-gallery-image:hover {
+.gallery-img:hover {
   opacity: 0.9;
 }
 
-.work-gallery-image.image-empty {
+.gallery-img.image-empty {
   aspect-ratio: 4 / 3;
   cursor: default;
 }
 
-.work-gallery-caption {
+.gallery-caption {
   margin: 8px 0 0;
   font-size: var(--text-small);
   line-height: 1.4;
@@ -1364,8 +1364,8 @@ body.is-intro .site-footer {
   margin: 0;
 }
 
-.case-block .case-meta-label,
-.case-block .case-meta-value {
+.case-block .meta-label,
+.case-block .meta-value {
   margin: 0;
   padding: 7px 0;
   border-top: 1px solid var(--underline);
@@ -1373,12 +1373,12 @@ body.is-intro .site-footer {
   line-height: 1.4;
 }
 
-.case-block .case-meta-label {
+.case-block .meta-label {
   color: var(--fg-muted);
 }
 
-.case-block .case-meta-label:last-of-type,
-.case-block .case-meta-value:last-of-type {
+.case-block .meta-label:last-of-type,
+.case-block .meta-value:last-of-type {
   border-bottom: 1px solid var(--underline);
 }
 
@@ -1448,7 +1448,7 @@ body.is-intro .site-footer {
   margin-top: 8px;
 }
 
-.case-block .case-beat-label {
+.case-block .beat-label {
   margin: 0 0 3px;
   font-size: var(--text-micro);
   font-weight: var(--weight-semibold);
@@ -1467,7 +1467,7 @@ body.is-intro .site-footer {
   border-left: 2px solid var(--sortcash-rule);
 }
 
-.case-block .case-decision-title {
+.case-block .decision-title {
   margin: 0 0 14px;
   font-size: var(--text-sub);
   font-weight: var(--weight-semibold);
@@ -1559,22 +1559,22 @@ body.is-intro .site-footer {
   margin-bottom: 20px;
 }
 
-/* `.work-gallery-image` carries `cursor: zoom-in` for the lightbox, which only
+/* `.gallery-img` carries `cursor: zoom-in` for the lightbox, which only
    the gallery at the foot of a case study wires up — a case figure isn't
    clickable, so it shouldn't advertise that it is. A figure that links out to
    its source is clickable, just not zoomable, so it takes the pointer back. */
-.case-block .case-figure .work-gallery-image {
+.case-block .case-figure .gallery-img {
   cursor: default;
 }
 
 /* The positioning context its hover tooltip anchors to (.nav-toast--corner),
    so the chip sits in the image's corner rather than the panel's. */
-.case-block .case-figure-link {
+.case-block .fig-link {
   position: relative;
   display: block;
 }
 
-.case-block .case-figure-link .work-gallery-image {
+.case-block .fig-link .gallery-img {
   cursor: pointer;
 }
 
@@ -1677,13 +1677,13 @@ body.is-intro .site-footer {
 }
 
 /* Currency picker + Cart, grouped at the right of the Store heading. */
-.store-heading-actions {
+.heading-actions {
   display: flex;
   align-items: baseline;
   gap: 7px;
 }
 
-.store-heading-sep {
+.heading-sep {
   color: var(--underline);
   line-height: 1;
 }
@@ -1691,8 +1691,8 @@ body.is-intro .site-footer {
 /* Compound selector so the wrapper stays inline-flex even though
    .t-stagger-line (declared later) forces display: block on staggered
    elements — the chevron is positioned against this box. */
-.store-currency-wrap.t-stagger-line,
-.store-currency-wrap {
+.currency-wrap.t-stagger-line,
+.currency-wrap {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -1700,7 +1700,7 @@ body.is-intro .site-footer {
 
 /* The chevron is drawn in CSS rather than an SVG data URI, so nothing extra
    has to be allowed through the image CSP. */
-.store-currency-wrap::after {
+.currency-wrap::after {
   content: "";
   position: absolute;
   right: 0;
@@ -1742,7 +1742,7 @@ body.is-intro .site-footer {
   margin-bottom: 20px;
 }
 
-.store-gallery-main {
+.gallery-main {
   width: 100%;
   aspect-ratio: 3 / 4;
   object-fit: cover;
@@ -1757,7 +1757,7 @@ body.is-intro .site-footer {
   margin-top: 10px;
 }
 
-.store-thumb-btn {
+.thumb-btn {
   width: 44px;
   height: 44px;
   padding: 0;
@@ -1769,11 +1769,11 @@ body.is-intro .site-footer {
   transition: border-color var(--motion-quick);
 }
 
-.store-thumb-btn.active {
+.thumb-btn.active {
   border-color: var(--fg);
 }
 
-.store-thumb-btn img {
+.thumb-btn img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1786,7 +1786,7 @@ body.is-intro .site-footer {
   margin-bottom: 10px;
 }
 
-#panel-store-detail .work-detail-title {
+#panel-store-detail .detail-title {
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
@@ -1811,7 +1811,7 @@ body.is-intro .site-footer {
   margin-bottom: 0;
 }
 
-.store-options-label {
+.options-label {
   margin: 0 0 10px;
   font-size: var(--text-cap);
   font-weight: var(--weight-bold);
@@ -1964,7 +1964,7 @@ body.is-intro .site-footer {
    rather than competing with the filled button beside it. Sized to match the
    button's own label instead of the 12pt the heading actions use, since here
    the two sit side by side and any difference reads as a mistake. */
-.intro-cta-link {
+.cta-link {
   font-size: var(--text-ui);
   font-weight: var(--weight-medium);
 }
@@ -2428,7 +2428,7 @@ body.is-intro .site-footer {
   padding-top: 0;
 }
 
-.cart-item-img {
+.cart-img {
   width: 52px;
   height: 52px;
   flex: 0 0 52px;
@@ -2437,19 +2437,19 @@ body.is-intro .site-footer {
   background: var(--media-bg);
 }
 
-.cart-item-info {
+.cart-info {
   flex: 1;
   min-width: 0;
 }
 
-.cart-item-name {
+.cart-name {
   margin: 0;
   font-size: var(--text-ui);
   font-weight: var(--weight-medium);
   color: var(--fg);
 }
 
-.cart-item-variant {
+.cart-variant {
   margin: 2px 0 0;
   font-size: var(--text-small);
   color: var(--fg-muted);
@@ -2488,7 +2488,7 @@ body.is-intro .site-footer {
   text-align: center;
 }
 
-.cart-item-price {
+.cart-price {
   font-size: var(--text-ui);
   color: var(--fg);
   white-space: nowrap;
@@ -2558,13 +2558,13 @@ body.is-intro .site-footer {
 }
 
 /* An item the storefront won't sell — dimmed, but still removable. */
-.cart-item--dead .cart-item-img,
-.cart-item--dead .cart-item-name,
-.cart-item--dead .cart-item-price {
+.cart-item--dead .cart-img,
+.cart-item--dead .cart-name,
+.cart-item--dead .cart-price {
   opacity: 0.45;
 }
 
-.cart-item-flag {
+.cart-flag {
   margin: 4px 0 0;
   font-size: var(--text-cap);
   font-weight: var(--weight-bold);
@@ -2761,7 +2761,7 @@ body.is-intro .site-footer {
   -webkit-tap-highlight-color: transparent;
 }
 
-.about-portrait-img {
+.portrait-img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -2775,21 +2775,21 @@ body.is-intro .site-footer {
    simply dissolve through one another — the swap reads as one image resolving
    into the other. :not() rather than source order, so the pair can't be broken
    by a later edit moving these rules around. */
-.about-portrait-img--alt {
+.portrait-img--alt {
   opacity: 0;
   filter: blur(8px);
 }
 
 /* Two ways in, one state. :hover on a pointer device, .is-flipped from a tap
    where there's no hover to give — see the click binding in renderContact. */
-.about-portrait:hover .about-portrait-img:not(.about-portrait-img--alt),
-.about-portrait.is-flipped .about-portrait-img:not(.about-portrait-img--alt) {
+.about-portrait:hover .portrait-img:not(.portrait-img--alt),
+.about-portrait.is-flipped .portrait-img:not(.portrait-img--alt) {
   opacity: 0;
   filter: blur(8px);
 }
 
-.about-portrait:hover .about-portrait-img--alt,
-.about-portrait.is-flipped .about-portrait-img--alt {
+.about-portrait:hover .portrait-img--alt,
+.about-portrait.is-flipped .portrait-img--alt {
   opacity: 1;
   filter: blur(0);
 }
@@ -2797,7 +2797,7 @@ body.is-intro .site-footer {
 /* The face still changes — it's the point — it just arrives rather than
    resolving through a blur. */
 @media (prefers-reduced-motion: reduce) {
-  .about-portrait-img {
+  .portrait-img {
     filter: none !important;
     transition: opacity var(--motion-quick);
   }
@@ -3139,7 +3139,7 @@ body.is-404 .attribution {
    name enters from the right and travels left — against the direction you're
    navigating, the way the contents of a carousel move against the button you
    pressed. */
-.nav-flash-label {
+.flash-label {
   display: block;
   opacity: 0;
   transform: translateX(var(--nav-flash-from, 0));
@@ -3148,7 +3148,7 @@ body.is-404 .attribution {
 /* The class is removed and re-added on every press to restart this from the
    new side; without that, a second press mid-slide would find the property
    already at its end value and simply not animate. */
-.nav-flash-label.is-in {
+.flash-label.is-in {
   opacity: 1;
   transform: translateX(0);
   transition: opacity var(--motion-quick), transform var(--nav-move);
@@ -3161,8 +3161,8 @@ body.is-404 .attribution {
     transition: opacity var(--motion-quick);
   }
 
-  .nav-flash-label,
-  .nav-flash-label.is-in {
+  .flash-label,
+  .flash-label.is-in {
     transform: none;
   }
 }
@@ -3179,7 +3179,7 @@ body.is-404 .attribution {
    order on every other route — but display:none is not something a transition
    can cross, so the visible state is carried by .is-up and showWorkNav()
    raises the two in the right order. */
-.work-nav-row {
+.work-nav {
   display: flex;
   gap: 10px;
   opacity: 0;
@@ -3189,19 +3189,19 @@ body.is-404 .attribution {
     transform var(--motion-dur) var(--motion-ease);
 }
 
-.work-nav-row.is-up {
+.work-nav.is-up {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
 }
 
-.work-nav-row[hidden] {
+.work-nav[hidden] {
   display: none;
 }
 
 /* The row still appears and disappears — it just stops travelling to do it. */
 @media (prefers-reduced-motion: reduce) {
-  .work-nav-row {
+  .work-nav {
     transition: none;
     transform: none;
   }
@@ -3257,9 +3257,9 @@ body.is-404 .attribution {
 
 /* While Next/Previous rebuilds the panel, only the project titles cross-fade —
    the pills, their borders and their shadows hold still. The transition lives on
-   the label and not on .work-nav-row for exactly that reason: fading the row
+   the label and not on .work-nav for exactly that reason: fading the row
    takes the buttons with it (see openWorkDetail, which adds the class). */
-.work-nav-row--fading .work-nav-label {
+.work-nav--fading .work-nav-label {
   opacity: 0;
 }
 
@@ -3357,7 +3357,7 @@ body.is-404 .attribution {
   /* Its own rule, not another selector on the one above: the corner variant is
      right-anchored rather than centred, so it must not inherit that
      translateX(-50%) or it slides half its width off the image on hover. */
-  .case-figure-link:hover .nav-toast--corner {
+  .fig-link:hover .nav-toast--corner {
     opacity: 1;
     transform: translateY(0);
   }
@@ -3842,7 +3842,7 @@ body.is-404 .attribution {
 /* --on-fg, not --bg: the thumb sits on the track, and on the "on" track that
    is a --fg fill. The two tokens carry the same values, but this is the one
    that stays right if the filled-control ink ever moves. */
-.settings-switch-thumb {
+.switch-thumb {
   display: block;
   width: 14px;
   height: 14px;
@@ -3853,7 +3853,7 @@ body.is-404 .attribution {
   transition: transform var(--nav-move);
 }
 
-.settings-switch[aria-checked="true"] .settings-switch-thumb {
+.settings-switch[aria-checked="true"] .switch-thumb {
   transform: translateX(14px);
 }
 

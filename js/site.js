@@ -211,7 +211,7 @@ function attachImageFallback(img, extraClass) {
 // ── Display-size images ──
 //
 // Every inline image on the site renders inside the 360px content column —
-// .work-gallery-image, .work-detail-image and .work-thumb all measure exactly
+// .gallery-img, .detail-img and .work-thumb all measure exactly
 // --content-width in the browser. The files behind them are up to 2000px wide,
 // which is more than 3x what even a 3x phone can resolve at that size.
 //
@@ -240,6 +240,23 @@ function setDisplaySrc(img, src) {
   const display = displaySrc(src);
   if (display !== src) img.dataset.fullSrc = src;
   img.src = display;
+}
+
+// Hang a tooltip off an element. Four places were building the same span with
+// the same class and appending it, which is four places to forget the class
+// name and one to change if the markup ever does.
+//
+// The label is optional: the version chip creates its tooltip empty and fills
+// it on a timer, because what it says ("Updated 3 hrs ago") goes stale while
+// the tab is open.
+//
+// Returns the span, so a caller that needs to keep writing to it can.
+function addToast(parent, label) {
+  const tip = document.createElement("span");
+  tip.className = "nav-toast";
+  if (label) tip.textContent = label;
+  parent.appendChild(tip);
+  return tip;
 }
 
 // The bare hostname a tooltip names a destination by. Shared by the inline-link
@@ -956,7 +973,7 @@ async function openLegal(slug) {
   panel.dataset.slug = slug;
 
   const back = document.createElement("a");
-  back.className = "inline-link work-detail-back";
+  back.className = "inline-link detail-back";
   back.href = TAB_PATHS.store;
   back.textContent = "\u2190 Back to Store";
   back.addEventListener("click", (e) => {
@@ -993,10 +1010,7 @@ async function openLegal(slug) {
     // "Visit <hostname>" label, which is meaningless for an internal link.
     const target = LEGAL_TITLES[a.dataset.legal];
     if (target && !a.querySelector(".nav-toast")) {
-      const tip = document.createElement("span");
-      tip.className = "nav-toast";
-      tip.textContent = `Read the ${target}`;
-      a.appendChild(tip);
+      addToast(a, `Read the ${target}`);
     }
     a.addEventListener("click", (e) => {
       e.preventDefault();
@@ -1148,11 +1162,7 @@ function initInlineLinkTooltips(root) {
     // Markup can already ship its own tooltip content (e.g. a brand logo) —
     // only fall back to a generic text tooltip when none is present.
     if (!a.querySelector(".nav-toast")) {
-      const label = `Visit ${hostLabel(a.href)}`;
-      const tip = document.createElement("span");
-      tip.className = "nav-toast";
-      tip.textContent = label;
-      a.appendChild(tip);
+      addToast(a, `Visit ${hostLabel(a.href)}`);
     }
     a.addEventListener("click", () => flashToast(a));
   });
@@ -1270,9 +1280,7 @@ function renderSiteFooter(content) {
     // tab left open overnight would otherwise still be insisting the build
     // shipped two minutes ago.
     if (content.versionDate) {
-      const tip = document.createElement("span");
-      tip.className = "nav-toast";
-      version.appendChild(tip);
+      const tip = addToast(version);
       const stamp = () => {
         const ago = relativeTime(content.versionDate);
         if (!ago) return;
@@ -1311,7 +1319,7 @@ function renderSiteFooter(content) {
   // Its three rows cascade in on the same stagger the panels use, so the footer
   // arrives with the page rather than snapping in under it. revealPanel() is
   // what actually triggers the reveal, on every panel change.
-  [mark, footer.querySelector(".site-footer-rule-row"), footer.querySelector(".site-footer-meta")]
+  [mark, footer.querySelector(".footer-rules"), footer.querySelector(".footer-meta")]
     .filter(Boolean)
     .forEach((row, i) => markStagger(row, i));
 }
@@ -1340,12 +1348,12 @@ function renderIntro(intro) {
     row.className = "company-logos";
     markStagger(row, idx++);
     const track = document.createElement("div");
-    track.className = "company-logos-track";
+    track.className = "logos-track";
 
     // Two identical sets create a continuous, seamless marquee loop.
     [false, true].forEach((isDuplicate) => {
       const set = document.createElement("div");
-      set.className = "company-logos-set";
+      set.className = "logos-set";
       if (isDuplicate) set.setAttribute("aria-hidden", "true");
       intro.companies.forEach((c) => {
         let el;
@@ -1411,7 +1419,7 @@ function renderIntro(intro) {
   // Store's Cart action, which is a button for the same reason.
   const hire = document.createElement("button");
   hire.type = "button";
-  hire.className = "resume-download intro-cta-link";
+  hire.className = "resume-download cta-link";
   hire.textContent = "Work with me";
   hire.addEventListener("click", openBookingTray);
 
@@ -1543,7 +1551,7 @@ function caseBeat(beat) {
 
   if (beat.label) {
     const label = document.createElement("p");
-    label.className = "case-beat-label";
+    label.className = "beat-label";
     label.textContent = beat.label;
     wrap.appendChild(label);
   }
@@ -1558,10 +1566,10 @@ function caseMeta(rows) {
   dl.className = "case-meta";
   (rows || []).forEach((row) => {
     const dt = document.createElement("dt");
-    dt.className = "case-meta-label";
+    dt.className = "meta-label";
     dt.textContent = row.label || "";
     const dd = document.createElement("dd");
-    dd.className = "case-meta-value";
+    dd.className = "meta-value";
     dd.textContent = row.value || "";
     dl.append(dt, dd);
   });
@@ -1584,18 +1592,18 @@ function caseMeta(rows) {
 // figure at its source, for screenshots of something that lives elsewhere.
 function caseFigure(figure) {
   const fig = document.createElement("figure");
-  fig.className = "work-gallery-item case-figure";
+  fig.className = "gallery-item case-figure";
 
   if (figure.src) {
     const img = document.createElement("img");
-    img.className = "work-gallery-image";
+    img.className = "gallery-img";
     setDisplaySrc(img, figure.src);
     img.alt = figure.alt || figure.caption || "";
     img.loading = "lazy";
     img.decoding = "async";
     if (figure.width) img.width = figure.width;
     if (figure.height) img.height = figure.height;
-    attachImageFallback(img, "work-gallery-image");
+    attachImageFallback(img, "gallery-img");
 
     const href = figure.href && safeUrl(figure.href);
     if (href) {
@@ -1603,7 +1611,7 @@ function caseFigure(figure) {
       // anchor needs nothing of its own. rel is the same pair every other
       // outbound link on the site carries, whatever the content asked for.
       const link = document.createElement("a");
-      link.className = "case-figure-link";
+      link.className = "fig-link";
       link.href = href;
       link.target = "_blank";
       link.rel = "noopener noreferrer";
@@ -1619,23 +1627,21 @@ function caseFigure(figure) {
       // aria-hidden because the alt text is already a full description and the
       // anchor's accessible name is built from its contents — appending "View
       // on X" to a thirty-word alt makes that name unwieldy for no gain.
-      const tip = document.createElement("span");
-      tip.className = "nav-toast nav-toast--corner";
+      const tip = addToast(link, figure.linkLabel || `Visit ${hostLabel(href)}`);
+      tip.classList.add("nav-toast--corner");
       tip.setAttribute("aria-hidden", "true");
-      tip.textContent = figure.linkLabel || `Visit ${hostLabel(href)}`;
-      link.appendChild(tip);
 
       fig.appendChild(link);
     } else {
       fig.appendChild(img);
     }
   } else {
-    fig.appendChild(emptyImageTile("work-gallery-image"));
+    fig.appendChild(emptyImageTile("gallery-img"));
   }
 
   if (figure.caption) {
     const caption = document.createElement("figcaption");
-    caption.className = "work-gallery-caption";
+    caption.className = "gallery-caption";
     caption.textContent = figure.caption;
     fig.appendChild(caption);
   }
@@ -1655,7 +1661,7 @@ function caseSection(block) {
   if (block.heading) {
     // Decisions sit under the "Decisions" divider, so they are a level down.
     const heading = document.createElement(block.number ? "h3" : "h2");
-    heading.className = block.number ? "case-decision-title" : "case-heading";
+    heading.className = block.number ? "decision-title" : "case-heading";
     if (block.number) {
       const n = document.createElement("span");
       n.className = "case-number";
@@ -1703,7 +1709,7 @@ function buildWorkDetailContent(panel, project) {
   panel.dataset.slug = project.slug || ""; // read by the local CMS overlay only
 
   const back = document.createElement("a");
-  back.className = "inline-link work-detail-back";
+  back.className = "inline-link detail-back";
   back.href = "#";
   back.textContent = "← Back to Selected Works";
   back.addEventListener("click", (e) => {
@@ -1718,15 +1724,15 @@ function buildWorkDetailContent(panel, project) {
   let hero;
   if (project.slug === "sort-cash") {
     // Same tile as the work-list thumb, not a scaled-up variant.
-    hero = sortCashTile("work-detail-image", 32);
+    hero = sortCashTile("detail-img", 32);
   } else if (project.image) {
     hero = document.createElement("img");
-    hero.className = "work-detail-image";
+    hero.className = "detail-img";
     setDisplaySrc(hero, project.image);
     hero.alt = project.title || "";
-    attachImageFallback(hero, "work-detail-image");
+    attachImageFallback(hero, "detail-img");
   } else {
-    hero = emptyImageTile("work-detail-image");
+    hero = emptyImageTile("detail-img");
   }
   markStagger(hero, 1);
   panel.appendChild(hero);
@@ -1734,7 +1740,7 @@ function buildWorkDetailContent(panel, project) {
   const head = document.createElement("div");
   head.className = "work-head";
   head.innerHTML = `
-    <p class="work-title work-detail-title">${esc(project.title)}</p>
+    <p class="work-title detail-title">${esc(project.title)}</p>
     <div class="work-chips">${chipsMarkup(project)}</div>
   `;
   markStagger(head, 2);
@@ -1769,14 +1775,14 @@ function buildWorkDetailContent(panel, project) {
     gallery.className = "work-gallery";
     project.images.forEach((image, i) => {
       const figure = document.createElement("figure");
-      figure.className = "work-gallery-item";
+      figure.className = "gallery-item";
 
       const img = document.createElement("img");
-      img.className = "work-gallery-image";
+      img.className = "gallery-img";
       setDisplaySrc(img, image.src);
       img.alt = image.caption || project.title || "";
       img.loading = "lazy";
-      attachImageFallback(img, "work-gallery-image");
+      attachImageFallback(img, "gallery-img");
       makeActivatable(img, `Enlarge image${image.caption ? `: ${image.caption}` : ""}`, () =>
         openLightbox(project.images, i)
       );
@@ -1784,7 +1790,7 @@ function buildWorkDetailContent(panel, project) {
 
       if (image.caption) {
         const caption = document.createElement("figcaption");
-        caption.className = "work-gallery-caption";
+        caption.className = "gallery-caption";
         caption.textContent = image.caption;
         figure.appendChild(caption);
       }
@@ -1798,7 +1804,7 @@ function buildWorkDetailContent(panel, project) {
   const visitHref = project.link && safeUrl(project.link.url);
   if (visitHref) {
     const visit = document.createElement("p");
-    visit.className = "detail-link-row";
+    visit.className = "link-row";
     // A filled CTA rather than a text link — this is the one outbound action on
     // a case study, so it gets the same button the 404's back-link uses, with
     // the chevron trailing the label instead of leading it. No .inline-link,
@@ -1819,7 +1825,7 @@ function buildWorkDetailContent(panel, project) {
   const post = project.writingSlug && findPost(project.writingSlug);
   if (post) {
     const row = document.createElement("p");
-    row.className = "detail-link-row";
+    row.className = "link-row";
     const a = document.createElement("a");
     a.className = "inline-link";
     a.href = "#";
@@ -1887,7 +1893,7 @@ function openWorkDetail(project, direction) {
     setRoute(`/work/${project.slug || ""}`, project.title);
     // The Next/Previous labels are about to change to the next pair of
     // neighbors — cross-fade them instead of letting the text snap.
-    if (navRow) navRow.classList.add("work-nav-row--fading");
+    if (navRow) navRow.classList.add("work-nav--fading");
 
     setTimeout(() => {
       // Superseded by another Next/Previous click, or the panel was
@@ -1902,7 +1908,7 @@ function openWorkDetail(project, direction) {
       });
       initInlineLinkTooltips(panel);
       updateWorkNav(project);
-      if (navRow) requestAnimationFrame(() => navRow.classList.remove("work-nav-row--fading"));
+      if (navRow) requestAnimationFrame(() => navRow.classList.remove("work-nav--fading"));
     }, exitMs);
     return;
   }
@@ -2038,9 +2044,9 @@ function renderWriting(writing, label) {
     const empty = document.createElement("div");
     empty.className = "writing-empty";
     empty.innerHTML = `
-      <span class="writing-empty-icon">${WRITING_EMPTY_ICON}</span>
-      <p class="writing-empty-title">${esc((writing && writing.disclaimer) || "Coming soon")}</p>
-      <p class="writing-empty-subtitle">${esc((writing && writing.subtitle) || "")}</p>
+      <span class="blank-icon">${WRITING_EMPTY_ICON}</span>
+      <p class="blank-title">${esc((writing && writing.disclaimer) || "Coming soon")}</p>
+      <p class="blank-sub">${esc((writing && writing.subtitle) || "")}</p>
     `;
     markStagger(empty, 1);
     panel.appendChild(empty);
@@ -2070,16 +2076,16 @@ function renderWriting(writing, label) {
     }
 
     const head = document.createElement("div");
-    head.className = "writing-item-head";
+    head.className = "item-head";
     head.innerHTML = `
-      <p class="writing-item-title">${esc(post.title)}</p>
+      <p class="post-title">${esc(post.title)}</p>
       ${post.date ? `<span class="work-chip work-chip--year">${esc(post.date)}</span>` : ""}
     `;
     item.appendChild(head);
 
     if (post.summary) {
       const summary = document.createElement("p");
-      summary.className = "writing-item-summary";
+      summary.className = "post-summary";
       setHtml(summary, post.summary);
       item.appendChild(summary);
     }
@@ -2100,7 +2106,7 @@ function openPost(post) {
   panel.dataset.slug = post.slug || ""; // read by the local CMS overlay only
 
   const back = document.createElement("a");
-  back.className = "inline-link work-detail-back";
+  back.className = "inline-link detail-back";
   back.href = "#";
   back.textContent = "← Back to Writing";
   back.addEventListener("click", (e) => {
@@ -2115,18 +2121,18 @@ function openPost(post) {
 
   // Same image the Writing list uses as the row's banner, carried through as
   // the post's hero so the two views open on the same picture. Shares
-  // .work-detail-image with a case study's hero rather than restating its
+  // .detail-img with a case study's hero rather than restating its
   // sizing — a post's hero is the same element in a different panel.
   if (post.thumb) {
     const hero = document.createElement("img");
-    hero.className = "work-detail-image post-hero";
+    hero.className = "detail-img post-hero";
     setDisplaySrc(hero, post.thumb);
     // The title sits directly beneath it, so a described hero would say the
     // same thing twice. thumbAlt overrides when the image carries meaning the
     // title does not.
     hero.alt = post.thumbAlt || "";
     hero.decoding = "async";
-    attachImageFallback(hero, "work-detail-image");
+    attachImageFallback(hero, "detail-img");
     markStagger(hero, idx++);
     panel.appendChild(hero);
   }
@@ -2134,7 +2140,7 @@ function openPost(post) {
   const head = document.createElement("div");
   head.className = "post-head";
   head.innerHTML = `
-    <p class="work-title work-detail-title">${esc(post.title)}</p>
+    <p class="work-title detail-title">${esc(post.title)}</p>
     <p class="post-meta">By ${esc(authorName)}${post.date ? ` · ${esc(post.date)}` : ""}</p>
   `;
   markStagger(head, idx++);
@@ -2176,7 +2182,7 @@ function renderContact(contact, label) {
     frame.className = "about-portrait";
 
     const portrait = document.createElement("img");
-    portrait.className = "about-portrait-img";
+    portrait.className = "portrait-img";
     portrait.src = contact.portrait;
     portrait.alt = contact.portraitAlt || "";
     // Square source, rendered in a 96px square box — the attributes just
@@ -2191,7 +2197,7 @@ function renderContact(contact, label) {
     // The reveal: the drawing gives way to the face behind it.
     if (contact.portraitHover) {
       const alt = document.createElement("img");
-      alt.className = "about-portrait-img about-portrait-img--alt";
+      alt.className = "portrait-img portrait-img--alt";
       // Decorative: it's the same person the image above it already names, and
       // announcing a second portrait would just be a duplicate.
       alt.alt = "";
@@ -2230,10 +2236,7 @@ function renderContact(contact, label) {
         return;
       }
       a.href = "#";
-      const tip = document.createElement("span");
-      tip.className = "nav-toast";
-      tip.textContent = `View ${project.title}`;
-      a.appendChild(tip);
+      addToast(a, `View ${project.title}`);
       a.addEventListener("click", (e) => {
         e.preventDefault();
         openWorkDetail(project);
