@@ -1,3 +1,7 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   FOUNDATIONS — the typeface, the tokens every rule reaches for, and the shell they are drawn on
+   ══════════════════════════════════════════════════════════════════════════ */
+
 /* ── Fonts ── */
 /* Built from the static DM Sans faces vendored in fonts/DM_Sans/static/ —
    Medium (500) and Bold (700), the two weights the design uses. They come from
@@ -461,21 +465,6 @@ h2 {
   font-size: var(--text-body);
 }
 
-/* ── Inline links: thin gray underline that darkens on hover, tooltip reveal ── */
-.inline-link {
-  position: relative;
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-color: var(--underline);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.14em;
-  transition: text-decoration-color var(--motion-quick);
-}
-
-.inline-link:hover {
-  text-decoration-color: var(--underline-hover);
-}
-
 /* ── Page shell ──
    A flat 32px above the wordmark at every breakpoint; the sides stay on
    --gutter so they keep tracking the bottom nav. Only the bottom is
@@ -492,77 +481,248 @@ h2 {
   }
 }
 
-/* ── Header: name + role ── */
-.intro-header {
-  margin-bottom: 48px;
+/* ── Panels ── */
+.panel[hidden] {
+  display: none;
 }
 
-.wordmark {
-  display: block;
-  padding: 0;
-  margin: 0;
-  border: 0;
-  height: 13px;
-  width: auto;
-  color: var(--brand);
-}
-
-/* Block-level flex, NOT inline-flex. .wordmark inherits the body's 1.6 line
-   height, which on the h1 is a 51.2px line box — an inline-level child gets
-   baseline-aligned inside it and lands ~23px below the 13px heading, on top of
-   the role line underneath. A block-level box builds no line box at all, so the
-   mark sits where the heading is.
-   fit-content keeps the hit area tight to the mark instead of spanning the
-   column, which is what inline-flex was there for.
-   The height has to be carried here too, or the svg's `height: 100%` below
-   resolves against a zero-height box. */
-.wordmark-home {
-  display: flex;
-  width: fit-content;
-  height: 100%;
-  color: inherit;
-  text-decoration: none;
-}
-
-.wordmark svg {
-  height: 100%;
-  width: auto;
-  display: block;
-}
-
-/* The role line under the wordmark. h2 rather than h3 — the wordmark is the
-   page's h1, and skipping a level breaks the outline for screen readers. */
-.identity-text h2 {
-  font-weight: var(--weight-body);
-  font-style: normal;
-  color: var(--fg-muted);
-  margin-top: 6px;
-}
-
-nav.identity-links {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.identity-links a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  color: var(--fg-muted);
-  transition: color var(--motion-quick);
-}
-
-.identity-links a:hover {
+.panel p {
+  margin: 0 0 20px;
   color: var(--fg);
 }
 
-.identity-links svg {
-  width: 16px;
-  height: 16px;
-  display: block;
+.panel p:last-child {
+  margin-bottom: 0;
+}
+
+.section-introduction {
+  color: var(--fg);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PRIMITIVES — pieces with no home of their own, used by several panels
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Inline links: thin gray underline that darkens on hover, tooltip reveal ── */
+.inline-link {
+  position: relative;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--underline);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.14em;
+  transition: text-decoration-color var(--motion-quick);
+}
+
+.inline-link:hover {
+  text-decoration-color: var(--underline-hover);
+}
+
+/* ── Empty-image tiles ──
+   Anything whose image is missing (or 404s) renders as a neutral icon tile
+   instead of a broken-image glyph; sizing comes from the companion class
+   (.work-thumb / .detail-img / .company-logo). */
+.image-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tile-bg);
+  color: var(--tile-fg);
+}
+
+.image-empty svg {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+/* Two-class selectors re-assert `display: flex` over `.t-stagger-line`'s
+   forced `display: block` — same fight as `.detail-img.sort-cash-tile`. */
+.work-thumb.image-empty {
+  display: flex;
+}
+
+.detail-img.image-empty {
+  display: flex;
+  aspect-ratio: 2.39 / 1;
+}
+
+.company-logo.image-empty {
+  width: 44px;
+  height: 20px;
+  border-radius: var(--radius-xs);
+  filter: none;
+}
+
+.company-logo.image-empty svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Title + chips row: sits on one line when there's room, wraps to two when
+   the column is too narrow for both. */
+.work-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+
+/* Scoped past `.work-list` to beat `.panel p`'s specificity — otherwise its
+   20px bottom margin and default color silently override these. */
+.work-list .work-title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  line-height: 1.3;
+  color: var(--fg);
+}
+
+.work-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.work-chip {
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.work-chip--year {
+  color: var(--underline-hover);
+}
+
+/* Color and background come inline per-chip (see TYPE_COLORS in site.js) —
+   these are just structural, plus a neutral fallback. */
+.work-chip--type {
+  padding: 4px 7px;
+  border-radius: var(--radius-xs);
+  background: var(--wash-strong);
+  color: var(--underline-hover);
+}
+
+.work-list .work-description {
+  display: -webkit-box;
+  margin: 6px 0 0;
+  overflow: hidden;
+  color: var(--fg-muted);
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  /* Asks the browser to rebalance the last line rather than leaving a single
+     word stranded on it. Where a project's copy breaks depends on the column
+     width, so this holds across breakpoints in a way hand-tuned copy can't.
+     Ignored by browsers that don't support it, hence the copy is written to
+     sit comfortably regardless. */
+  text-wrap: pretty;
+}
+
+/* ── Panel heading — shared between the Experience and Resume panels ── */
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  font-family: inherit;
+  font-weight: inherit;
+  font-size: var(--text-body);
+  color: var(--fg-muted);
+}
+
+/* Sub-section row within a panel (e.g. "Resume" + Download, "Social"), with
+   `display` re-asserted because `.t-stagger-line` forces `display: block`. */
+#panel-contact .panel-subheading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 36px 0 12px;
+}
+
+#panel-contact .panel-subheading .page-title {
+  margin: 0;
+}
+
+/* ── Primary action button ──
+   One appearance shared by Add to Cart, Checkout and the message form's
+   Next/Send. Only Add to Cart dips on press (see below). */
+.store-add,
+.cart-checkout,
+.msg-next {
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: var(--fg);
+  color: var(--on-fg);
+  font: inherit;
+  font-size: var(--text-ui);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: opacity var(--motion-quick);
+}
+
+.store-add:hover:not(:disabled),
+.cart-checkout:hover:not(:disabled),
+.msg-next:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.store-add:disabled,
+.cart-checkout:disabled,
+.msg-next:disabled {
+  background: var(--disabled-bg);
+  color: var(--fg-muted);
+  cursor: not-allowed;
+}
+
+.store-add {
+  transition: opacity var(--motion-quick), transform var(--motion-press);
+}
+
+.store-add:active:not(:disabled) {
+  transform: scale(var(--press-scale));
+}
+
+/* ── CTA button ──
+   The filled inline action, shared by the 404's back-link and a work item's
+   "Visit …" link. inline-flex so it hugs its label instead of spanning the
+   column the way the primary buttons above do, and the icon side decides which
+   end takes the tighter padding — hence the trailing modifier. ── */
+.cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 16px 11px 12px;
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: var(--fg);
+  color: var(--on-fg);
+  font-size: var(--text-ui);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity var(--motion-quick), transform var(--motion-press);
+}
+
+/* Icon after the label rather than before it, so the tight side flips. */
+.cta-button--trailing {
+  padding: 11px 12px 11px 16px;
 }
 
 /* ── Loading skeleton ──
@@ -748,2325 +908,81 @@ nav.identity-links {
   border-radius: 7px;
 }
 
-/* ── Panels ── */
-.panel[hidden] {
-  display: none;
+/* ══════════════════════════════════════════════════════════════════════════
+   CHROME — the furniture that persists while panels change beneath it
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Header: name + role ── */
+.intro-header {
+  margin-bottom: 48px;
 }
 
-.panel p {
-  margin: 0 0 20px;
-  color: var(--fg);
-}
-
-.panel p:last-child {
-  margin-bottom: 0;
-}
-
-.section-introduction {
-  color: var(--fg);
-}
-
-/* ── Writing ── */
-#panel-writing .writing-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.writing-item {
-  padding: 14px 0;
-  border-top: 1px solid var(--underline);
-  cursor: pointer;
-}
-
-.writing-item:last-child {
-  border-bottom: 1px solid var(--underline);
-}
-
-.writing-item:focus-visible {
-  outline: 2px solid var(--fg);
-  outline-offset: 4px;
-}
-
-/* Banner above the title, on the same 2.39:1 and the same radius as a work
-   card's thumbnail, so the two lists read as one family. The row keeps its
-   hairline rule and gains a little more padding to give the image room; a post
-   without a thumbnail keeps the tighter original rhythm. */
-#panel-writing .writing-thumb {
-  width: 100%;
-  aspect-ratio: 2.39 / 1;
-  object-fit: cover;
-  border-radius: var(--radius-md);
-  margin-bottom: 12px;
-  background: var(--media-bg);
-  transition: opacity var(--motion-quick);
-}
-
-.writing-item:hover .writing-thumb {
-  opacity: 0.9;
-}
-
-/* Re-asserts flex over `.t-stagger-line`'s forced `display: block`, same as
-   `.work-thumb.image-empty` above. */
-#panel-writing .writing-thumb.image-empty {
-  display: flex;
-}
-
-.item-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-/* Scoped past `.writing-list` to beat `.panel p`'s specificity — otherwise
-   its 20px bottom margin silently overrides this, same issue documented at
-   `.work-list .work-title` below. */
-.writing-list .post-title {
-  margin: 0;
-  font-size: var(--text-body);
-  font-weight: var(--weight-medium);
-  line-height: 1.35;
-  letter-spacing: -0.3pt;
-  color: var(--fg);
-}
-
-#panel-writing .post-summary {
-  margin: 3px 0 0;
-  font-size: var(--text-ui);
-  color: var(--fg-muted);
-  line-height: 1.45;
-}
-
-#panel-writing-detail .post-head {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  margin-bottom: 16px;
-}
-
-#panel-writing-detail .detail-title {
-  margin: 0;
-  font-size: var(--text-title);
-  font-weight: var(--weight-semibold);
-  line-height: 1.2;
-  letter-spacing: -0.4pt;
-  color: var(--fg);
-}
-
-#panel-writing-detail .post-meta {
-  margin: 0;
-  font-size: var(--text-fine);
-  color: var(--fg-muted);
-}
-
-#panel-writing-detail .post-paragraph {
-  margin: 0 0 14px;
-  font-size: var(--text-ui);
-  line-height: 1.55;
-  color: var(--fg);
-}
-
-#panel-writing-detail .post-paragraph:last-child {
-  margin-bottom: 0;
-}
-
-/* Link rows at the foot of a case study (visit site, read the write-up) */
-#panel-work-detail .link-row {
-  margin: 16px 0 0;
-}
-
-/* ── Writing panel empty state ── */
-#panel-writing .writing-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 8px 0 4px;
-}
-
-#panel-writing .blank-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-xl);
-  background: var(--sortcash-wash);
-  color: var(--sortcash);
-  transform: rotate(-8deg);
-}
-
-#panel-writing .blank-icon svg {
+.wordmark {
   display: block;
-  width: 22px;
-  height: 22px;
-}
-
-#panel-writing .blank-title {
-  margin: 4px 0 0;
-  font-size: var(--text-body);
-  font-weight: var(--weight-semibold);
-  color: var(--fg);
-}
-
-#panel-writing .blank-sub {
+  padding: 0;
   margin: 0;
-  font-size: var(--text-body);
-  color: var(--fg-muted);
-}
-
-/* ── Site footer ──
-   The shell's sign-off, below every panel rather than inside one: the wordmark
-   at the full width of the column, a hairline running out to the build chip,
-   then copyright on the left and the social icons on the right. ── */
-.site-footer {
-  /* Deliberately deeper than the wordmark's 24px gap to the hairline below it:
-     this is the break between the panel's content and the footer block, so it
-     needs to read as separation rather than as internal spacing. */
-  margin-top: 32px;
-}
-
-/* Hidden on the intro, which already opens on the wordmark — repeating it a
-   screen later reads as a stutter rather than a sign-off. Every other panel
-   (including the 404) keeps it. */
-body.is-intro .site-footer {
-  display: none;
-}
-
-/* Sized off the column instead of the header's fixed 13px, so the mark reads as
-   a full-width rule of its own. */
-.footer-mark {
-  color: var(--brand);
-}
-
-.footer-mark svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-/* Hairline and chip on one line, with the 9px gap the only thing between them —
-   the rule takes whatever width the chip leaves. Compound selector so the row
-   stays flex even though .t-stagger-line (declared later, added by markStagger)
-   forces display: block on staggered elements. */
-.footer-rules.t-stagger-line,
-.footer-rules {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin-top: 24px;
-}
-
-.footer-rule {
-  flex: 1 1 auto;
-  height: 1px;
-  background: var(--underline);
-}
-
-/* Links the build you're looking at to the commit history it came from. The
-   version is stamped into site-content.json by scripts/ship.sh on every deploy,
-   so the chip can never name a build other than the deployed one. */
-.footer-version {
-  position: relative; /* anchors its "Updated …" tooltip */
-  flex: 0 0 auto;
-  padding: 4px 9px;
-  border-radius: var(--radius-pill);
-  background: var(--wash);
-  font-size: var(--text-cap);
-  font-weight: var(--weight-bold);
-  letter-spacing: 0.02em;
-  line-height: 1;
-  color: var(--fg-muted);
-  text-decoration: none;
-  transition: background-color var(--motion-quick), color var(--motion-quick);
-}
-
-.footer-version:hover {
-  background: var(--wash-hover);
-  color: var(--fg);
-}
-
-/* Alone among the tooltips, this one sits beside its trigger rather than above
-   it. Above is where the wordmark is — the rule row clears it by 24px and the
-   chip is only 17px tall, so a floating tooltip lands on the letterforms. To
-   the left is the hairline: empty by definition, and long enough that the
-   tooltip can be as wide as it needs to be. It slides in along that axis for
-   the same reason, since it has room there and none upward. */
-.footer-version .nav-toast {
-  top: 50%;
-  right: calc(100% + 8px);
-  bottom: auto;
-  left: auto;
-  transform: translateY(-50%) translateX(4px);
-}
-
-@media (hover: hover) {
-  .footer-version:hover .nav-toast {
-    opacity: 1;
-    transform: translateY(-50%) translateX(0);
-  }
-}
-
-/* Its own rule for the same reason — the shared .show-toast rule re-applies the
-   centring translateX this variant doesn't use. */
-.footer-version.show-toast .nav-toast {
-  opacity: 1;
-  transform: translateY(-50%) translateX(0);
-}
-
-/* Compound selector for the same reason as the rule row above. */
-.footer-meta.t-stagger-line,
-.footer-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 12px;
-}
-
-.footer-copy {
-  margin: 0;
-  font-size: var(--text-fine);
-  color: var(--fg-muted);
-}
-
-/* The icon row is 24px boxes around 16px icons, so its last glyph sits 4px
-   short of the row's edge — pulled back out so it lines up with the end of the
-   hairline above it. */
-.footer-meta .identity-links {
-  margin-right: -4px;
-}
-
-/* ── Company logos strip ── */
-.company-logos {
-  position: relative;
-  overflow: hidden;
-  margin-top: 12px;
-  width: 100%;
-  max-width: 100%;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
-  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
-}
-
-.logos-track {
-  display: flex;
-  width: max-content;
-  animation: company-logos-scroll var(--marquee-dur) linear infinite;
-}
-
-.logos-set {
-  display: flex;
-  align-items: center;
-  gap: 32px;
-  padding-right: 32px;
-}
-
-@keyframes company-logos-scroll {
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-.company-logo {
-  height: 20px;
-  width: auto;
-  max-width: 96px;
-  object-fit: contain;
-  filter: var(--logo-filter);
-  opacity: 0.75;
-  transition: opacity var(--motion-quick), filter var(--motion-quick);
-}
-
-.company-logo:hover {
-  filter: var(--logo-filter-hover);
-  opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .logos-track {
-    animation: none;
-  }
-}
-
-/* ── Work list ── */
-.work-list {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  width: 100%;
-}
-
-.work-card {
-  cursor: pointer;
-}
-
-.work-card:focus-visible {
-  outline: 2px solid var(--fg);
-  outline-offset: 6px;
-  border-radius: var(--radius-xs);
-}
-
-.work-thumb {
-  width: 100%;
-  aspect-ratio: 2.39 / 1;
-  object-fit: cover;
-  border-radius: var(--radius-md);
-  margin-bottom: 10px;
-  background: var(--media-bg);
-  transition: opacity var(--motion-quick);
-}
-
-/* A hairline inside the edge of every work image. The thumbs run to the page's
-   own white — Casey's title card and the sort.cash icon tile are both largely
-   white — so without it the picture has no edge and the rounded corner reads as
-   an accident. It's --hairline, the same line the nav pill and the work-nav
-   buttons are drawn with, rather than a new one.
-
-   `outline` with a negative offset rather than a border or an inset shadow: a
-   border would eat into the box and shift the crop, and an inset box-shadow on
-   a replaced element paints *behind* the image, so it would never be seen at
-   all. An outline paints on top, follows the border-radius, and costs no
-   layout. */
-.work-thumb,
-.detail-img,
-.gallery-img {
-  outline: 1px solid var(--hairline);
-  outline-offset: -1px;
-}
-
-.work-card:hover .work-thumb {
-  opacity: 0.9;
-}
-
-/* Brand-orange stand-in thumb for sort.cash, which has no product screenshot.
-   `color` drives the mark's inner path (see SORT_CASH_MARK in site.js) so it
-   reads as a white logo with an orange cutout, not a flat white blob. */
-.sort-cash-tile {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--sortcash);
-  color: var(--sortcash);
-}
-
-.sort-cash-tile svg {
-  display: block;
-  width: var(--tile-icon-size, 32px);
-  height: var(--tile-icon-size, 32px);
-}
-
-/* ── Empty-image tiles ──
-   Anything whose image is missing (or 404s) renders as a neutral icon tile
-   instead of a broken-image glyph; sizing comes from the companion class
-   (.work-thumb / .detail-img / .company-logo). */
-.image-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--tile-bg);
-  color: var(--tile-fg);
-}
-
-.image-empty svg {
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-}
-
-/* Two-class selectors re-assert `display: flex` over `.t-stagger-line`'s
-   forced `display: block` — same fight as `.detail-img.sort-cash-tile`. */
-.work-thumb.image-empty {
-  display: flex;
-}
-
-.detail-img.image-empty {
-  display: flex;
-  aspect-ratio: 2.39 / 1;
-}
-
-.company-logo.image-empty {
-  width: 44px;
-  height: 20px;
-  border-radius: var(--radius-xs);
-  filter: none;
-}
-
-.company-logo.image-empty svg {
-  width: 14px;
-  height: 14px;
-}
-
-/* Title + chips row: sits on one line when there's room, wraps to two when
-   the column is too narrow for both. */
-.work-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px 12px;
-}
-
-/* Scoped past `.work-list` to beat `.panel p`'s specificity — otherwise its
-   20px bottom margin and default color silently override these. */
-.work-list .work-title {
-  margin: 0;
-  font-size: var(--text-body);
-  font-weight: var(--weight-medium);
-  line-height: 1.3;
-  color: var(--fg);
-}
-
-.work-chips {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  flex: 0 0 auto;
-}
-
-.work-chip {
-  font-size: var(--text-cap);
-  font-weight: var(--weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.work-chip--year {
-  color: var(--underline-hover);
-}
-
-/* Color and background come inline per-chip (see TYPE_COLORS in site.js) —
-   these are just structural, plus a neutral fallback. */
-.work-chip--type {
-  padding: 4px 7px;
-  border-radius: var(--radius-xs);
-  background: var(--wash-strong);
-  color: var(--underline-hover);
-}
-
-.work-list .work-description {
-  display: -webkit-box;
-  margin: 6px 0 0;
-  overflow: hidden;
-  color: var(--fg-muted);
-  line-height: 1.4;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  /* Asks the browser to rebalance the last line rather than leaving a single
-     word stranded on it. Where a project's copy breaks depends on the column
-     width, so this holds across breakpoints in a way hand-tuned copy can't.
-     Ignored by browsers that don't support it, hence the copy is written to
-     sit comfortably regardless. */
-  text-wrap: pretty;
-}
-
-/* ── Work case-study detail page (reachable only via a work card) ── */
-.detail-back {
-  margin-bottom: 20px;
-}
-
-.detail-img {
-  width: 100%;
-  border-radius: var(--radius-md);
-  margin: 0 0 20px;
-  background: var(--media-bg);
-}
-
-/* Photos use their own intrinsic ratio; the icon tile has none, so give it one.
-   `display`/`background` are repeated here (as a two-class selector) because this
-   element also gets `.t-stagger-line` from markStagger(), which forces
-   `display: block` and would otherwise silently kill the centering and knock out
-   the orange fill — same specificity fight as `.detail-img` below. */
-.detail-img.sort-cash-tile {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 2.39 / 1;
-  background: var(--sortcash);
-}
-
-/* Re-asserts flex over `.t-stagger-line`'s forced `display: block` — same
-   fix as elsewhere in this file (see the transitions notes at the bottom). */
-#panel-work-detail .work-head {
-  display: flex;
-  margin-bottom: 12px;
-}
-
-#panel-work-detail .detail-title {
-  margin: 0;
-  font-size: var(--text-title);
-  font-weight: var(--weight-semibold);
-  color: var(--fg);
-}
-
-/* Supporting images for the case study, each with a one-line caption below —
-   stacked full-width since the whole site runs at a fixed narrow measure
-   (see --content-width) rather than laid out as a multi-column grid. */
-.work-gallery {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin-top: 4px;
-}
-
-.gallery-item {
-  margin: 0;
-}
-
-.gallery-img {
-  width: 100%;
-  border-radius: var(--radius-md);
-  background: var(--media-bg);
-  cursor: zoom-in;
-  transition: opacity var(--motion-quick);
-}
-
-.gallery-img:hover {
-  opacity: 0.9;
-}
-
-.gallery-img.image-empty {
-  aspect-ratio: 4 / 3;
-  cursor: default;
-}
-
-.gallery-caption {
-  margin: 8px 0 0;
-  font-size: var(--text-small);
-  line-height: 1.4;
-  color: var(--fg-muted);
-}
-
-/* ── Long-form case study ──
-   Blocks built by buildCaseStudy() in site.js, used by both the work detail
-   panel (the short essay: header block and one-liner only) and the writing
-   detail panel (the full piece, with headings, beats and figures). Every rule
-   that lands on a paragraph is written as two classes, because `.panel p` (a
-   class plus a type) otherwise wins and puts its 20px margin back — the same
-   fight documented at `.work-list .work-title` above. Two classes beat it
-   without naming a panel, which is what lets one block serve both. */
-.case-block {
-  margin: 0 0 32px;
-}
-
-.case-block:last-child {
-  margin-bottom: 0;
-}
-
-/* Header block — client, role, year, scope, status. Five scannable lines on
-   the same hairline rhythm as the resume list, so the case study opens with
-   facts rather than with prose. */
-.case-block .case-meta {
-  display: grid;
-  grid-template-columns: 68px 1fr;
-  margin: 0;
-}
-
-.case-block .meta-label,
-.case-block .meta-value {
-  margin: 0;
-  padding: 7px 0;
-  border-top: 1px solid var(--underline);
-  font-size: var(--text-small);
-  line-height: 1.4;
-}
-
-.case-block .meta-label {
-  color: var(--fg-muted);
-}
-
-.case-block .meta-label:last-of-type,
-.case-block .meta-value:last-of-type {
-  border-bottom: 1px solid var(--underline);
-}
-
-/* The one-liner: the sentence written for someone who reads nothing else, so
-   it carries the only step up in size on the page. */
-.case-block .case-lede {
-  margin: 0;
-  font-size: var(--text-lede);
-  font-weight: var(--weight-medium);
-  line-height: 1.45;
-  letter-spacing: -0.4pt;
-  color: var(--fg);
-}
-
-/* The lede closes with a rule of its own, so the summary reads as a standalone
-   opening rather than as the first paragraph of the section under it. */
-.case-block--lede {
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--underline);
-}
-
-/* That rule already does the dividing, so a section heading landing directly
-   after the lede doesn't stack a second one on top of it. */
-.case-block--lede + .case-block .case-heading {
-  padding-top: 0;
-  border-top: 0;
-}
-
-/* A rule above each section heading rather than a size jump — the column is
-   360px wide, so division does the work that a larger type scale would. */
-.case-block .case-heading {
-  margin: 0 0 14px;
-  padding-top: 22px;
-  border-top: 1px solid var(--underline);
-  font-size: var(--text-body);
-  font-weight: var(--weight-semibold);
-  line-height: 1.3;
-  letter-spacing: -0.3pt;
-  color: var(--fg);
-}
-
-.case-block .case-paragraph {
-  margin: 0 0 12px;
-  font-size: var(--text-ui);
-  line-height: 1.55;
-  color: var(--fg);
-}
-
-.case-block .case-paragraph:last-child {
-  margin-bottom: 0;
-}
-
-/* Labelled beat — Tension / The call / Why / The cost inside a decision, and
-   the same shape wherever else a run of parallel points needs to be scanned
-   rather than read (the three pricing models, the two craft notes). */
-.case-block .case-beat {
-  margin: 0 0 16px;
-}
-
-.case-block .case-beat:last-child {
-  margin-bottom: 0;
-}
-
-/* A beat opening after prose needs more air than the paragraph gap, or its
-   label reads as a heading belonging to the paragraph above it. */
-.case-block .case-paragraph + .case-beat {
-  margin-top: 8px;
-}
-
-.case-block .beat-label {
-  margin: 0 0 3px;
-  font-size: var(--text-micro);
-  font-weight: var(--weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--fg-muted);
-}
-
-/* Decisions are the section a case study is judged on, so they are the one
-   run of blocks that gets a standing mark down the side. The rule is the
-   brand orange at low alpha — the only place the accent appears in body
-   copy — and it groups the four beats as one argument. */
-.case-block--decision {
-  margin-bottom: 26px;
-  padding-left: 14px;
-  border-left: 2px solid var(--sortcash-rule);
-}
-
-.case-block .decision-title {
-  margin: 0 0 14px;
-  font-size: var(--text-sub);
-  font-weight: var(--weight-semibold);
-  line-height: 1.3;
-  letter-spacing: -0.3pt;
-  color: var(--fg);
-}
-
-.case-block .case-number {
-  display: block;
-  margin-bottom: 3px;
-  font-size: var(--text-tiny);
-  font-weight: var(--weight-semibold);
-  letter-spacing: 0.08em;
-  font-variant-numeric: tabular-nums;
-  color: var(--sortcash);
-}
-
-/* Footnote: pulled up against the section it annotates instead of floating a
-   full block gap below it. */
-.case-block--note {
-  margin-top: -18px;
-}
-
-.case-block .case-note {
-  margin: 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--underline);
-  font-size: var(--text-fine);
-  line-height: 1.45;
-  color: var(--fg-muted);
-}
-
-/* --brand, not --sortcash: a footnote marker is the site's own furniture and
-   appears on any long-form page, so it takes the wordmark blue. The orange is
-   sort.cash's brand colour and only belongs where that product is what's being
-   shown — its tile, its logo tooltip — not in body copy generally. */
-.case-fn {
-  font-size: 0.7em;
-  vertical-align: super;
-  line-height: 0;
-  font-weight: var(--weight-semibold);
-  color: var(--brand);
-}
-
-/* In a note or a cites entry the marker is the reference number itself, not a
-   superscript pointing at one. */
-.case-block .case-note .case-fn,
-.case-block--cites .case-fn {
-  font-size: inherit;
-  vertical-align: baseline;
-  margin-right: 5px;
-}
-
-/* ── Cites — the numbered sources at the foot of a case study. Same muted,
-   smaller setting as a footnote, but a real section with its own heading
-   rather than an aside pulled up under the block it annotates. ── */
-/* Rendered after the CTAs rather than inline with the other blocks, so it can't
-   inherit its air from a preceding sibling's bottom margin — this restores the
-   same 32px between the CTA and the heading's rule that sits between any two
-   sections. Without it the rule is drawn flush against the button. */
-.case-block--cites {
-  margin-top: 32px;
-}
-
-.case-block--cites .case-paragraph {
-  margin: 0 0 7px;
-  font-size: var(--text-fine);
-  line-height: 1.45;
-  color: var(--fg-muted);
-}
-
-.case-block--cites .case-paragraph:last-child {
-  margin-bottom: 0;
-}
-
-/* Evidence sits under the section it belongs to rather than in the gallery
-   block at the foot of the page. */
-.case-block .case-figure {
-  margin: 20px 0 0;
-}
-
-/* A block ending on a figure closes with a small, muted caption rather than
-   body copy, so the standard 32px gap under it reads as a hole in the column.
-   Bring it down to the 20px the figure already keeps above itself, so a figure
-   sits with even air on both sides and its caption stays visibly attached to
-   the image rather than floating between it and the next paragraph. */
-.case-block:has(.case-figure:last-child) {
-  margin-bottom: 20px;
-}
-
-/* `.gallery-img` carries `cursor: zoom-in` for the lightbox, which only
-   the gallery at the foot of a case study wires up — a case figure isn't
-   clickable, so it shouldn't advertise that it is. A figure that links out to
-   its source is clickable, just not zoomable, so it takes the pointer back. */
-.case-block .case-figure .gallery-img {
-  cursor: default;
-}
-
-/* The positioning context its hover tooltip anchors to (.nav-toast--corner),
-   so the chip sits in the image's corner rather than the panel's. */
-.case-block .fig-link {
-  position: relative;
-  display: block;
-}
-
-.case-block .fig-link .gallery-img {
-  cursor: pointer;
-}
-
-/* Until the exports exist these are all empty tiles, and the gallery's 4:3
-   default stacks two of them into most of a screen — shallower keeps the
-   section's argument and its evidence in view together. */
-.case-block .case-figure .image-empty {
-  aspect-ratio: 16 / 10;
-}
-
-/* ── Store ── */
-
-/* Each product is one tight block — image, title row, one-line blurb — with a
-   clear gap to the next, so the list doesn't read as one continuous column.
-   `display` is re-asserted because `.t-stagger-line` forces `display: block`,
-   which silently drops the row gap if this element ever gets staggered. */
-#panel-store .work-list {
-  display: flex;
-  gap: 44px;
-}
-
-/* Every product is shot 3:4 portrait, so the card matches that ratio and the
-   photo fills it edge to edge — full column width, full height, no pale
-   letterbox bars either side. `cover` rather than `contain` so a future
-   product shot at some other ratio still fills the card instead of
-   reintroducing them; at 3:4 it crops nothing. */
-.store-thumb {
-  aspect-ratio: 3 / 4;
-  object-fit: cover;
-  background: var(--media-bg);
-  margin-bottom: 14px;
-}
-
-/* Product names run long ("Marc Andreessen's The Techno-Optimist Manifesto"),
-   so the title needs room to wrap without shoving the price chip off the row. */
-#panel-store .work-head {
-  display: flex;
-  align-items: baseline;
-  gap: 4px 12px;
-  margin-bottom: 0;
-}
-
-#panel-store .work-title {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-/* Blurbs are written to fit one line; the clamp is just a guard for products
-   that fall back to their Fourthwall copy. */
-#panel-store .work-description {
-  margin-top: 4px;
-  -webkit-line-clamp: 2;
-}
-
-#panel-store .store-status {
-  margin: 0;
-  color: var(--fg-muted);
-}
-
-/* Empty cart — centred icon tile over a title, the same shape as the Writing
-   panel's empty state. */
-/* The tray head already contributes its own 12px margin above this block, so
-   the top padding is that much smaller than the bottom — 12 + 16 above, 28
-   below — which is what actually lands the icon and title optically centred
-   in the sheet rather than sitting low in it. */
-.cart-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 0 28px;
-  text-align: center;
-}
-
-.cart-empty-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-xl);
-  background: var(--wash);
-  color: var(--fg-muted);
-}
-
-.cart-empty-icon svg {
-  display: block;
-  width: 22px;
-  height: 22px;
-}
-
-/* Tighter than the body's 1.6 so the line box doesn't carry stray leading
-   under the text, which would read as extra space below the title. */
-.cart-empty-title {
-  margin: 0;
-  font-size: var(--text-body);
-  font-weight: var(--weight-semibold);
-  line-height: 1.3;
-  color: var(--fg);
-}
-
-/* Currency picker + Cart, grouped at the right of the Store heading. */
-.heading-actions {
-  display: flex;
-  align-items: baseline;
-  gap: 7px;
-}
-
-.heading-sep {
-  color: var(--underline);
-  line-height: 1;
-}
-
-/* Compound selector so the wrapper stays inline-flex even though
-   .t-stagger-line (declared later) forces display: block on staggered
-   elements — the chevron is positioned against this box. */
-.currency-wrap.t-stagger-line,
-.currency-wrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-/* The chevron is drawn in CSS rather than an SVG data URI, so nothing extra
-   has to be allowed through the image CSP. */
-.currency-wrap::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 50%;
-  width: 4px;
-  height: 4px;
-  border-right: 1.5px solid var(--fg-muted);
-  border-bottom: 1.5px solid var(--fg-muted);
-  transform: translateY(-75%) rotate(45deg);
-  pointer-events: none;
-}
-
-.store-currency {
-  appearance: none;
-  -webkit-appearance: none;
-  margin: 0;
-  padding: 0 9px 0 0;
   border: 0;
-  border-radius: 0;
-  background: none;
-  font: inherit;
-  font-size: var(--text-tiny);
-  line-height: inherit;
+  height: 13px;
+  width: auto;
+  color: var(--brand);
+}
+
+/* Block-level flex, NOT inline-flex. .wordmark inherits the body's 1.6 line
+   height, which on the h1 is a 51.2px line box — an inline-level child gets
+   baseline-aligned inside it and lands ~23px below the 13px heading, on top of
+   the role line underneath. A block-level box builds no line box at all, so the
+   mark sits where the heading is.
+   fit-content keeps the hit area tight to the mark instead of spanning the
+   column, which is what inline-flex was there for.
+   The height has to be carried here too, or the svg's `height: 100%` below
+   resolves against a zero-height box. */
+.wordmark-home {
+  display: flex;
+  width: fit-content;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.wordmark svg {
+  height: 100%;
+  width: auto;
+  display: block;
+}
+
+/* The role line under the wordmark. h2 rather than h3 — the wordmark is the
+   page's h1, and skipping a level breaks the outline for screen readers. */
+.identity-text h2 {
+  font-weight: var(--weight-body);
+  font-style: normal;
   color: var(--fg-muted);
-  cursor: pointer;
+  margin-top: 6px;
+}
+
+nav.identity-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.identity-links a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--fg-muted);
   transition: color var(--motion-quick);
 }
 
-.store-currency:hover {
+.identity-links a:hover {
   color: var(--fg);
 }
 
-.store-currency:focus-visible {
-  outline: 2px solid var(--fg);
-  outline-offset: 3px;
-}
-
-.store-gallery {
-  margin-bottom: 20px;
-}
-
-.gallery-main {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  object-fit: cover;
-  border-radius: var(--radius-md);
-  background: var(--media-bg);
-}
-
-.store-thumbs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.thumb-btn {
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 1px solid var(--underline);
-  border-radius: var(--radius-sm);
-  background: var(--media-bg);
-  cursor: pointer;
-  overflow: hidden;
-  transition: border-color var(--motion-quick);
-}
-
-.thumb-btn.active {
-  border-color: var(--fg);
-}
-
-.thumb-btn img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-#panel-store-detail .work-head {
-  display: flex;
-  align-items: baseline;
-  gap: 4px 12px;
-  margin-bottom: 10px;
-}
-
-#panel-store-detail .detail-title {
-  flex: 1 1 auto;
-  min-width: 0;
-  margin: 0;
-  font-size: var(--text-title);
-  font-weight: var(--weight-semibold);
-  line-height: 1.25;
-  color: var(--fg);
-}
-
-#panel-store-detail .store-desc {
-  color: var(--fg-muted);
-  line-height: 1.5;
-  margin-bottom: 28px;
-}
-
-#panel-store-detail .store-desc p {
-  margin: 0 0 8px;
-  color: var(--fg-muted);
-}
-
-#panel-store-detail .store-desc p:last-child {
-  margin-bottom: 0;
-}
-
-.options-label {
-  margin: 0 0 10px;
-  font-size: var(--text-cap);
-  font-weight: var(--weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: var(--fg-muted);
-}
-
-.store-swatches,
-.store-sizes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 24px;
-}
-
-.store-swatch {
-  width: 28px;
-  height: 28px;
-  padding: 2px;
-  border: 1px solid var(--underline);
-  border-radius: 50%;
-  background: none;
-  cursor: pointer;
-  transition: border-color var(--motion-quick);
-}
-
-.store-swatch.active {
-  border-color: var(--fg);
-}
-
-.store-swatch span {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-}
-
-.store-size {
-  min-width: 40px;
-  padding: 7px 10px;
-  border: 1px solid var(--underline);
-  border-radius: var(--radius-sm);
-  background: none;
-  font: inherit;
-  font-size: var(--text-small);
-  color: var(--fg);
-  cursor: pointer;
-  transition: border-color var(--motion-quick), color var(--motion-quick);
-}
-
-.store-size.active {
-  border-color: var(--fg);
-  font-weight: var(--weight-semibold);
-}
-
-.store-size:disabled {
-  color: var(--underline);
-  border-color: var(--disabled-border);
-  cursor: not-allowed;
-  text-decoration: line-through;
-}
-
-/* ── Primary action button ──
-   One appearance shared by Add to Cart, Checkout and the message form's
-   Next/Send. Only Add to Cart dips on press (see below). */
-.store-add,
-.cart-checkout,
-.msg-next {
-  width: 100%;
-  padding: 14px 16px;
-  border: 0;
-  border-radius: var(--radius-xl);
-  background: var(--fg);
-  color: var(--on-fg);
-  font: inherit;
-  font-size: var(--text-ui);
-  font-weight: var(--weight-semibold);
-  cursor: pointer;
-  transition: opacity var(--motion-quick);
-}
-
-.store-add:hover:not(:disabled),
-.cart-checkout:hover:not(:disabled),
-.msg-next:hover:not(:disabled) {
-  opacity: 0.88;
-}
-
-.store-add:disabled,
-.cart-checkout:disabled,
-.msg-next:disabled {
-  background: var(--disabled-bg);
-  color: var(--fg-muted);
-  cursor: not-allowed;
-}
-
-.store-add {
-  transition: opacity var(--motion-quick), transform var(--motion-press);
-}
-
-.store-add:active:not(:disabled) {
-  transform: scale(var(--press-scale));
-}
-
-/* ── CTA button ──
-   The filled inline action, shared by the 404's back-link and a work item's
-   "Visit …" link. inline-flex so it hugs its label instead of spanning the
-   column the way the primary buttons above do, and the icon side decides which
-   end takes the tighter padding — hence the trailing modifier. ── */
-.cta-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 11px 16px 11px 12px;
-  border: 0;
-  border-radius: var(--radius-xl);
-  background: var(--fg);
-  color: var(--on-fg);
-  font-size: var(--text-ui);
-  font-weight: var(--weight-semibold);
-  text-decoration: none;
-  cursor: pointer;
-  transition: opacity var(--motion-quick), transform var(--motion-press);
-}
-
-/* Icon after the label rather than before it, so the tight side flips. */
-.cta-button--trailing {
-  padding: 11px 12px 11px 16px;
-}
-
-/* ── Intro call-to-action row ──
-   The pair that closes the intro panel: the filled button into the work, and
-   the quieter text link into the message tray. Compound selector so the row
-   stays flex even though .t-stagger-line (declared later, added by
-   markStagger) forces display: block on staggered elements.
-
-   Wraps because "Browse Portfolio" and "Work with me" together are close to
-   the full 360px measure — at the largest accessibility text sizes they need
-   the second line rather than a squashed button. */
-.intro-cta.t-stagger-line,
-.intro-cta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 20px;
-  margin-top: 28px;
-}
-
-/* The secondary of the two, so it gets body weight and the muted underline
-   rather than competing with the filled button beside it. Sized to match the
-   button's own label instead of the 12pt the heading actions use, since here
-   the two sit side by side and any difference reads as a mistake. */
-.cta-link {
-  font-size: var(--text-ui);
-  font-weight: var(--weight-medium);
-}
-
-.cta-button:hover {
-  opacity: 0.88;
-}
-
-.cta-button:active {
-  transform: scale(var(--press-scale));
-}
-
-.cta-button svg {
-  flex: 0 0 auto;
-  display: block;
+.identity-links svg {
   width: 16px;
   height: 16px;
-}
-
-/* ── Store footer — policy links below the product list ── */
-.store-footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  /* Spread across the column rather than bunched at the left, flush to both
-     edges so the row lines up with the footer's copyright and icons below it.
-     The separator dots are flex items too, so they land centred in each gap. */
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 44px;
-  padding-top: 20px;
-  border-top: 1px solid var(--underline);
-  font-size: var(--text-fine);
-  color: var(--fg-muted);
-}
-
-.store-footer-sep {
-  color: var(--underline);
-}
-
-/* ── Legal documents (Terms, Privacy, Returns) ── */
-#panel-legal .legal-title {
-  margin: 0 0 2px;
-  color: var(--fg);
-}
-
-#panel-legal .legal-updated {
-  margin: 0 0 24px;
-  font-size: var(--text-fine);
-  color: var(--fg-muted);
-}
-
-/* These run to tens of thousands of words, so they get a slightly smaller,
-   tighter setting than the site's body copy. */
-#panel-legal .legal-body {
-  font-size: var(--text-legal);
-  line-height: 1.55;
-}
-
-#panel-legal .legal-body p {
-  margin: 0 0 12px;
-  color: var(--fg-muted);
-}
-
-#panel-legal .legal-body .legal-heading {
-  margin: 28px 0 8px;
-  font-size: var(--text-body);
-  font-weight: var(--weight-semibold);
-  line-height: 1.3;
-  color: var(--fg);
-}
-
-#panel-legal .legal-body .legal-subheading {
-  margin: 18px 0 6px;
-  font-weight: var(--weight-semibold);
-  color: var(--fg);
-}
-
-#panel-legal .legal-body strong {
-  color: var(--fg);
-  font-weight: var(--weight-semibold);
-}
-
-#panel-legal .legal-body ul,
-#panel-legal .legal-body ol {
-  margin: 0 0 12px;
-  padding-left: 20px;
-  color: var(--fg-muted);
-}
-
-#panel-legal .legal-body li {
-  margin-bottom: 8px;
-}
-
-/* The Terms are one long numbered list whose items carry their own nested
-   lists; give the nesting room to breathe. */
-#panel-legal .legal-body li > ol,
-#panel-legal .legal-body li > ul {
-  margin-top: 8px;
-}
-
-#panel-legal .legal-body li:last-child {
-  margin-bottom: 0;
-}
-
-/* ── Tray — shared bottom sheet (cart + message form) ── */
-.tray-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-tray);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0);
-  transition: background var(--motion-dur) var(--motion-ease);
-}
-
-.tray-overlay[hidden] {
-  display: none;
-}
-
-.tray-overlay.open {
-  background: var(--scrim);
-}
-
-.tray-sheet {
-  width: 100%;
-  /* Capped at the measure itself, so the card's outer edges line up with where
-     the page text starts rather than with .site's outer box. */
-  max-width: var(--content-width);
-  max-height: 82vh;
-  display: flex;
-  flex-direction: column;
-  /* No side margin: the gutter is the sheet's own padding, so its contents land
-     on the same lines as .site. Below the max-width it goes full-bleed, which is
-     the usual bottom-sheet behaviour on a phone anyway. */
-  margin: 0 0 calc(var(--nav-clearance) + env(safe-area-inset-bottom, 0px));
-  padding: 16px;
-  border-radius: var(--radius-3xl);
-  background: var(--bg);
-  box-shadow: var(--shadow-sheet);
-  transform: translateY(16px);
-  opacity: 0;
-  transition: transform var(--motion-dur) var(--motion-ease),
-    opacity var(--motion-dur) var(--motion-ease);
-}
-
-.tray-overlay.open .tray-sheet {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-.tray-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-
-.tray-close {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: none;
-  color: var(--fg-muted);
-  cursor: pointer;
-  transition: color var(--motion-quick);
-}
-
-.tray-close:hover {
-  color: var(--fg);
-}
-
-/* One view (cart or message) is shown at a time. The flex column mirrors the
-   sheet's own layout so .cart-items can keep its scroll-within-sheet behaviour. */
-.tray-view {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.tray-view[hidden] {
-  display: none;
-}
-
-/* ── Booking view — the cal.com embed ──
-   The one thing on the site that can't live inside the 360px measure: a month
-   grid squeezed to the column is unusable, so this view alone widens the sheet.
-   The sheet keeps the 360px measure every other view uses; the embed's own
-   `useSlotsViewOnSmallScreen` gives a column of times rather than a squeezed
-   month grid at that width. What it gets instead of room is all of it: 9px of
-   padding rather than 16, and no head row at all — the close button is lifted
-   out of the flow into the sheet's own corner, so the embed starts at the top
-   of the sheet instead of a line below it.
-
-   No height here. cal measures its own content and writes a pixel height onto
-   its iframe, so pinning the sheet as well just leaves dead space under a
-   short month. The sheet's max-height still caps it, and the embed scrolls if
-   a long one runs past that. */
-.tray-sheet[data-view="book"] {
-  /* The corner the close button anchors to. The sheet is already a containing
-     block by way of its transform, but say so — an absolute child shouldn't
-     depend on an animation property staying put. */
-  position: relative;
-  padding: 9px;
-}
-
-.tray-sheet[data-view="book"] .page-title {
-  display: none;
-}
-
-/* Out of the flow entirely, so it reserves no height above the embed. */
-.tray-sheet[data-view="book"] .tray-head {
-  position: absolute;
-  top: 9px;
-  right: 9px;
-  z-index: 1;
-  margin: 0;
-}
-
-/* It's over the embed now, and the embed scrolls beneath it — so it carries
-   the sheet's own background rather than letting a time slot slide under the
-   glyph. */
-.tray-sheet[data-view="book"] .tray-close {
-  background: var(--bg);
-}
-
-.tray-view[data-view="book"] {
-  flex: 1 1 auto;
-}
-
-.cal-embed {
-  flex: 1 1 auto;
-  /* Without this a flex item won't shrink below its content, and the embed
-     would push the sheet past its own max-height — the same reason .cart-items
-     carries it. */
-  min-height: 0;
-  width: 100%;
-  overflow: auto;
-  /* Reserved whether or not it's needed. cal sizes its iframe to its own
-     content, so a bar appearing would narrow the frame, make cal re-measure,
-     report a new height, and possibly remove the need for the bar again —
-     a loop the layout can oscillate in. Holding the gutter open costs 6px and
-     settles it. */
-  scrollbar-gutter: stable;
-}
-
-/* Undoes cal's `scrollbar-width: none`, which hides the bar outright and takes
-   the ::-webkit-scrollbar rules below down with it — a scrollbar suppressed by
-   the standard property can't be painted back by the pseudo-element.
-   Specifically `auto`, not `thin`: any explicit value other than auto makes
-   Blink and WebKit switch to the standard property and stop honouring those
-   rules, which is how this got a fading system overlay bar instead of the
-   styled one. */
-.tray-sheet .cal-embed {
-  scrollbar-width: auto;
-}
-
-/* Firefox only, and last so it wins there. Behind @supports because Chrome and
-   Safari honour these too, and the moment they do they ignore everything
-   below. The query is false in Blink/WebKit, so they keep the styled,
-   always-visible bar while Firefox gets a thin one. */
-@supports not selector(::-webkit-scrollbar) {
-  .tray-sheet .cal-embed {
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb) transparent;
-  }
-}
-
-/* WebKit/Blink. Styling these at all opts macOS out of overlay scrollbars, so
-   the bar takes real width — which is the point: it should be visible against
-   a long month rather than only while the finger is moving.
-
-   Every rule here is scoped through .tray-sheet purely to outrank cal. Its
-   embed.js injects a stylesheet into this page that hides the bar on the
-   container it mounts into — `.cal-inline-container { scrollbar-width: none }`
-   and a matching ::-webkit-scrollbar { display: none }. Those are single-class
-   selectors like a bare .cal-embed would be, and they arrive at runtime, so
-   source order handed them the win. Two classes takes it back without
-   !important. */
-.tray-sheet .cal-embed::-webkit-scrollbar {
-  /* Explicit, because cal's rule is `display: none` and the cascade resolves
-     one property at a time — out-specifying it on `width` alone leaves its
-     `display` untouched and the bar still gone. */
   display: block;
-  width: 6px;
-}
-
-.tray-sheet .cal-embed::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.tray-sheet .cal-embed::-webkit-scrollbar-thumb {
-  border-radius: var(--radius-pill);
-  background: var(--scrollbar-thumb);
-}
-
-.tray-sheet .cal-embed::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
-}
-
-/* ── Jump list — the tray view behind ⌘K ──
-   The bar's tabs as a vertical list, each row carrying the digit that reaches
-   it directly. Rows are real buttons: the palette has to be usable by pointer,
-   which is the whole reason it exists rather than the digits alone. */
-.jump-list {
-  /* Positioning context for the travelling thumb. */
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  /* The rows carry their own padding; a gap on top of it would read as gaps in
-     a menu rather than a list of rows. */
-  gap: 2px;
-  min-height: 0;
-  overflow-y: auto;
-  /* Cancels the sheet's own padding on this edge so a scrolling list runs to
-     the sheet's inner edge instead of stopping short of it. */
-  margin: 0 -6px;
-  padding: 0 6px;
-}
-
-/* Compound selector so a row stays flex once markStagger has added
-   .t-stagger-line, which forces display: block — the same collision the footer
-   rule row and the intro CTA hit. */
-.jump-row.t-stagger-line,
-.jump-row {
-  /* Positioned, so it paints over .jump-focus rather than under it — both are
-     positioned and the block comes first in the markup, which is what decides
-     the order. Without this the row is static, the block wins, and it covers
-     the label it's meant to sit behind. */
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 10px;
-  border: 0;
-  border-radius: var(--radius-lg);
-  background: none;
-  color: var(--fg);
-  text-align: left;
-  cursor: pointer;
-}
-
-/* The bar's block, turned on its side. Sits behind the rows — it comes first
-   in the markup and the rows are positioned, so they paint over it — and takes
-   its new row outright rather than travelling down the list.
-
-   Inset 2px inside a 10px row corner, so it draws at 8px: nested, the same
-   arithmetic as the bar's. */
-.jump-focus {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 0;
-  height: 0;
-  border-radius: var(--radius-md);
-  background: var(--brand);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--motion-quick);
-}
-
-.jump-focus.is-on {
-  opacity: 1;
-}
-
-/* Hover and keyboard focus land on the same treatment on purpose — the palette
-   is driven both ways, and a row you've tabbed to is the row you're about to
-   pick. */
-/* The thumb is the indicator, so the UA's ring would be a second one. Safe to
-   drop only because .jump-focus tracks focus exactly — setActiveRow() moves it
-   from the focus event itself, and hovering a row moves focus rather than
-   lighting up separately, so there is never a highlighted row that Enter
-   wouldn't take. */
-.jump-row:focus,
-.jump-row:focus-visible {
-  outline: none;
-}
-
-.jump-icon {
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  color: var(--fg-muted);
-}
-
-.jump-icon svg {
-  display: block;
-  width: 18px;
-  height: 18px;
-}
-
-/* On the block, the row's contents take the colour that reads on it and its
-   icon goes solid — the bar's treatment, in a row. Driven by .is-active rather
-   than by :hover and :focus-visible separately, so the block and what's drawn
-   on it are moved by one thing and can't end up on different rows. */
-.jump-row.is-active {
-  color: var(--on-brand);
-}
-
-.jump-row.is-active .jump-icon {
-  color: var(--on-brand);
-}
-
-.jump-row.is-active .nav-icon--line {
-  opacity: 0;
-}
-
-.jump-row.is-active .nav-icon--solid {
-  opacity: 1;
-  transform: scale(1);
-}
-
-/* The digit re-reads as a chip on blue: a wash of the row's own foreground
-   rather than the black-on-white it wears against the sheet. Mixed off
-   --on-brand rather than hard-coded white, so it follows the blue when the
-   theme flips it — on the lighter dark-mode brand the chip is a dark wash. */
-.jump-row.is-active .shortcuts-key {
-  border-color: color-mix(in srgb, var(--on-brand) 28%, transparent);
-  background: color-mix(in srgb, var(--on-brand) 16%, transparent);
-  color: var(--on-brand);
-}
-
-/* Takes the slack so the digit stays pinned to the right edge. */
-.jump-label {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-size: var(--text-ui);
-}
-
-.cart-items {
-  flex: 1;
-  /* Without min-height:0 a flex item won't shrink below its content, so a long
-     cart would push the checkout button out past the sheet's max-height. */
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.cart-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 0;
-  border-top: 1px solid var(--underline);
-}
-
-.cart-item:first-child {
-  border-top: 0;
-  padding-top: 0;
-}
-
-.cart-img {
-  width: 52px;
-  height: 52px;
-  flex: 0 0 52px;
-  object-fit: contain;
-  border-radius: var(--radius-sm);
-  background: var(--media-bg);
-}
-
-.cart-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.cart-name {
-  margin: 0;
-  font-size: var(--text-ui);
-  font-weight: var(--weight-medium);
-  color: var(--fg);
-}
-
-.cart-variant {
-  margin: 2px 0 0;
-  font-size: var(--text-small);
-  color: var(--fg-muted);
-}
-
-.cart-qty {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.cart-qty-btn {
-  width: 22px;
-  height: 22px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 1px solid var(--underline);
-  border-radius: 50%;
-  background: none;
-  font: inherit;
-  line-height: 1;
-  color: var(--fg);
-  cursor: pointer;
-  transition: border-color var(--motion-quick);
-}
-
-.cart-qty-btn:hover {
-  border-color: var(--fg);
-}
-
-.cart-qty-num {
-  font-size: var(--text-small);
-  min-width: 12px;
-  text-align: center;
-}
-
-.cart-price {
-  font-size: var(--text-ui);
-  color: var(--fg);
-  white-space: nowrap;
-}
-
-.cart-foot {
-  padding-top: 12px;
-  border-top: 1px solid var(--underline);
-}
-
-.cart-foot[hidden] {
-  display: none;
-}
-
-.cart-total-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.cart-total-label {
-  font-size: var(--text-cap);
-  font-weight: var(--weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: var(--fg-muted);
-}
-
-.cart-total {
-  font-size: var(--text-lede);
-  font-weight: var(--weight-semibold);
-  color: var(--fg);
-}
-
-.cart-note {
-  margin: 8px 0 0;
-  font-size: var(--text-tiny);
-  text-align: center;
-  color: var(--fg-muted);
-}
-
-.cart-note--error {
-  color: var(--danger);
-}
-
-.cart-purge {
-  width: 100%;
-  margin-top: 8px;
-  padding: 11px 16px;
-  border: 1px solid var(--underline);
-  border-radius: var(--radius-xl);
-  background: none;
-  font: inherit;
-  font-size: var(--text-small);
-  color: var(--fg);
-  cursor: pointer;
-  transition: border-color var(--motion-quick);
-}
-
-.cart-purge:hover {
-  border-color: var(--fg);
-}
-
-.cart-purge[hidden] {
-  display: none;
-}
-
-/* An item the storefront won't sell — dimmed, but still removable. */
-.cart-item--dead .cart-img,
-.cart-item--dead .cart-name,
-.cart-item--dead .cart-price {
-  opacity: 0.45;
-}
-
-.cart-flag {
-  margin: 4px 0 0;
-  font-size: var(--text-cap);
-  font-weight: var(--weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: var(--danger);
-}
-
-/* ── Message form (inside the tray) ── */
-.msg-label {
-  display: block;
-  margin: 0 0 8px;
-  font-size: var(--text-ui);
-  font-weight: var(--weight-medium);
-  color: var(--fg);
-}
-
-.msg-input {
-  width: 100%;
-  padding: 13px 14px;
-  border: 1px solid var(--underline);
-  border-radius: var(--radius-xl);
-  background: none;
-  font: inherit;
-  font-size: var(--text-ui);
-  color: var(--fg);
-  transition: border-color var(--motion-quick);
-}
-
-.msg-input:focus {
-  outline: none;
-  border-color: var(--fg);
-}
-
-.msg-input::placeholder {
-  color: var(--fg-muted);
-}
-
-.msg-textarea {
-  min-height: 110px;
-  resize: vertical;
-}
-
-/* Honeypot — parked off-screen rather than display:none so naive bots still
-   treat it as a fillable field. */
-.msg-hp {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-}
-
-/* min-height reserves the line so the sheet doesn't jump when an error
-   appears — just the text's own height, with no extra padding around it. */
-.msg-error {
-  margin: 6px 0 0;
-  min-height: 11px;
-  font-size: var(--text-tiny);
-  line-height: 11px;
-  color: var(--danger);
-}
-
-.msg-foot {
-  margin-top: 10px;
-}
-
-.msg-foot[hidden] {
-  display: none;
-}
-
-.msg-foot-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 14px;
-  margin-top: 8px;
-}
-
-.msg-back {
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-size: var(--text-tiny);
-  color: var(--fg-muted);
-  cursor: pointer;
-  transition: color var(--motion-quick);
-}
-
-.msg-back:hover {
-  color: var(--fg);
-}
-
-.msg-progress {
-  margin-left: auto;
-  font-size: var(--text-tiny);
-  color: var(--fg-muted);
-}
-
-.msg-done {
-  padding: 12px 0 4px;
-  text-align: center;
-}
-
-.msg-done-title {
-  margin: 0;
-  font-size: var(--text-body);
-  font-weight: var(--weight-semibold);
-  color: var(--fg);
-}
-
-.msg-done-note {
-  margin: 6px 0 0;
-  font-size: var(--text-small);
-  color: var(--fg-muted);
-}
-
-.msg-step-in {
-  animation: msg-step-in var(--motion-dur) var(--motion-ease) both;
-}
-
-@keyframes msg-step-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tray-overlay,
-  .tray-sheet {
-    transition: none;
-  }
-
-  .msg-step-in {
-    animation: none;
-  }
-}
-
-/* ── Panel heading — shared between the Experience and Resume panels ── */
-.panel-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.page-title {
-  padding: 0;
-  margin: 0;
-  border: 0;
-  font-family: inherit;
-  font-weight: inherit;
-  font-size: var(--text-body);
-  color: var(--fg-muted);
-}
-
-/* Sub-section row within a panel (e.g. "Resume" + Download, "Social"), with
-   `display` re-asserted because `.t-stagger-line` forces `display: block`. */
-#panel-contact .panel-subheading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  margin: 36px 0 12px;
-}
-
-#panel-contact .panel-subheading .page-title {
-  margin: 0;
-}
-
-/* ── About ── */
-/* A fixed box holding both portraits stacked, so the hover swap can't move
-   anything beside it. overflow keeps the blur inside the rounded corner —
-   without it the softened edge bleeds past the radius as it fades. */
-.about-portrait {
-  position: relative;
-  width: 96px;
-  height: 96px;
-  /* Was the row's margin when a greeting sat beside it; the portrait carries
-     its own spacing now that it stands alone. */
-  margin-bottom: 20px;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  background: var(--media-bg);
-  /* It answers a tap on touch, and iOS paints a grey box over anything that
-     does. The blur crossfade is the feedback. */
-  -webkit-tap-highlight-color: transparent;
-}
-
-.portrait-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: opacity var(--motion-dur) var(--motion-ease),
-    filter var(--motion-dur) var(--motion-ease);
-}
-
-/* Each face blurs on its way out and sharpens on its way in, so the two never
-   simply dissolve through one another — the swap reads as one image resolving
-   into the other. :not() rather than source order, so the pair can't be broken
-   by a later edit moving these rules around. */
-.portrait-img--alt {
-  opacity: 0;
-  filter: blur(8px);
-}
-
-/* Two ways in, one state. :hover on a pointer device, .is-flipped from a tap
-   where there's no hover to give — see the click binding in renderContact. */
-.about-portrait:hover .portrait-img:not(.portrait-img--alt),
-.about-portrait.is-flipped .portrait-img:not(.portrait-img--alt) {
-  opacity: 0;
-  filter: blur(8px);
-}
-
-.about-portrait:hover .portrait-img--alt,
-.about-portrait.is-flipped .portrait-img--alt {
-  opacity: 1;
-  filter: blur(0);
-}
-
-/* The face still changes — it's the point — it just arrives rather than
-   resolving through a blur. */
-@media (prefers-reduced-motion: reduce) {
-  .portrait-img {
-    filter: none !important;
-    transition: opacity var(--motion-quick);
-  }
-}
-
-#panel-contact .about-paragraph {
-  margin: 0 0 16px;
-  color: var(--fg);
-}
-
-#panel-contact .about-paragraph:last-of-type {
-  margin-bottom: 0;
-}
-
-/* Heading action — a download link on Resume, a <button> for the Store's cart.
-   The button resets UA chrome so both render identically. */
-.resume-download {
-  padding: 0;
-  border: 0;
-  background: none;
-  font-family: inherit;
-  font-weight: inherit;
-  font-size: var(--text-body);
-  line-height: inherit;
-  color: var(--fg);
-  text-decoration: underline;
-  text-decoration-color: var(--underline);
-  text-underline-offset: 0.14em;
-  cursor: pointer;
-  transition: text-decoration-color var(--motion-quick);
-}
-
-.resume-download:hover {
-  text-decoration-color: var(--underline-hover);
-}
-
-.resume-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.resume-item {
-  padding: 10px 0;
-  border-top: 1px solid var(--underline);
-}
-
-.resume-item:last-child {
-  border-bottom: 1px solid var(--underline);
-}
-
-.resume-list .resume-title {
-  margin: 0;
-  font-size: var(--text-body);
-  font-weight: var(--weight-medium);
-  color: var(--fg);
-}
-
-.resume-list .resume-meta {
-  margin: 2px 0 0;
-  font-size: var(--text-body);
-  color: var(--fg-muted);
-}
-
-/* ── Lightbox — full-size viewer for a work item's gallery images ── */
-.lightbox-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-lightbox);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 56px 20px;
-  background: rgba(0, 0, 0, 0);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--motion-dur) var(--motion-ease),
-    background var(--motion-dur) var(--motion-ease);
-}
-
-.lightbox-overlay[hidden] {
-  display: none;
-}
-
-.lightbox-overlay.open {
-  opacity: 1;
-  pointer-events: auto;
-  background: var(--scrim-deep);
-}
-
-.lightbox-figure {
-  margin: 0;
-  max-width: min(100%, 900px);
-  max-height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.lightbox-image {
-  max-width: 100%;
-  max-height: calc(100vh - 160px);
-  width: auto;
-  border-radius: var(--radius-sm);
-  object-fit: contain;
-}
-
-.lightbox-caption {
-  margin: 14px 0 0;
-  max-width: 60ch;
-  color: var(--on-scrim);
-  font-size: var(--text-small);
-  line-height: 1.4;
-  text-align: center;
-}
-
-.lightbox-close {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 36px;
-  height: 36px;
-  border: 0;
-  border-radius: 50%;
-  background: var(--scrim-chrome);
-  /* --on-scrim-strong, not --on-fg: this sits on the lightbox's own scrim,
-     which is dark in both themes, so it stays white in both. */
-  color: var(--on-scrim-strong);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  transition: background var(--motion-quick);
-}
-
-.lightbox-close:hover {
-  background: var(--scrim-chrome-hover);
-}
-
-.lightbox-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  border: 0;
-  border-radius: 50%;
-  background: var(--scrim-chrome);
-  /* On the scrim, like .lightbox-close above. */
-  color: var(--on-scrim-strong);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  transition: background var(--motion-quick);
-}
-
-.lightbox-arrow:hover {
-  background: var(--scrim-chrome-hover);
-}
-
-.lightbox-arrow[hidden] {
-  display: none;
-}
-
-.lightbox-arrow svg {
-  width: 22px;
-  height: 22px;
-}
-
-.lightbox-prev {
-  left: 16px;
-}
-
-.lightbox-next {
-  right: 16px;
-}
-
-.lightbox-counter {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: var(--on-scrim-muted);
-  font-size: var(--text-cap);
-  font-weight: var(--weight-bold);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-@media (max-width: 480px) {
-  .lightbox-overlay {
-    padding: 48px 12px;
-  }
-
-  .lightbox-arrow {
-    width: 38px;
-    height: 38px;
-  }
-
-  .lightbox-prev {
-    left: 8px;
-  }
-
-  .lightbox-next {
-    right: 8px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lightbox-overlay {
-    transition: none;
-  }
-}
-
-/* ── 404 ──
-   The GIF sits in a .work-thumb frame so it reads as one of the Selected
-   Works tiles rather than as page furniture; only the attribution and the
-   body flag below are 404-specific (see revealPanel in site.js). */
-#panel-404 .notfound-thumb {
-  margin-bottom: 16px;
-}
-
-/* Title over subtitle, matching the Writing panel's empty state. */
-#panel-404 .notfound-title {
-  margin: 0;
-  font-size: var(--text-body);
-  font-weight: var(--weight-semibold);
-  color: var(--fg);
-}
-
-#panel-404 .notfound-message {
-  margin: 2px 0 0;
-  color: var(--fg-muted);
-}
-
-/* The 404's back-link is a .cta-button (see the shared rules above); only its
-   spacing in this panel belongs here. */
-#panel-404 .notfound-home {
-  margin-top: 20px;
-}
-
-/* Sits above the bottom nav, clearing it by the same 88px the tray uses. */
-.attribution {
-  position: fixed;
-  left: 50%;
-  bottom: calc(var(--nav-clearance) + env(safe-area-inset-bottom, 0px));
-  transform: translateX(-50%);
-  z-index: var(--z-page);
-  display: none;
-  width: 100%;
-  padding: 0 var(--gutter);
-  font-size: var(--text-tiny);
-  text-align: center;
-  color: var(--fg-muted);
-}
-
-body.is-404 .attribution {
-  display: block;
-}
-
-.light-link {
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-color: var(--underline);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.14em;
-  transition: text-decoration-color var(--motion-quick);
-}
-
-.light-link:hover {
-  text-decoration-color: var(--underline-hover);
 }
 
 /* ── Bottom nav (ported from sort.cash's shared bottom nav — glass pill +
@@ -3930,6 +1846,2115 @@ body.is-404 .attribution {
   color: var(--bg);
   transform: scale(0.9);
 }
+
+/* ── Site footer ──
+   The shell's sign-off, below every panel rather than inside one: the wordmark
+   at the full width of the column, a hairline running out to the build chip,
+   then copyright on the left and the social icons on the right. ── */
+.site-footer {
+  /* Deliberately deeper than the wordmark's 24px gap to the hairline below it:
+     this is the break between the panel's content and the footer block, so it
+     needs to read as separation rather than as internal spacing. */
+  margin-top: 32px;
+}
+
+/* Hidden on the intro, which already opens on the wordmark — repeating it a
+   screen later reads as a stutter rather than a sign-off. Every other panel
+   (including the 404) keeps it. */
+body.is-intro .site-footer {
+  display: none;
+}
+
+/* Sized off the column instead of the header's fixed 13px, so the mark reads as
+   a full-width rule of its own. */
+.footer-mark {
+  color: var(--brand);
+}
+
+.footer-mark svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Hairline and chip on one line, with the 9px gap the only thing between them —
+   the rule takes whatever width the chip leaves. Compound selector so the row
+   stays flex even though .t-stagger-line (declared later, added by markStagger)
+   forces display: block on staggered elements. */
+.footer-rules.t-stagger-line,
+.footer-rules {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 24px;
+}
+
+.footer-rule {
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--underline);
+}
+
+/* Links the build you're looking at to the commit history it came from. The
+   version is stamped into site-content.json by scripts/ship.sh on every deploy,
+   so the chip can never name a build other than the deployed one. */
+.footer-version {
+  position: relative; /* anchors its "Updated …" tooltip */
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--wash);
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: var(--fg-muted);
+  text-decoration: none;
+  transition: background-color var(--motion-quick), color var(--motion-quick);
+}
+
+.footer-version:hover {
+  background: var(--wash-hover);
+  color: var(--fg);
+}
+
+/* Alone among the tooltips, this one sits beside its trigger rather than above
+   it. Above is where the wordmark is — the rule row clears it by 24px and the
+   chip is only 17px tall, so a floating tooltip lands on the letterforms. To
+   the left is the hairline: empty by definition, and long enough that the
+   tooltip can be as wide as it needs to be. It slides in along that axis for
+   the same reason, since it has room there and none upward. */
+.footer-version .nav-toast {
+  top: 50%;
+  right: calc(100% + 8px);
+  bottom: auto;
+  left: auto;
+  transform: translateY(-50%) translateX(4px);
+}
+
+@media (hover: hover) {
+  .footer-version:hover .nav-toast {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+/* Its own rule for the same reason — the shared .show-toast rule re-applies the
+   centring translateX this variant doesn't use. */
+.footer-version.show-toast .nav-toast {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* Compound selector for the same reason as the rule row above. */
+.footer-meta.t-stagger-line,
+.footer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.footer-copy {
+  margin: 0;
+  font-size: var(--text-fine);
+  color: var(--fg-muted);
+}
+
+/* The icon row is 24px boxes around 16px icons, so its last glyph sits 4px
+   short of the row's edge — pulled back out so it lines up with the end of the
+   hairline above it. */
+.footer-meta .identity-links {
+  margin-right: -4px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PANELS — one block per view, in the order the bottom nav lists them
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Intro call-to-action row ──
+   The pair that closes the intro panel: the filled button into the work, and
+   the quieter text link into the message tray. Compound selector so the row
+   stays flex even though .t-stagger-line (declared later, added by
+   markStagger) forces display: block on staggered elements.
+
+   Wraps because "Browse Portfolio" and "Work with me" together are close to
+   the full 360px measure — at the largest accessibility text sizes they need
+   the second line rather than a squashed button. */
+.intro-cta.t-stagger-line,
+.intro-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin-top: 28px;
+}
+
+/* The secondary of the two, so it gets body weight and the muted underline
+   rather than competing with the filled button beside it. Sized to match the
+   button's own label instead of the 12pt the heading actions use, since here
+   the two sit side by side and any difference reads as a mistake. */
+.cta-link {
+  font-size: var(--text-ui);
+  font-weight: var(--weight-medium);
+}
+
+.cta-button:hover {
+  opacity: 0.88;
+}
+
+.cta-button:active {
+  transform: scale(var(--press-scale));
+}
+
+.cta-button svg {
+  flex: 0 0 auto;
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Company logos strip ── */
+.company-logos {
+  position: relative;
+  overflow: hidden;
+  margin-top: 12px;
+  width: 100%;
+  max-width: 100%;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+}
+
+.logos-track {
+  display: flex;
+  width: max-content;
+  animation: company-logos-scroll var(--marquee-dur) linear infinite;
+}
+
+.logos-set {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding-right: 32px;
+}
+
+@keyframes company-logos-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.company-logo {
+  height: 20px;
+  width: auto;
+  max-width: 96px;
+  object-fit: contain;
+  filter: var(--logo-filter);
+  opacity: 0.75;
+  transition: opacity var(--motion-quick), filter var(--motion-quick);
+}
+
+.company-logo:hover {
+  filter: var(--logo-filter-hover);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logos-track {
+    animation: none;
+  }
+}
+
+/* ── Work list ── */
+.work-list {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+}
+
+.work-card {
+  cursor: pointer;
+}
+
+.work-card:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 6px;
+  border-radius: var(--radius-xs);
+}
+
+.work-thumb {
+  width: 100%;
+  aspect-ratio: 2.39 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+  background: var(--media-bg);
+  transition: opacity var(--motion-quick);
+}
+
+/* A hairline inside the edge of every work image. The thumbs run to the page's
+   own white — Casey's title card and the sort.cash icon tile are both largely
+   white — so without it the picture has no edge and the rounded corner reads as
+   an accident. It's --hairline, the same line the nav pill and the work-nav
+   buttons are drawn with, rather than a new one.
+
+   `outline` with a negative offset rather than a border or an inset shadow: a
+   border would eat into the box and shift the crop, and an inset box-shadow on
+   a replaced element paints *behind* the image, so it would never be seen at
+   all. An outline paints on top, follows the border-radius, and costs no
+   layout. */
+.work-thumb,
+.detail-img,
+.gallery-img {
+  outline: 1px solid var(--hairline);
+  outline-offset: -1px;
+}
+
+.work-card:hover .work-thumb {
+  opacity: 0.9;
+}
+
+/* Brand-orange stand-in thumb for sort.cash, which has no product screenshot.
+   `color` drives the mark's inner path (see SORT_CASH_MARK in site.js) so it
+   reads as a white logo with an orange cutout, not a flat white blob. */
+.sort-cash-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sortcash);
+  color: var(--sortcash);
+}
+
+.sort-cash-tile svg {
+  display: block;
+  width: var(--tile-icon-size, 32px);
+  height: var(--tile-icon-size, 32px);
+}
+
+/* ── Work case-study detail page (reachable only via a work card) ── */
+.detail-back {
+  margin-bottom: 20px;
+}
+
+.detail-img {
+  width: 100%;
+  border-radius: var(--radius-md);
+  margin: 0 0 20px;
+  background: var(--media-bg);
+}
+
+/* Photos use their own intrinsic ratio; the icon tile has none, so give it one.
+   `display`/`background` are repeated here (as a two-class selector) because this
+   element also gets `.t-stagger-line` from markStagger(), which forces
+   `display: block` and would otherwise silently kill the centering and knock out
+   the orange fill — same specificity fight as `.detail-img` below. */
+.detail-img.sort-cash-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 2.39 / 1;
+  background: var(--sortcash);
+}
+
+/* Re-asserts flex over `.t-stagger-line`'s forced `display: block` — same
+   fix as elsewhere in this file (see the transitions notes at the bottom). */
+#panel-work-detail .work-head {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+#panel-work-detail .detail-title {
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: var(--weight-semibold);
+  color: var(--fg);
+}
+
+/* Supporting images for the case study, each with a one-line caption below —
+   stacked full-width since the whole site runs at a fixed narrow measure
+   (see --content-width) rather than laid out as a multi-column grid. */
+.work-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 4px;
+}
+
+.gallery-item {
+  margin: 0;
+}
+
+.gallery-img {
+  width: 100%;
+  border-radius: var(--radius-md);
+  background: var(--media-bg);
+  cursor: zoom-in;
+  transition: opacity var(--motion-quick);
+}
+
+.gallery-img:hover {
+  opacity: 0.9;
+}
+
+.gallery-img.image-empty {
+  aspect-ratio: 4 / 3;
+  cursor: default;
+}
+
+.gallery-caption {
+  margin: 8px 0 0;
+  font-size: var(--text-small);
+  line-height: 1.4;
+  color: var(--fg-muted);
+}
+
+/* ── Long-form case study ──
+   Blocks built by buildCaseStudy() in site.js, used by both the work detail
+   panel (the short essay: header block and one-liner only) and the writing
+   detail panel (the full piece, with headings, beats and figures). Every rule
+   that lands on a paragraph is written as two classes, because `.panel p` (a
+   class plus a type) otherwise wins and puts its 20px margin back — the same
+   fight documented at `.work-list .work-title` above. Two classes beat it
+   without naming a panel, which is what lets one block serve both. */
+.case-block {
+  margin: 0 0 32px;
+}
+
+.case-block:last-child {
+  margin-bottom: 0;
+}
+
+/* Header block — client, role, year, scope, status. Five scannable lines on
+   the same hairline rhythm as the resume list, so the case study opens with
+   facts rather than with prose. */
+.case-block .case-meta {
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  margin: 0;
+}
+
+.case-block .meta-label,
+.case-block .meta-value {
+  margin: 0;
+  padding: 7px 0;
+  border-top: 1px solid var(--underline);
+  font-size: var(--text-small);
+  line-height: 1.4;
+}
+
+.case-block .meta-label {
+  color: var(--fg-muted);
+}
+
+.case-block .meta-label:last-of-type,
+.case-block .meta-value:last-of-type {
+  border-bottom: 1px solid var(--underline);
+}
+
+/* The one-liner: the sentence written for someone who reads nothing else, so
+   it carries the only step up in size on the page. */
+.case-block .case-lede {
+  margin: 0;
+  font-size: var(--text-lede);
+  font-weight: var(--weight-medium);
+  line-height: 1.45;
+  letter-spacing: -0.4pt;
+  color: var(--fg);
+}
+
+/* The lede closes with a rule of its own, so the summary reads as a standalone
+   opening rather than as the first paragraph of the section under it. */
+.case-block--lede {
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--underline);
+}
+
+/* That rule already does the dividing, so a section heading landing directly
+   after the lede doesn't stack a second one on top of it. */
+.case-block--lede + .case-block .case-heading {
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* A rule above each section heading rather than a size jump — the column is
+   360px wide, so division does the work that a larger type scale would. */
+.case-block .case-heading {
+  margin: 0 0 14px;
+  padding-top: 22px;
+  border-top: 1px solid var(--underline);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  line-height: 1.3;
+  letter-spacing: -0.3pt;
+  color: var(--fg);
+}
+
+.case-block .case-paragraph {
+  margin: 0 0 12px;
+  font-size: var(--text-ui);
+  line-height: 1.55;
+  color: var(--fg);
+}
+
+.case-block .case-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Labelled beat — Tension / The call / Why / The cost inside a decision, and
+   the same shape wherever else a run of parallel points needs to be scanned
+   rather than read (the three pricing models, the two craft notes). */
+.case-block .case-beat {
+  margin: 0 0 16px;
+}
+
+.case-block .case-beat:last-child {
+  margin-bottom: 0;
+}
+
+/* A beat opening after prose needs more air than the paragraph gap, or its
+   label reads as a heading belonging to the paragraph above it. */
+.case-block .case-paragraph + .case-beat {
+  margin-top: 8px;
+}
+
+.case-block .beat-label {
+  margin: 0 0 3px;
+  font-size: var(--text-micro);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--fg-muted);
+}
+
+/* Decisions are the section a case study is judged on, so they are the one
+   run of blocks that gets a standing mark down the side. The rule is the
+   brand orange at low alpha — the only place the accent appears in body
+   copy — and it groups the four beats as one argument. */
+.case-block--decision {
+  margin-bottom: 26px;
+  padding-left: 14px;
+  border-left: 2px solid var(--sortcash-rule);
+}
+
+.case-block .decision-title {
+  margin: 0 0 14px;
+  font-size: var(--text-sub);
+  font-weight: var(--weight-semibold);
+  line-height: 1.3;
+  letter-spacing: -0.3pt;
+  color: var(--fg);
+}
+
+.case-block .case-number {
+  display: block;
+  margin-bottom: 3px;
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  color: var(--sortcash);
+}
+
+/* Footnote: pulled up against the section it annotates instead of floating a
+   full block gap below it. */
+.case-block--note {
+  margin-top: -18px;
+}
+
+.case-block .case-note {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--underline);
+  font-size: var(--text-fine);
+  line-height: 1.45;
+  color: var(--fg-muted);
+}
+
+/* --brand, not --sortcash: a footnote marker is the site's own furniture and
+   appears on any long-form page, so it takes the wordmark blue. The orange is
+   sort.cash's brand colour and only belongs where that product is what's being
+   shown — its tile, its logo tooltip — not in body copy generally. */
+.case-fn {
+  font-size: 0.7em;
+  vertical-align: super;
+  line-height: 0;
+  font-weight: var(--weight-semibold);
+  color: var(--brand);
+}
+
+/* In a note or a cites entry the marker is the reference number itself, not a
+   superscript pointing at one. */
+.case-block .case-note .case-fn,
+.case-block--cites .case-fn {
+  font-size: inherit;
+  vertical-align: baseline;
+  margin-right: 5px;
+}
+
+/* ── Cites — the numbered sources at the foot of a case study. Same muted,
+   smaller setting as a footnote, but a real section with its own heading
+   rather than an aside pulled up under the block it annotates. ── */
+/* Rendered after the CTAs rather than inline with the other blocks, so it can't
+   inherit its air from a preceding sibling's bottom margin — this restores the
+   same 32px between the CTA and the heading's rule that sits between any two
+   sections. Without it the rule is drawn flush against the button. */
+.case-block--cites {
+  margin-top: 32px;
+}
+
+.case-block--cites .case-paragraph {
+  margin: 0 0 7px;
+  font-size: var(--text-fine);
+  line-height: 1.45;
+  color: var(--fg-muted);
+}
+
+.case-block--cites .case-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Evidence sits under the section it belongs to rather than in the gallery
+   block at the foot of the page. */
+.case-block .case-figure {
+  margin: 20px 0 0;
+}
+
+/* A block ending on a figure closes with a small, muted caption rather than
+   body copy, so the standard 32px gap under it reads as a hole in the column.
+   Bring it down to the 20px the figure already keeps above itself, so a figure
+   sits with even air on both sides and its caption stays visibly attached to
+   the image rather than floating between it and the next paragraph. */
+.case-block:has(.case-figure:last-child) {
+  margin-bottom: 20px;
+}
+
+/* `.gallery-img` carries `cursor: zoom-in` for the lightbox, which only
+   the gallery at the foot of a case study wires up — a case figure isn't
+   clickable, so it shouldn't advertise that it is. A figure that links out to
+   its source is clickable, just not zoomable, so it takes the pointer back. */
+.case-block .case-figure .gallery-img {
+  cursor: default;
+}
+
+/* The positioning context its hover tooltip anchors to (.nav-toast--corner),
+   so the chip sits in the image's corner rather than the panel's. */
+.case-block .fig-link {
+  position: relative;
+  display: block;
+}
+
+.case-block .fig-link .gallery-img {
+  cursor: pointer;
+}
+
+/* Until the exports exist these are all empty tiles, and the gallery's 4:3
+   default stacks two of them into most of a screen — shallower keeps the
+   section's argument and its evidence in view together. */
+.case-block .case-figure .image-empty {
+  aspect-ratio: 16 / 10;
+}
+
+/* ── Writing ── */
+#panel-writing .writing-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.writing-item {
+  padding: 14px 0;
+  border-top: 1px solid var(--underline);
+  cursor: pointer;
+}
+
+.writing-item:last-child {
+  border-bottom: 1px solid var(--underline);
+}
+
+.writing-item:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 4px;
+}
+
+/* Banner above the title, on the same 2.39:1 and the same radius as a work
+   card's thumbnail, so the two lists read as one family. The row keeps its
+   hairline rule and gains a little more padding to give the image room; a post
+   without a thumbnail keeps the tighter original rhythm. */
+#panel-writing .writing-thumb {
+  width: 100%;
+  aspect-ratio: 2.39 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+  background: var(--media-bg);
+  transition: opacity var(--motion-quick);
+}
+
+.writing-item:hover .writing-thumb {
+  opacity: 0.9;
+}
+
+/* Re-asserts flex over `.t-stagger-line`'s forced `display: block`, same as
+   `.work-thumb.image-empty` above. */
+#panel-writing .writing-thumb.image-empty {
+  display: flex;
+}
+
+.item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Scoped past `.writing-list` to beat `.panel p`'s specificity — otherwise
+   its 20px bottom margin silently overrides this, same issue documented at
+   `.work-list .work-title` below. */
+.writing-list .post-title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  line-height: 1.35;
+  letter-spacing: -0.3pt;
+  color: var(--fg);
+}
+
+#panel-writing .post-summary {
+  margin: 3px 0 0;
+  font-size: var(--text-ui);
+  color: var(--fg-muted);
+  line-height: 1.45;
+}
+
+#panel-writing-detail .post-head {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 16px;
+}
+
+#panel-writing-detail .detail-title {
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+  letter-spacing: -0.4pt;
+  color: var(--fg);
+}
+
+#panel-writing-detail .post-meta {
+  margin: 0;
+  font-size: var(--text-fine);
+  color: var(--fg-muted);
+}
+
+#panel-writing-detail .post-paragraph {
+  margin: 0 0 14px;
+  font-size: var(--text-ui);
+  line-height: 1.55;
+  color: var(--fg);
+}
+
+#panel-writing-detail .post-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Link rows at the foot of a case study (visit site, read the write-up) */
+#panel-work-detail .link-row {
+  margin: 16px 0 0;
+}
+
+/* ── Writing panel empty state ── */
+#panel-writing .writing-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0 4px;
+}
+
+#panel-writing .blank-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-xl);
+  background: var(--sortcash-wash);
+  color: var(--sortcash);
+  transform: rotate(-8deg);
+}
+
+#panel-writing .blank-icon svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+}
+
+#panel-writing .blank-title {
+  margin: 4px 0 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--fg);
+}
+
+#panel-writing .blank-sub {
+  margin: 0;
+  font-size: var(--text-body);
+  color: var(--fg-muted);
+}
+
+/* ── About ── */
+/* A fixed box holding both portraits stacked, so the hover swap can't move
+   anything beside it. overflow keeps the blur inside the rounded corner —
+   without it the softened edge bleeds past the radius as it fades. */
+.about-portrait {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  /* Was the row's margin when a greeting sat beside it; the portrait carries
+     its own spacing now that it stands alone. */
+  margin-bottom: 20px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--media-bg);
+  /* It answers a tap on touch, and iOS paints a grey box over anything that
+     does. The blur crossfade is the feedback. */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.portrait-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity var(--motion-dur) var(--motion-ease),
+    filter var(--motion-dur) var(--motion-ease);
+}
+
+/* Each face blurs on its way out and sharpens on its way in, so the two never
+   simply dissolve through one another — the swap reads as one image resolving
+   into the other. :not() rather than source order, so the pair can't be broken
+   by a later edit moving these rules around. */
+.portrait-img--alt {
+  opacity: 0;
+  filter: blur(8px);
+}
+
+/* Two ways in, one state. :hover on a pointer device, .is-flipped from a tap
+   where there's no hover to give — see the click binding in renderContact. */
+.about-portrait:hover .portrait-img:not(.portrait-img--alt),
+.about-portrait.is-flipped .portrait-img:not(.portrait-img--alt) {
+  opacity: 0;
+  filter: blur(8px);
+}
+
+.about-portrait:hover .portrait-img--alt,
+.about-portrait.is-flipped .portrait-img--alt {
+  opacity: 1;
+  filter: blur(0);
+}
+
+/* The face still changes — it's the point — it just arrives rather than
+   resolving through a blur. */
+@media (prefers-reduced-motion: reduce) {
+  .portrait-img {
+    filter: none !important;
+    transition: opacity var(--motion-quick);
+  }
+}
+
+#panel-contact .about-paragraph {
+  margin: 0 0 16px;
+  color: var(--fg);
+}
+
+#panel-contact .about-paragraph:last-of-type {
+  margin-bottom: 0;
+}
+
+/* Heading action — a download link on Resume, a <button> for the Store's cart.
+   The button resets UA chrome so both render identically. */
+.resume-download {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-weight: inherit;
+  font-size: var(--text-body);
+  line-height: inherit;
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--underline);
+  text-underline-offset: 0.14em;
+  cursor: pointer;
+  transition: text-decoration-color var(--motion-quick);
+}
+
+.resume-download:hover {
+  text-decoration-color: var(--underline-hover);
+}
+
+.resume-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.resume-item {
+  padding: 10px 0;
+  border-top: 1px solid var(--underline);
+}
+
+.resume-item:last-child {
+  border-bottom: 1px solid var(--underline);
+}
+
+.resume-list .resume-title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--fg);
+}
+
+.resume-list .resume-meta {
+  margin: 2px 0 0;
+  font-size: var(--text-body);
+  color: var(--fg-muted);
+}
+
+/* ── Store ── */
+
+/* Each product is one tight block — image, title row, one-line blurb — with a
+   clear gap to the next, so the list doesn't read as one continuous column.
+   `display` is re-asserted because `.t-stagger-line` forces `display: block`,
+   which silently drops the row gap if this element ever gets staggered. */
+#panel-store .work-list {
+  display: flex;
+  gap: 44px;
+}
+
+/* Every product is shot 3:4 portrait, so the card matches that ratio and the
+   photo fills it edge to edge — full column width, full height, no pale
+   letterbox bars either side. `cover` rather than `contain` so a future
+   product shot at some other ratio still fills the card instead of
+   reintroducing them; at 3:4 it crops nothing. */
+.store-thumb {
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  background: var(--media-bg);
+  margin-bottom: 14px;
+}
+
+/* Product names run long ("Marc Andreessen's The Techno-Optimist Manifesto"),
+   so the title needs room to wrap without shoving the price chip off the row. */
+#panel-store .work-head {
+  display: flex;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-bottom: 0;
+}
+
+#panel-store .work-title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Blurbs are written to fit one line; the clamp is just a guard for products
+   that fall back to their Fourthwall copy. */
+#panel-store .work-description {
+  margin-top: 4px;
+  -webkit-line-clamp: 2;
+}
+
+#panel-store .store-status {
+  margin: 0;
+  color: var(--fg-muted);
+}
+
+/* Empty cart — centred icon tile over a title, the same shape as the Writing
+   panel's empty state. */
+/* The tray head already contributes its own 12px margin above this block, so
+   the top padding is that much smaller than the bottom — 12 + 16 above, 28
+   below — which is what actually lands the icon and title optically centred
+   in the sheet rather than sitting low in it. */
+.cart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0 28px;
+  text-align: center;
+}
+
+.cart-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-xl);
+  background: var(--wash);
+  color: var(--fg-muted);
+}
+
+.cart-empty-icon svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+}
+
+/* Tighter than the body's 1.6 so the line box doesn't carry stray leading
+   under the text, which would read as extra space below the title. */
+.cart-empty-title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  line-height: 1.3;
+  color: var(--fg);
+}
+
+/* Currency picker + Cart, grouped at the right of the Store heading. */
+.heading-actions {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.heading-sep {
+  color: var(--underline);
+  line-height: 1;
+}
+
+/* Compound selector so the wrapper stays inline-flex even though
+   .t-stagger-line (declared later) forces display: block on staggered
+   elements — the chevron is positioned against this box. */
+.currency-wrap.t-stagger-line,
+.currency-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* The chevron is drawn in CSS rather than an SVG data URI, so nothing extra
+   has to be allowed through the image CSP. */
+.currency-wrap::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-right: 1.5px solid var(--fg-muted);
+  border-bottom: 1.5px solid var(--fg-muted);
+  transform: translateY(-75%) rotate(45deg);
+  pointer-events: none;
+}
+
+.store-currency {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  padding: 0 9px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--text-tiny);
+  line-height: inherit;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: color var(--motion-quick);
+}
+
+.store-currency:hover {
+  color: var(--fg);
+}
+
+.store-currency:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+
+.store-gallery {
+  margin-bottom: 20px;
+}
+
+.gallery-main {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  background: var(--media-bg);
+}
+
+.store-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.thumb-btn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--underline);
+  border-radius: var(--radius-sm);
+  background: var(--media-bg);
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color var(--motion-quick);
+}
+
+.thumb-btn.active {
+  border-color: var(--fg);
+}
+
+.thumb-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#panel-store-detail .work-head {
+  display: flex;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-bottom: 10px;
+}
+
+#panel-store-detail .detail-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: var(--weight-semibold);
+  line-height: 1.25;
+  color: var(--fg);
+}
+
+#panel-store-detail .store-desc {
+  color: var(--fg-muted);
+  line-height: 1.5;
+  margin-bottom: 28px;
+}
+
+#panel-store-detail .store-desc p {
+  margin: 0 0 8px;
+  color: var(--fg-muted);
+}
+
+#panel-store-detail .store-desc p:last-child {
+  margin-bottom: 0;
+}
+
+.options-label {
+  margin: 0 0 10px;
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--fg-muted);
+}
+
+.store-swatches,
+.store-sizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.store-swatch {
+  width: 28px;
+  height: 28px;
+  padding: 2px;
+  border: 1px solid var(--underline);
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  transition: border-color var(--motion-quick);
+}
+
+.store-swatch.active {
+  border-color: var(--fg);
+}
+
+.store-swatch span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.store-size {
+  min-width: 40px;
+  padding: 7px 10px;
+  border: 1px solid var(--underline);
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-size: var(--text-small);
+  color: var(--fg);
+  cursor: pointer;
+  transition: border-color var(--motion-quick), color var(--motion-quick);
+}
+
+.store-size.active {
+  border-color: var(--fg);
+  font-weight: var(--weight-semibold);
+}
+
+.store-size:disabled {
+  color: var(--underline);
+  border-color: var(--disabled-border);
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+/* ── Store footer — policy links below the product list ── */
+.store-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  /* Spread across the column rather than bunched at the left, flush to both
+     edges so the row lines up with the footer's copyright and icons below it.
+     The separator dots are flex items too, so they land centred in each gap. */
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 44px;
+  padding-top: 20px;
+  border-top: 1px solid var(--underline);
+  font-size: var(--text-fine);
+  color: var(--fg-muted);
+}
+
+.store-footer-sep {
+  color: var(--underline);
+}
+
+/* ── Legal documents (Terms, Privacy, Returns) ── */
+#panel-legal .legal-title {
+  margin: 0 0 2px;
+  color: var(--fg);
+}
+
+#panel-legal .legal-updated {
+  margin: 0 0 24px;
+  font-size: var(--text-fine);
+  color: var(--fg-muted);
+}
+
+/* These run to tens of thousands of words, so they get a slightly smaller,
+   tighter setting than the site's body copy. */
+#panel-legal .legal-body {
+  font-size: var(--text-legal);
+  line-height: 1.55;
+}
+
+#panel-legal .legal-body p {
+  margin: 0 0 12px;
+  color: var(--fg-muted);
+}
+
+#panel-legal .legal-body .legal-heading {
+  margin: 28px 0 8px;
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  line-height: 1.3;
+  color: var(--fg);
+}
+
+#panel-legal .legal-body .legal-subheading {
+  margin: 18px 0 6px;
+  font-weight: var(--weight-semibold);
+  color: var(--fg);
+}
+
+#panel-legal .legal-body strong {
+  color: var(--fg);
+  font-weight: var(--weight-semibold);
+}
+
+#panel-legal .legal-body ul,
+#panel-legal .legal-body ol {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  color: var(--fg-muted);
+}
+
+#panel-legal .legal-body li {
+  margin-bottom: 8px;
+}
+
+/* The Terms are one long numbered list whose items carry their own nested
+   lists; give the nesting room to breathe. */
+#panel-legal .legal-body li > ol,
+#panel-legal .legal-body li > ul {
+  margin-top: 8px;
+}
+
+#panel-legal .legal-body li:last-child {
+  margin-bottom: 0;
+}
+
+/* ── 404 ──
+   The GIF sits in a .work-thumb frame so it reads as one of the Selected
+   Works tiles rather than as page furniture; only the attribution and the
+   body flag below are 404-specific (see revealPanel in site.js). */
+#panel-404 .notfound-thumb {
+  margin-bottom: 16px;
+}
+
+/* Title over subtitle, matching the Writing panel's empty state. */
+#panel-404 .notfound-title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--fg);
+}
+
+#panel-404 .notfound-message {
+  margin: 2px 0 0;
+  color: var(--fg-muted);
+}
+
+/* The 404's back-link is a .cta-button (see the shared rules above); only its
+   spacing in this panel belongs here. */
+#panel-404 .notfound-home {
+  margin-top: 20px;
+}
+
+/* Sits above the bottom nav, clearing it by the same 88px the tray uses. */
+.attribution {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--nav-clearance) + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: var(--z-page);
+  display: none;
+  width: 100%;
+  padding: 0 var(--gutter);
+  font-size: var(--text-tiny);
+  text-align: center;
+  color: var(--fg-muted);
+}
+
+body.is-404 .attribution {
+  display: block;
+}
+
+.light-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--underline);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.14em;
+  transition: text-decoration-color var(--motion-quick);
+}
+
+.light-link:hover {
+  text-decoration-color: var(--underline-hover);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   OVERLAYS — things that cover the site rather than sit inside it
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Tray — shared bottom sheet (cart + message form) ── */
+.tray-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-tray);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0);
+  transition: background var(--motion-dur) var(--motion-ease);
+}
+
+.tray-overlay[hidden] {
+  display: none;
+}
+
+.tray-overlay.open {
+  background: var(--scrim);
+}
+
+.tray-sheet {
+  width: 100%;
+  /* Capped at the measure itself, so the card's outer edges line up with where
+     the page text starts rather than with .site's outer box. */
+  max-width: var(--content-width);
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  /* No side margin: the gutter is the sheet's own padding, so its contents land
+     on the same lines as .site. Below the max-width it goes full-bleed, which is
+     the usual bottom-sheet behaviour on a phone anyway. */
+  margin: 0 0 calc(var(--nav-clearance) + env(safe-area-inset-bottom, 0px));
+  padding: 16px;
+  border-radius: var(--radius-3xl);
+  background: var(--bg);
+  box-shadow: var(--shadow-sheet);
+  transform: translateY(16px);
+  opacity: 0;
+  transition: transform var(--motion-dur) var(--motion-ease),
+    opacity var(--motion-dur) var(--motion-ease);
+}
+
+.tray-overlay.open .tray-sheet {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.tray-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.tray-close {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: color var(--motion-quick);
+}
+
+.tray-close:hover {
+  color: var(--fg);
+}
+
+/* One view (cart or message) is shown at a time. The flex column mirrors the
+   sheet's own layout so .cart-items can keep its scroll-within-sheet behaviour. */
+.tray-view {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tray-view[hidden] {
+  display: none;
+}
+
+/* ── Message form (inside the tray) ── */
+.msg-label {
+  display: block;
+  margin: 0 0 8px;
+  font-size: var(--text-ui);
+  font-weight: var(--weight-medium);
+  color: var(--fg);
+}
+
+.msg-input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--underline);
+  border-radius: var(--radius-xl);
+  background: none;
+  font: inherit;
+  font-size: var(--text-ui);
+  color: var(--fg);
+  transition: border-color var(--motion-quick);
+}
+
+.msg-input:focus {
+  outline: none;
+  border-color: var(--fg);
+}
+
+.msg-input::placeholder {
+  color: var(--fg-muted);
+}
+
+.msg-textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+/* Honeypot — parked off-screen rather than display:none so naive bots still
+   treat it as a fillable field. */
+.msg-hp {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* min-height reserves the line so the sheet doesn't jump when an error
+   appears — just the text's own height, with no extra padding around it. */
+.msg-error {
+  margin: 6px 0 0;
+  min-height: 11px;
+  font-size: var(--text-tiny);
+  line-height: 11px;
+  color: var(--danger);
+}
+
+.msg-foot {
+  margin-top: 10px;
+}
+
+.msg-foot[hidden] {
+  display: none;
+}
+
+.msg-foot-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 14px;
+  margin-top: 8px;
+}
+
+.msg-back {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--text-tiny);
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: color var(--motion-quick);
+}
+
+.msg-back:hover {
+  color: var(--fg);
+}
+
+.msg-progress {
+  margin-left: auto;
+  font-size: var(--text-tiny);
+  color: var(--fg-muted);
+}
+
+.msg-done {
+  padding: 12px 0 4px;
+  text-align: center;
+}
+
+.msg-done-title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--fg);
+}
+
+.msg-done-note {
+  margin: 6px 0 0;
+  font-size: var(--text-small);
+  color: var(--fg-muted);
+}
+
+.msg-step-in {
+  animation: msg-step-in var(--motion-dur) var(--motion-ease) both;
+}
+
+@keyframes msg-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tray-overlay,
+  .tray-sheet {
+    transition: none;
+  }
+
+  .msg-step-in {
+    animation: none;
+  }
+}
+
+/* ── Jump list — the tray view behind ⌘K ──
+   The bar's tabs as a vertical list, each row carrying the digit that reaches
+   it directly. Rows are real buttons: the palette has to be usable by pointer,
+   which is the whole reason it exists rather than the digits alone. */
+.jump-list {
+  /* Positioning context for the travelling thumb. */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* The rows carry their own padding; a gap on top of it would read as gaps in
+     a menu rather than a list of rows. */
+  gap: 2px;
+  min-height: 0;
+  overflow-y: auto;
+  /* Cancels the sheet's own padding on this edge so a scrolling list runs to
+     the sheet's inner edge instead of stopping short of it. */
+  margin: 0 -6px;
+  padding: 0 6px;
+}
+
+/* Compound selector so a row stays flex once markStagger has added
+   .t-stagger-line, which forces display: block — the same collision the footer
+   rule row and the intro CTA hit. */
+.jump-row.t-stagger-line,
+.jump-row {
+  /* Positioned, so it paints over .jump-focus rather than under it — both are
+     positioned and the block comes first in the markup, which is what decides
+     the order. Without this the row is static, the block wins, and it covers
+     the label it's meant to sit behind. */
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: none;
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+}
+
+/* The bar's block, turned on its side. Sits behind the rows — it comes first
+   in the markup and the rows are positioned, so they paint over it — and takes
+   its new row outright rather than travelling down the list.
+
+   Inset 2px inside a 10px row corner, so it draws at 8px: nested, the same
+   arithmetic as the bar's. */
+.jump-focus {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-radius: var(--radius-md);
+  background: var(--brand);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-quick);
+}
+
+.jump-focus.is-on {
+  opacity: 1;
+}
+
+/* Hover and keyboard focus land on the same treatment on purpose — the palette
+   is driven both ways, and a row you've tabbed to is the row you're about to
+   pick. */
+/* The thumb is the indicator, so the UA's ring would be a second one. Safe to
+   drop only because .jump-focus tracks focus exactly — setActiveRow() moves it
+   from the focus event itself, and hovering a row moves focus rather than
+   lighting up separately, so there is never a highlighted row that Enter
+   wouldn't take. */
+.jump-row:focus,
+.jump-row:focus-visible {
+  outline: none;
+}
+
+.jump-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  color: var(--fg-muted);
+}
+
+.jump-icon svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+/* On the block, the row's contents take the colour that reads on it and its
+   icon goes solid — the bar's treatment, in a row. Driven by .is-active rather
+   than by :hover and :focus-visible separately, so the block and what's drawn
+   on it are moved by one thing and can't end up on different rows. */
+.jump-row.is-active {
+  color: var(--on-brand);
+}
+
+.jump-row.is-active .jump-icon {
+  color: var(--on-brand);
+}
+
+.jump-row.is-active .nav-icon--line {
+  opacity: 0;
+}
+
+.jump-row.is-active .nav-icon--solid {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* The digit re-reads as a chip on blue: a wash of the row's own foreground
+   rather than the black-on-white it wears against the sheet. Mixed off
+   --on-brand rather than hard-coded white, so it follows the blue when the
+   theme flips it — on the lighter dark-mode brand the chip is a dark wash. */
+.jump-row.is-active .shortcuts-key {
+  border-color: color-mix(in srgb, var(--on-brand) 28%, transparent);
+  background: color-mix(in srgb, var(--on-brand) 16%, transparent);
+  color: var(--on-brand);
+}
+
+/* Takes the slack so the digit stays pinned to the right edge. */
+.jump-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--text-ui);
+}
+
+.cart-items {
+  flex: 1;
+  /* Without min-height:0 a flex item won't shrink below its content, so a long
+     cart would push the checkout button out past the sheet's max-height. */
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cart-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--underline);
+}
+
+.cart-item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.cart-img {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  background: var(--media-bg);
+}
+
+.cart-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cart-name {
+  margin: 0;
+  font-size: var(--text-ui);
+  font-weight: var(--weight-medium);
+  color: var(--fg);
+}
+
+.cart-variant {
+  margin: 2px 0 0;
+  font-size: var(--text-small);
+  color: var(--fg-muted);
+}
+
+.cart-qty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.cart-qty-btn {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--underline);
+  border-radius: 50%;
+  background: none;
+  font: inherit;
+  line-height: 1;
+  color: var(--fg);
+  cursor: pointer;
+  transition: border-color var(--motion-quick);
+}
+
+.cart-qty-btn:hover {
+  border-color: var(--fg);
+}
+
+.cart-qty-num {
+  font-size: var(--text-small);
+  min-width: 12px;
+  text-align: center;
+}
+
+.cart-price {
+  font-size: var(--text-ui);
+  color: var(--fg);
+  white-space: nowrap;
+}
+
+.cart-foot {
+  padding-top: 12px;
+  border-top: 1px solid var(--underline);
+}
+
+.cart-foot[hidden] {
+  display: none;
+}
+
+.cart-total-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.cart-total-label {
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--fg-muted);
+}
+
+.cart-total {
+  font-size: var(--text-lede);
+  font-weight: var(--weight-semibold);
+  color: var(--fg);
+}
+
+.cart-note {
+  margin: 8px 0 0;
+  font-size: var(--text-tiny);
+  text-align: center;
+  color: var(--fg-muted);
+}
+
+.cart-note--error {
+  color: var(--danger);
+}
+
+.cart-purge {
+  width: 100%;
+  margin-top: 8px;
+  padding: 11px 16px;
+  border: 1px solid var(--underline);
+  border-radius: var(--radius-xl);
+  background: none;
+  font: inherit;
+  font-size: var(--text-small);
+  color: var(--fg);
+  cursor: pointer;
+  transition: border-color var(--motion-quick);
+}
+
+.cart-purge:hover {
+  border-color: var(--fg);
+}
+
+.cart-purge[hidden] {
+  display: none;
+}
+
+/* An item the storefront won't sell — dimmed, but still removable. */
+.cart-item--dead .cart-img,
+.cart-item--dead .cart-name,
+.cart-item--dead .cart-price {
+  opacity: 0.45;
+}
+
+.cart-flag {
+  margin: 4px 0 0;
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--danger);
+}
+
+/* ── Booking view — the cal.com embed ──
+   The one thing on the site that can't live inside the 360px measure: a month
+   grid squeezed to the column is unusable, so this view alone widens the sheet.
+   The sheet keeps the 360px measure every other view uses; the embed's own
+   `useSlotsViewOnSmallScreen` gives a column of times rather than a squeezed
+   month grid at that width. What it gets instead of room is all of it: 9px of
+   padding rather than 16, and no head row at all — the close button is lifted
+   out of the flow into the sheet's own corner, so the embed starts at the top
+   of the sheet instead of a line below it.
+
+   No height here. cal measures its own content and writes a pixel height onto
+   its iframe, so pinning the sheet as well just leaves dead space under a
+   short month. The sheet's max-height still caps it, and the embed scrolls if
+   a long one runs past that. */
+.tray-sheet[data-view="book"] {
+  /* The corner the close button anchors to. The sheet is already a containing
+     block by way of its transform, but say so — an absolute child shouldn't
+     depend on an animation property staying put. */
+  position: relative;
+  padding: 9px;
+}
+
+.tray-sheet[data-view="book"] .page-title {
+  display: none;
+}
+
+/* Out of the flow entirely, so it reserves no height above the embed. */
+.tray-sheet[data-view="book"] .tray-head {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 1;
+  margin: 0;
+}
+
+/* It's over the embed now, and the embed scrolls beneath it — so it carries
+   the sheet's own background rather than letting a time slot slide under the
+   glyph. */
+.tray-sheet[data-view="book"] .tray-close {
+  background: var(--bg);
+}
+
+.tray-view[data-view="book"] {
+  flex: 1 1 auto;
+}
+
+.cal-embed {
+  flex: 1 1 auto;
+  /* Without this a flex item won't shrink below its content, and the embed
+     would push the sheet past its own max-height — the same reason .cart-items
+     carries it. */
+  min-height: 0;
+  width: 100%;
+  overflow: auto;
+  /* Reserved whether or not it's needed. cal sizes its iframe to its own
+     content, so a bar appearing would narrow the frame, make cal re-measure,
+     report a new height, and possibly remove the need for the bar again —
+     a loop the layout can oscillate in. Holding the gutter open costs 6px and
+     settles it. */
+  scrollbar-gutter: stable;
+}
+
+/* Undoes cal's `scrollbar-width: none`, which hides the bar outright and takes
+   the ::-webkit-scrollbar rules below down with it — a scrollbar suppressed by
+   the standard property can't be painted back by the pseudo-element.
+   Specifically `auto`, not `thin`: any explicit value other than auto makes
+   Blink and WebKit switch to the standard property and stop honouring those
+   rules, which is how this got a fading system overlay bar instead of the
+   styled one. */
+.tray-sheet .cal-embed {
+  scrollbar-width: auto;
+}
+
+/* Firefox only, and last so it wins there. Behind @supports because Chrome and
+   Safari honour these too, and the moment they do they ignore everything
+   below. The query is false in Blink/WebKit, so they keep the styled,
+   always-visible bar while Firefox gets a thin one. */
+@supports not selector(::-webkit-scrollbar) {
+  .tray-sheet .cal-embed {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+}
+
+/* WebKit/Blink. Styling these at all opts macOS out of overlay scrollbars, so
+   the bar takes real width — which is the point: it should be visible against
+   a long month rather than only while the finger is moving.
+
+   Every rule here is scoped through .tray-sheet purely to outrank cal. Its
+   embed.js injects a stylesheet into this page that hides the bar on the
+   container it mounts into — `.cal-inline-container { scrollbar-width: none }`
+   and a matching ::-webkit-scrollbar { display: none }. Those are single-class
+   selectors like a bare .cal-embed would be, and they arrive at runtime, so
+   source order handed them the win. Two classes takes it back without
+   !important. */
+.tray-sheet .cal-embed::-webkit-scrollbar {
+  /* Explicit, because cal's rule is `display: none` and the cascade resolves
+     one property at a time — out-specifying it on `width` alone leaves its
+     `display` untouched and the bar still gone. */
+  display: block;
+  width: 6px;
+}
+
+.tray-sheet .cal-embed::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tray-sheet .cal-embed::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+  background: var(--scrollbar-thumb);
+}
+
+.tray-sheet .cal-embed::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* ── Lightbox — full-size viewer for a work item's gallery images ── */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-lightbox);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 20px;
+  background: rgba(0, 0, 0, 0);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-dur) var(--motion-ease),
+    background var(--motion-dur) var(--motion-ease);
+}
+
+.lightbox-overlay[hidden] {
+  display: none;
+}
+
+.lightbox-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+  background: var(--scrim-deep);
+}
+
+.lightbox-figure {
+  margin: 0;
+  max-width: min(100%, 900px);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.lightbox-image {
+  max-width: 100%;
+  max-height: calc(100vh - 160px);
+  width: auto;
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+}
+
+.lightbox-caption {
+  margin: 14px 0 0;
+  max-width: 60ch;
+  color: var(--on-scrim);
+  font-size: var(--text-small);
+  line-height: 1.4;
+  text-align: center;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--scrim-chrome);
+  /* --on-scrim-strong, not --on-fg: this sits on the lightbox's own scrim,
+     which is dark in both themes, so it stays white in both. */
+  color: var(--on-scrim-strong);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background var(--motion-quick);
+}
+
+.lightbox-close:hover {
+  background: var(--scrim-chrome-hover);
+}
+
+.lightbox-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--scrim-chrome);
+  /* On the scrim, like .lightbox-close above. */
+  color: var(--on-scrim-strong);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background var(--motion-quick);
+}
+
+.lightbox-arrow:hover {
+  background: var(--scrim-chrome-hover);
+}
+
+.lightbox-arrow[hidden] {
+  display: none;
+}
+
+.lightbox-arrow svg {
+  width: 22px;
+  height: 22px;
+}
+
+.lightbox-prev {
+  left: 16px;
+}
+
+.lightbox-next {
+  right: 16px;
+}
+
+.lightbox-counter {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--on-scrim-muted);
+  font-size: var(--text-cap);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 480px) {
+  .lightbox-overlay {
+    padding: 48px 12px;
+  }
+
+  .lightbox-arrow {
+    width: 38px;
+    height: 38px;
+  }
+
+  .lightbox-prev {
+    left: 8px;
+  }
+
+  .lightbox-next {
+    right: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox-overlay {
+    transition: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ENTRANCE — must stay last: these override component transitions by source
+   order, not by specificity, so moving them up silently disables the reveal
+   ══════════════════════════════════════════════════════════════════════════ */
 
 /* Transitions.dev — Texts reveal */
 
