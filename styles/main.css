@@ -20,7 +20,7 @@
 
    The dial that matters most is --motion-dur. Every intro and outro on the
    site runs on it and on --motion-ease: the panel and footer reveals, the
-   tray sheet, the lightbox, the shortcuts panel, the message-form steps and
+   tray sheet, the lightbox, the settings panel, the message-form steps and
    the Next/Previous project slide. js/site.js reads --motion-dur back out of
    this block at startup (see MOTION_DUR_MS) and drives its own sequencing
    timers from it, so the scripted half of a transition can't drift out of
@@ -30,66 +30,137 @@
   /* ── Colour ───────────────────────────────────────────────────────────
      The site is black text on white with exactly two accents: the wordmark
      blue for anything that is the site's own furniture, and sort.cash's
-     orange only where that product is what's being shown. */
-  --fg: #111111;
+     orange only where that product is what's being shown.
+
+     Each colour is a light-dark() pair — the light value and the dark one on
+     the same line, so neither can be changed without the other being looked
+     at. A single value means a token that is deliberately the same in both:
+     the two accents, and anything painted on the lightbox's permanently dark
+     scrim. Which half applies is `color-scheme`'s job, and the Theme block
+     below this one is all of that mechanism. */
+  color-scheme: light;
+
+  --fg: light-dark(#111111, #f2f2f2);
   /* 55%, not 40%: over --bg this lands at 4.76:1, just clear of the 4.5:1
      floor for body text. At 40% it was 2.84:1 and failed WCAG AA everywhere
-     it was used. */
-  --fg-muted: rgba(0, 0, 0, 0.55);
-  --bg: #ffffff;
-  /* The counterpart to --fg: glyphs and labels painted *on* a dark fill —
-     a filled button, the selected jump row, the lightbox chrome. A surface
-     that happens to be white uses --bg. */
-  --on-dark: #ffffff;
+     it was used. The dark half is 60% for the same reason — white at 55%
+     over the dark --bg is 5.9:1, and the extra 5 buys back the headroom
+     the lighter text loses. */
+  --fg-muted: light-dark(rgba(0, 0, 0, 0.55), rgba(255, 255, 255, 0.6));
+  /* Not pure black: a true #000 page makes the hairlines and washes below
+     disappear, since there is nothing darker for them to be a step down
+     from. */
+  --bg: light-dark(#ffffff, #0f0f11);
+  /* The counterpart to --fg: glyphs and labels painted *on* a --fg fill — a
+     filled button, the nav toast, the FAB. It tracks --bg, because a --fg fill
+     is the page inverted and what reads on it is the page's own colour. Named
+     for the fill it sits on rather than for being light or dark: in dark mode
+     that fill is the light one and this is the dark ink on it. A surface that
+     merely happens to be the page colour uses --bg; a permanently dark one
+     (the lightbox scrim) uses --on-scrim-strong. */
+  --on-fg: light-dark(#ffffff, #0f0f11);
   /* The wordmark blue — shared by the header mark and the footer's full-width
-     repeat of it, so the two can't drift. */
+     repeat of it, so the two can't drift. Single-valued on purpose: it is the
+     identity, and an identity that changes colour with the page isn't one.
+     It is the one token knowingly held below 4.5:1 against the dark --bg
+     (3.1:1) — everything wearing it is a mark, a selected-tab glyph or a 2px
+     indicator line rather than text to be read, and each of those is also
+     carrying shape or position to say the same thing. */
   --brand: #0060e5;
+  /* What sits on a --brand fill — the selected jump row, the nav focus block.
+     Single-valued for the same reason the blue is: the fill underneath is the
+     same deep blue in both themes, so what reads on it doesn't change. */
+  --on-brand: #ffffff;
+  /* sort.cash's own orange, and the one accent that does not move — it is
+     another product's brand colour rather than this site's, and it clears
+     4.5:1 on both page colours as it is. */
   --sortcash: #ff5500;
   /* Form errors, the cart's dead-item flag, the message form's field errors. */
-  --danger: #ef4444;
-  --underline: #d9d9d9;
-  --underline-hover: #666666;
+  --danger: light-dark(#ef4444, #ff6b6b);
+  --underline: light-dark(#d9d9d9, rgba(255, 255, 255, 0.22));
+  --underline-hover: light-dark(#666666, rgba(255, 255, 255, 0.65));
 
   /* ── Surfaces ─────────────────────────────────────────────────────────
-     The greys behind media and the washes that sit on white. The washes are
-     alpha rather than flat greys so a chip reads the same over any of them. */
+     The greys behind media and the washes that sit on the page. The washes
+     are alpha rather than flat greys so a chip reads the same over any of
+     them — which is also what lets them invert cleanly: the same 5% is black
+     on white and white on black. */
   /* Reserved behind every image, so a slow load shows a neutral box rather
-     than the page's own white. */
-  --media-bg: #f5f5f5;
-  /* A step darker, for the icon tile a missing image falls back to — it has
-     to read as deliberate rather than as an image that hasn't arrived. */
-  --tile-bg: #f2f2f2;
-  --tile-fg: #c2c2c2;
-  --wash-faint: rgba(0, 0, 0, 0.03);
-  --wash: rgba(0, 0, 0, 0.05);
-  --wash-strong: rgba(0, 0, 0, 0.06);
-  --wash-hover: rgba(0, 0, 0, 0.08);
+     than the page's own colour. */
+  --media-bg: light-dark(#f5f5f5, #1a1a1d);
+  /* A step further from the page, for the icon tile a missing image falls
+     back to — it has to read as deliberate rather than as an image that
+     hasn't arrived. */
+  --tile-bg: light-dark(#f2f2f2, #1f1f23);
+  --tile-fg: light-dark(#c2c2c2, #4a4a50);
+  --wash-faint: light-dark(rgba(0, 0, 0, 0.03), rgba(255, 255, 255, 0.04));
+  --wash: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.06));
+  --wash-strong: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.08));
+  --wash-hover: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.12));
   --sortcash-wash: rgba(255, 85, 0, 0.1);
   --sortcash-rule: rgba(255, 85, 0, 0.2);
-  --disabled-bg: #e6e6e6;
-  --disabled-border: #eeeeee;
-  /* Backdrops. The tray dims the page behind it; the lightbox replaces it. */
-  --scrim: rgba(0, 0, 0, 0.35);
-  --scrim-deep: rgba(0, 0, 0, 0.85);
+  --disabled-bg: light-dark(#e6e6e6, #2a2a2e);
+  --disabled-border: light-dark(#eeeeee, #232327);
+  /* Backdrops. The tray dims the page behind it; the lightbox replaces it.
+     Both go deeper in dark mode, where a 35% veil over an already dark page
+     barely separates the sheet from what's under it.
+
+     Everything painted *on* these is single-valued: the scrim is dark in
+     both themes, so its chrome stays white in both. */
+  --scrim: light-dark(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.6));
+  --scrim-deep: light-dark(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.92));
   --scrim-chrome: rgba(255, 255, 255, 0.12);
   --scrim-chrome-hover: rgba(255, 255, 255, 0.22);
+  --on-scrim-strong: #ffffff;
   --on-scrim: rgba(255, 255, 255, 0.75);
   --on-scrim-muted: rgba(255, 255, 255, 0.6);
-  --scrollbar-thumb: rgba(0, 0, 0, 0.22);
-  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.36);
+  --scrollbar-thumb: light-dark(rgba(0, 0, 0, 0.22), rgba(255, 255, 255, 0.22));
+  --scrollbar-thumb-hover: light-dark(rgba(0, 0, 0, 0.36), rgba(255, 255, 255, 0.36));
+
+  /* ── Image treatment ──────────────────────────────────────────────────
+     The only tokens on the site that theme something other than a colour,
+     and so the only ones that can't ride light-dark(). Their dark values are
+     stated in the Theme block below; anything added here has to be added
+     there too, which is the reason to reach for a colour token first.
+
+     The client logos are supplied as dark artwork on transparent, held back
+     to a grey so the strip reads as evidence rather than as a row of
+     competing brands. On a dark page that grey is invisible, so dark mode
+     inverts them. */
+  --logo-filter: grayscale(1) contrast(0.65) brightness(0.75);
+  --logo-filter-hover: grayscale(1) contrast(0.85) brightness(0.6);
+
+  /* ── Controls ─────────────────────────────────────────────────────────
+     The settings panel's two switchable controls, which are the only place
+     on the site where one small shape has to read as sitting on top of
+     another small shape. A wash won't do it: --wash over the panel and the
+     page colour on top of that come out at 1.0:1 in light and 1.14:1 in
+     dark — the same colour twice. These are the two surfaces stated
+     outright so the raised half is always a step away from the track. */
+  /* The off half of the sound switch, dark enough that the thumb reads as a
+     knob sitting in it rather than a hole cut out of it. */
+  --switch-track: light-dark(#b8b8b8, #4d4d52);
+  /* The selected option in the theme segment. Raised means lighter than its
+     track in light mode and, because "raised" is about catching the light,
+     lighter again in dark — not the page colour, which reads as a hole. */
+  --segment-selected: light-dark(#ffffff, rgba(255, 255, 255, 0.16));
 
   /* ── Edges ────────────────────────────────────────────────────────────
      One hairline for everything that floats above the page — the nav pill,
-     the work-nav buttons, the shortcuts panel and its key caps — and the
+     the work-nav buttons, the settings panel and its key caps — and the
      same line drawn inside every work image, so a shot that runs to white
-     still has an edge. */
-  --hairline: rgba(0, 0, 0, 0.08);
+     still has an edge. A little stronger in dark mode, where a black line
+     on a near-black page is no line at all. */
+  --hairline: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.12));
   /* Raised chrome, the FAB (heavier, because it's the one filled control),
-     the shortcuts panel, and the tray sheet lifting off a dimmed page. */
-  --shadow-raised: 0 4px 20px rgba(0, 0, 0, 0.08);
-  --shadow-fab: 0 4px 20px rgba(0, 0, 0, 0.15);
-  --shadow-panel: 0 8px 30px rgba(0, 0, 0, 0.1);
-  --shadow-sheet: 0 12px 48px rgba(0, 0, 0, 0.18);
+     the settings panel, and the tray sheet lifting off a dimmed page. Only
+     the colour is themed: a shadow is what the light does, and on a dark
+     page it has to be much deeper to be a shadow at all rather than a
+     smudge. */
+  --shadow-raised: 0 4px 20px light-dark(rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.5));
+  --shadow-fab: 0 4px 20px light-dark(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.6));
+  --shadow-panel: 0 8px 30px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.55));
+  --shadow-sheet: 0 12px 48px light-dark(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.7));
 
   /* ── Layout ───────────────────────────────────────────────────────────── */
   /* The measure everything lines up to. This is the *content* width — the
@@ -204,6 +275,50 @@
   --z-nav: 200;
   --z-tray: 300;
   --z-lightbox: 400;
+}
+
+/* ── Theme ──
+   The settings panel's choice, and the whole of the switching mechanism. Every
+   colour above is a light-dark() pair keyed off `color-scheme`, so setting that
+   one property is all a theme has to do — there is no second palette to keep in
+   step, and nothing here to update when a colour is added.
+
+   With no attribute at all the page is light, which is both the default and
+   what a browser with no JavaScript gets. The three values below are the three
+   things the panel can say, and js/theme.js writes whichever was stored onto
+   <html> before first paint — "system" included, since following the system is
+   now something chosen rather than the absence of a choice.
+
+   The system case is answered by `light dark` and the operating system, not by
+   a media query and a second set of colours: one declaration, and it re-reads
+   itself when the system flips while the page is open. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+:root[data-theme="system"] {
+  color-scheme: light dark;
+}
+
+/* --logo-filter is not a colour, so light-dark() can't carry it and the dark
+   value has to be stated twice: once for an explicit dark choice, once for a
+   "match system" that is currently resolving to dark. This is the whole cost of
+   the theme in duplicated declarations, and the reason to reach for a colour
+   token first whenever something new needs to change with the theme. */
+:root[data-theme="dark"] {
+  --logo-filter: grayscale(1) invert(1) contrast(0.7) brightness(0.95);
+  --logo-filter-hover: grayscale(1) invert(1) contrast(0.9) brightness(1.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"] {
+    --logo-filter: grayscale(1) invert(1) contrast(0.7) brightness(0.95);
+    --logo-filter-hover: grayscale(1) invert(1) contrast(0.9) brightness(1.1);
+  }
 }
 
 @media (min-width: 640px) {
@@ -867,13 +982,13 @@ body.is-intro .site-footer {
   width: auto;
   max-width: 96px;
   object-fit: contain;
-  filter: grayscale(1) contrast(0.65) brightness(0.75);
+  filter: var(--logo-filter);
   opacity: 0.75;
   transition: opacity var(--motion-quick), filter var(--motion-quick);
 }
 
 .company-logo:hover {
-  filter: grayscale(1) contrast(0.85) brightness(0.6);
+  filter: var(--logo-filter-hover);
   opacity: 1;
 }
 
@@ -1681,7 +1796,7 @@ body.is-intro .site-footer {
   border: 0;
   border-radius: var(--radius-xl);
   background: var(--fg);
-  color: var(--on-dark);
+  color: var(--on-fg);
   font: inherit;
   font-size: var(--text-ui);
   font-weight: var(--weight-semibold);
@@ -1724,7 +1839,7 @@ body.is-intro .site-footer {
   border: 0;
   border-radius: var(--radius-xl);
   background: var(--fg);
-  color: var(--on-dark);
+  color: var(--on-fg);
   font-size: var(--text-ui);
   font-weight: var(--weight-semibold);
   text-decoration: none;
@@ -2160,16 +2275,16 @@ body.is-intro .site-footer {
   height: 18px;
 }
 
-/* On the block, the row's contents go white and its icon solid — the bar's
-   treatment, in a row. Driven by .is-active rather than by :hover and
-   :focus-visible separately, so the block and what's drawn on it are moved by
-   one thing and can't end up on different rows. */
+/* On the block, the row's contents take the colour that reads on it and its
+   icon goes solid — the bar's treatment, in a row. Driven by .is-active rather
+   than by :hover and :focus-visible separately, so the block and what's drawn
+   on it are moved by one thing and can't end up on different rows. */
 .jump-row.is-active {
-  color: var(--on-dark);
+  color: var(--on-brand);
 }
 
 .jump-row.is-active .jump-icon {
-  color: var(--on-dark);
+  color: var(--on-brand);
 }
 
 .jump-row.is-active .nav-icon--line {
@@ -2181,12 +2296,14 @@ body.is-intro .site-footer {
   transform: scale(1);
 }
 
-/* The digit re-reads as a chip on blue: a wash of the block's own white rather
-   than the black-on-white it wears against the sheet. */
+/* The digit re-reads as a chip on blue: a wash of the row's own foreground
+   rather than the black-on-white it wears against the sheet. Mixed off
+   --on-brand rather than hard-coded white, so it follows the blue when the
+   theme flips it — on the lighter dark-mode brand the chip is a dark wash. */
 .jump-row.is-active .shortcuts-key {
-  border-color: rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.16);
-  color: var(--on-dark);
+  border-color: color-mix(in srgb, var(--on-brand) 28%, transparent);
+  background: color-mix(in srgb, var(--on-brand) 16%, transparent);
+  color: var(--on-brand);
 }
 
 /* Takes the slack so the digit stays pinned to the right edge. */
@@ -2715,7 +2832,9 @@ body.is-intro .site-footer {
   border: 0;
   border-radius: 50%;
   background: var(--scrim-chrome);
-  color: var(--on-dark);
+  /* --on-scrim-strong, not --on-fg: this sits on the lightbox's own scrim,
+     which is dark in both themes, so it stays white in both. */
+  color: var(--on-scrim-strong);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -2735,7 +2854,8 @@ body.is-intro .site-footer {
   border: 0;
   border-radius: 50%;
   background: var(--scrim-chrome);
-  color: var(--on-dark);
+  /* On the scrim, like .lightbox-close above. */
+  color: var(--on-scrim-strong);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -2902,7 +3022,7 @@ body.is-404 .attribution {
   left: 50%;
   padding: 5px 9px;
   background: var(--fg);
-  color: var(--on-dark);
+  color: var(--on-fg);
   font-size: var(--text-cap);
   font-weight: var(--weight-bold);
   text-transform: uppercase;
@@ -2963,7 +3083,7 @@ body.is-404 .attribution {
    It arrives and leaves on the site's own pace, like everything else: the row
    is part of the case study, so it can't be the one element that snaps into
    place while the page behind it is still resolving. The 6px rise is the
-   shortcuts panel's, since both are small slabs surfacing next to the bar.
+   settings panel's, since both are small slabs surfacing next to the bar.
 
    `hidden` still does the hiding — it's what keeps the buttons out of the tab
    order on every other route — but display:none is not something a transition
@@ -3083,7 +3203,7 @@ body.is-404 .attribution {
   transform: translateX(-50%) translateY(4px);
   padding: 5px 9px;
   background: var(--fg);
-  color: var(--on-dark);
+  color: var(--on-fg);
   font-size: var(--text-cap);
   font-weight: var(--weight-bold);
   text-transform: uppercase;
@@ -3247,13 +3367,13 @@ body.is-404 .attribution {
   opacity: 1;
 }
 
-/* On the block, the tab's own icon goes white and solid. Keyed to
-   :focus-visible, the same condition .nav-focus is shown under — and the UA's
-   own ring goes here too, since the block is the focus indicator now and two
-   would be one too many. */
+/* On the block, the tab's own icon takes the colour that reads on it and goes
+   solid. Keyed to :focus-visible, the same condition .nav-focus is shown
+   under — and the UA's own ring goes here too, since the block is the focus
+   indicator now and two would be one too many. */
 .nav-tab:focus-visible {
   outline: none;
-  color: var(--on-dark);
+  color: var(--on-brand);
 }
 
 .nav-tab:focus-visible .nav-icon--line {
@@ -3294,7 +3414,7 @@ body.is-404 .attribution {
   border-radius: var(--radius-3xl);
   cursor: pointer;
   background: var(--fg);
-  color: var(--on-dark);
+  color: var(--on-fg);
   display: grid;
   place-items: center;
   text-decoration: none;
@@ -3306,16 +3426,18 @@ body.is-404 .attribution {
   transform: scale(0.94);
 }
 
-/* ── Shortcuts ──
-   An info dot in the bottom-left corner of the viewport with the keyboard
-   shortcuts folded up inside it. Hovering the dot raises the panel; nothing
-   else about the page moves, because the whole thing is fixed and out past the
-   content column on either axis.
+/* ── Settings ──
+   A dot in the bottom-left corner of the viewport with the site's preferences
+   and its keyboard shortcuts folded up inside it. Clicking the dot raises the
+   panel; nothing else about the page moves, because the whole thing is fixed
+   and out past the content column on either axis.
 
-   The dot is the only part with a hit area — the panel is pointer-events: none
-   — so there's no gap between them for the pointer to fall through and no way
-   to end up with a panel that covers something you were reaching for. */
-.shortcuts {
+   Click, not hover, because the panel holds controls now — a segment you have
+   to keep the pointer on to see is one you can't click without leaving, and a
+   keyboard can't open it at all. That also removes the old constraint that the
+   panel be pointer-events: none, which is what kept the two from being
+   separate hit areas with a gap between them. */
+.settings {
   display: none;
   position: fixed;
   left: 24px;
@@ -3328,47 +3450,63 @@ body.is-404 .attribution {
 
 /* Wide enough that the panel clears the text column, tall enough that it
    doesn't run off the top, and a pointing device precise enough to imply a
-   real keyboard — the panel is hover-only, so a touch device could never open
-   it, and its contents would be a lie there anyway. */
+   real keyboard. The shortcuts half would be a lie without one, and the sound
+   switch would have nothing to switch — initSounds() in js/site.js gates the
+   cues on this same query, and it has to be changed in both places. */
 @media (min-width: 900px) and (min-height: 560px) and (hover: hover) and (pointer: fine) {
-  .shortcuts:not([hidden]) {
+  .settings:not([hidden]) {
     display: block;
   }
 }
 
 /* The dot. Muted at rest so a corner of the page isn't competing with the
-   content, full strength once it's the thing you're pointing at. */
-.shortcuts-nub {
+   content, full strength once it's the thing you're pointing at or the panel
+   is open. */
+.settings-nub {
   display: grid;
   place-items: center;
   width: 28px;
   height: 28px;
+  padding: 0;
   border: 1px solid var(--hairline);
   border-radius: var(--radius-pill);
   background: var(--bg);
   box-shadow: var(--shadow-raised);
   color: var(--fg-muted);
+  cursor: pointer;
   transition: color var(--motion-quick), transform var(--motion-quick);
 }
 
-.shortcuts-nub svg {
+.settings-nub svg {
   display: block;
   width: 16px;
   height: 16px;
+  transition: transform var(--motion-dur) var(--motion-ease);
 }
 
-.shortcuts:hover .shortcuts-nub {
+.settings-nub:hover,
+.settings-nub:focus-visible,
+.settings-nub[aria-expanded="true"] {
   color: var(--fg);
   transform: translateY(-1px);
 }
 
+/* The glyph turns a sixth of a turn as the panel comes up — the one move that
+   says the dot and the panel are the same object, now that hover no longer
+   ties them together. */
+.settings-nub[aria-expanded="true"] svg {
+  transform: rotate(60deg);
+}
+
 /* Anchored to the dot's top edge rather than laid out above it in flow, so the
    container's box stays dot-sized and the hover target stays the dot. */
-.shortcuts-panel {
+/* Anchored to the dot's top edge rather than laid out above it in flow, so the
+   container's box stays dot-sized and the dot keeps its own hit area. */
+.settings-panel {
   position: absolute;
   bottom: calc(100% + 10px);
   left: 0;
-  min-width: 172px;
+  min-width: 196px;
   padding: 12px 14px 10px;
   border: 1px solid var(--hairline);
   border-radius: var(--radius-2xl);
@@ -3376,28 +3514,154 @@ body.is-404 .attribution {
   box-shadow: var(--shadow-panel);
   opacity: 0;
   transform: translateY(6px);
-  pointer-events: none;
+  /* visibility rather than display or the hidden attribute: it animates, so
+     the panel can fade out instead of vanishing, and it still takes the panel
+     out of the tab order and the accessibility tree while closed — which
+     display: none does too but a bare opacity: 0 does not, leaving three
+     invisible controls for a keyboard to land on. The 0s delay is what holds
+     it visible for the length of the fade on the way out; on the way in it is
+     dropped so the panel is there for the first frame. */
+  visibility: hidden;
   transition: opacity var(--motion-dur) var(--motion-ease),
-    transform var(--motion-dur) var(--motion-ease);
+    transform var(--motion-dur) var(--motion-ease),
+    visibility 0s linear var(--motion-dur);
 }
 
-.shortcuts:hover .shortcuts-panel {
+.settings.is-open .settings-panel {
   opacity: 1;
   transform: translateY(0);
+  visibility: visible;
+  transition: opacity var(--motion-dur) var(--motion-ease),
+    transform var(--motion-dur) var(--motion-ease),
+    visibility 0s;
+}
+
+/* Like the tray and the lightbox: the panel still opens and closes, it just
+   stops travelling to do it. Killing the transition outright also drops the
+   visibility delay, which is only there to hold the panel still long enough
+   to fade. */
+@media (prefers-reduced-motion: reduce) {
+  .settings-panel,
+  .settings.is-open .settings-panel {
+    transition: none;
+  }
+
+  .settings-nub svg,
+  .settings-nub[aria-expanded="true"] svg {
+    transition: none;
+  }
+}
+
+/* Groups are separated by the rule that used to sit under the single title, so
+   the panel reads as three stacked settings rather than one long list. */
+.settings-group + .settings-group {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--underline);
+}
+
+/* The one group whose control is small enough to sit beside its label instead
+   of under it. */
+.settings-group--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 /* Same 9px uppercase label vocabulary as the nav tooltips and the work-nav
    buttons, so the panel reads as part of the bar it sits beside. */
-.shortcuts-title {
+.settings-title {
   margin: 0 0 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--underline);
   font-size: var(--text-cap);
   font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   line-height: 1;
   color: var(--fg);
+}
+
+.settings-group--row .settings-title {
+  margin: 0;
+}
+
+/* ── Theme segment ──
+   Three options in one track, the selected one wearing the filled treatment
+   the nav's selected tab and the jump tray's active row already use. */
+.settings-segment {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--radius-md);
+  background: var(--wash);
+}
+
+.settings-option {
+  display: grid;
+  place-items: center;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: background-color var(--motion-quick), color var(--motion-quick);
+}
+
+.settings-option svg {
+  display: block;
+  width: 13px;
+  height: 13px;
+}
+
+.settings-option:hover {
+  color: var(--fg);
+}
+
+.settings-option[aria-checked="true"] {
+  background: var(--segment-selected);
+  color: var(--fg);
+  box-shadow: var(--shadow-raised);
+}
+
+/* ── Sound switch ──
+   The site's one on/off control. Filled when on, in --fg rather than the brand
+   blue, because the blue is reserved for what's selected in the nav. */
+.settings-switch {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 18px;
+  padding: 2px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--switch-track);
+  cursor: pointer;
+  transition: background-color var(--motion-quick);
+}
+
+.settings-switch[aria-checked="true"] {
+  background: var(--fg);
+}
+
+/* --on-fg, not --bg: the thumb sits on the track, and on the "on" track that
+   is a --fg fill. The two tokens carry the same values, but this is the one
+   that stays right if the filled-control ink ever moves. */
+.settings-switch-thumb {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-pill);
+  background: var(--on-fg);
+  /* Travels on the same curve as everything else that slides along the bottom
+     of the screen. */
+  transition: transform var(--nav-move);
+}
+
+.settings-switch[aria-checked="true"] .settings-switch-thumb {
+  transform: translateX(14px);
 }
 
 .shortcuts-list {

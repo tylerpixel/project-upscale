@@ -19,6 +19,9 @@
     <meta content="628" property="og:image:height" />
     <meta content="Tyler Pixel — Design Engineer" property="og:image:alt" />
     <!-- Metadata Misc -->
+    <!-- Light's --bg, because light is the site's default whatever the system
+         is set to. js/theme.js rewrites this before first paint when the
+         stored choice is dark, or is "match system" on a dark system. -->
     <meta name="theme-color" content="#ffffff" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -59,8 +62,15 @@
     <link rel="stylesheet" href="/styles/main.min.css" type="text/css" />
     <link rel="apple-touch-icon" href="/images/webclip.png" />
     <link rel="manifest" href="/manifest.json" />
-    <!-- Javascript — deferred so both download during parse but still run in
-         order, with store.js seeing site.js's helpers already defined. -->
+    <!-- The one blocking script on the site, and deliberately so: it applies a
+         stored dark/light override before the first paint, which a deferred
+         script is by definition too late for. It is ~400 bytes minified and
+         same-origin, so the parse it blocks is measured in microseconds. -->
+    <script src="/js/theme.min.js"></script>
+    <!-- Everything else — deferred so all three download during parse but still
+         run in order: cuelume defines window.cuelume before site.js reaches for
+         it, and store.js sees site.js's helpers already defined. -->
+    <script src="/js/cuelume.min.js" defer></script>
     <script src="/js/site.min.js" defer></script>
     <script src="/js/store.min.js" defer></script>
     <!-- Favicon Handling -->
@@ -280,45 +290,83 @@
       <a href="https://creativecommons.org/licenses/by/2.0/" class="light-link" target="_blank" rel="noopener noreferrer">CC BY</a>
     </div>
 
-    <!-- Shortcuts — an info dot pinned to the bottom-left corner of the
-         viewport, hiding a list of the keyboard shortcuts until it's hovered.
-         Fixed to the corner rather than attached to the nav so it stays out of
-         the way of the content column at any width.
+    <!-- Settings — a dot pinned to the bottom-left corner of the viewport with
+         the site's two preferences and its keyboard shortcuts folded up inside
+         it. Fixed to the corner rather than attached to the nav so it stays out
+         of the way of the content column at any width.
 
-         Desktop only: it's hover-driven, so a touch device could never open
-         it, and it's a claim about a keyboard — CSS gates it on both, plus the
-         room the panel needs. aria-hidden because it's a picture of a keyboard,
-         not a control; every shortcut in it works whether or not this is on
-         screen. Ships hidden and is unhidden by initNav(), so it can't sit in
-         the corner under the loading skeleton offering shortcuts to pages that
-         don't exist yet.
+         Desktop only, and CSS gates it on a real pointer and keyboard plus the
+         room the panel needs. The shortcuts half would be a lie on a phone, and
+         the settings half has nothing to say there either: sound is desktop-only
+         for the same reason (see initSounds in js/site.js), and a phone's theme
+         already follows the system without being asked.
 
-         Two rows only: the numbered page shortcuts live inside what ⌘K opens,
-         beside the pages they reach, instead of being listed twice. -->
-    <div class="shortcuts" id="shortcuts" aria-hidden="true" hidden>
-      <div class="shortcuts-panel">
-        <p class="shortcuts-title">Shortcuts</p>
-        <ul class="shortcuts-list">
-          <li class="shortcuts-row">
-            <span class="shortcuts-keys"><span class="shortcuts-key shortcuts-key--wide" data-key="k">⌘K</span></span>
-            <span class="shortcuts-label">Jump to</span>
-          </li>
-          <li class="shortcuts-row">
-            <span class="shortcuts-keys">
-              <span class="shortcuts-key" data-key="ArrowLeft">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
+         Opened by click rather than hover, unlike the read-only panel this
+         replaced: it holds controls now, and a panel you can only reach by
+         keeping a pointer on it is one a keyboard can never operate. Ships
+         hidden and is unhidden by initNav(), so it can't sit in the corner
+         under the loading skeleton offering shortcuts to pages that don't
+         exist yet.
+
+         The shortcuts list is two rows only: the numbered page shortcuts live
+         inside what ⌘K opens, beside the pages they reach, instead of being
+         listed twice. -->
+    <div class="settings" id="settings" hidden>
+      <!-- role="group", not "dialog": nothing here is modal and focus is never
+           trapped, so announcing a dialog would promise a layer to escape from
+           that doesn't exist. The nub's aria-expanded/aria-controls is what
+           says this is a thing that opens. -->
+      <div class="settings-panel" id="settingsPanel" role="group" aria-label="Settings">
+        <div class="settings-group">
+          <p class="settings-title" id="settingsThemeLabel">Theme</p>
+          <!-- A radiogroup rather than three buttons: they're one setting with
+               three values, and arrow keys should move between them. -->
+          <div class="settings-segment" role="radiogroup" aria-labelledby="settingsThemeLabel">
+            <button class="settings-option" type="button" role="radio" aria-checked="false" data-theme-choice="light" aria-label="Light">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></svg>
+            </button>
+            <button class="settings-option" type="button" role="radio" aria-checked="false" data-theme-choice="dark" aria-label="Dark">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>
+            </button>
+            <button class="settings-option" type="button" role="radio" aria-checked="false" data-theme-choice="system" aria-label="Match system">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8M12 17v4" /></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-group settings-group--row">
+          <p class="settings-title" id="settingsSoundLabel">Sound</p>
+          <button class="settings-switch" type="button" role="switch" aria-checked="true" id="soundToggle" aria-labelledby="settingsSoundLabel">
+            <span class="settings-switch-thumb"></span>
+          </button>
+        </div>
+
+        <!-- aria-hidden because it's a picture of a keyboard, not a control;
+             every shortcut in it works whether or not the panel is open. -->
+        <div class="settings-group" aria-hidden="true">
+          <p class="settings-title">Shortcuts</p>
+          <ul class="shortcuts-list">
+            <li class="shortcuts-row">
+              <span class="shortcuts-keys"><span class="shortcuts-key shortcuts-key--wide" data-key="k">⌘K</span></span>
+              <span class="shortcuts-label">Jump to</span>
+            </li>
+            <li class="shortcuts-row">
+              <span class="shortcuts-keys">
+                <span class="shortcuts-key" data-key="ArrowLeft">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
+                </span>
+                <span class="shortcuts-key" data-key="ArrowRight">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+                </span>
               </span>
-              <span class="shortcuts-key" data-key="ArrowRight">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg>
-              </span>
-            </span>
-            <span class="shortcuts-label">Step</span>
-          </li>
-        </ul>
+              <span class="shortcuts-label">Step</span>
+            </li>
+          </ul>
+        </div>
       </div>
-      <span class="shortcuts-nub">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 11v5" /><path d="M12 7.75v.5" /></svg>
-      </span>
+      <button class="settings-nub" id="settingsNub" type="button" aria-expanded="false" aria-controls="settingsPanel" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7h-9M14 17H5" /><circle cx="17" cy="17" r="3" /><circle cx="7" cy="7" r="3" /></svg>
+      </button>
     </div>
 
     <!-- Bottom nav — fixed overlay, sits outside .site so it never shifts with content -->

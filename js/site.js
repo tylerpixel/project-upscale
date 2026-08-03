@@ -2240,8 +2240,8 @@ function initNav(tabs) {
 
   // Now that there are tabs to name, the corner panel has something true to
   // say. CSS still decides whether the viewport has room for it.
-  const shortcuts = document.getElementById("shortcuts");
-  if (shortcuts) shortcuts.hidden = false;
+  const settings = document.getElementById("settings");
+  if (settings) settings.hidden = false;
 
   // Depresses every cap bound to the key just pressed — the arrows in the
   // corner panel, the digits in the jump tray — so whichever of the two is on
@@ -2633,7 +2633,7 @@ function initNav(tabs) {
     if (nav.contains(focused)) target.focus();
   }
 
-  // The keyboard half of the bar, listed in the shortcuts panel:
+  // The keyboard half of the bar, listed in the settings panel:
   //
   //   ← / →   step through the tabs, the expected behaviour for a
   //           role="tablist", and unlike hovering a key press is
@@ -2704,6 +2704,334 @@ function initNav(tabs) {
   });
   requestAnimationFrame(positionIndicator);
 }
+
+// ── Settings ──
+//
+// The corner panel: a light/dark/system choice and a sound switch, over the
+// keyboard shortcuts the panel used to hold on its own.
+//
+// The theme half is mostly not here. CSS resolves all three choices off one
+// color-scheme declaration and js/theme.js puts the stored one on <html> before
+// first paint; what's left for this file is the three buttons, and writing the
+// choice down. The sound half is entirely here, because nothing about it has to
+// happen before paint.
+
+const SOUND_KEY = "tp-sound";
+
+/** The stored sound preference. On by default — this is a portfolio, the cues
+ *  are the point, and the switch is one click away in the corner. */
+function readSoundPref() {
+  try {
+    return localStorage.getItem(SOUND_KEY) !== "off";
+  } catch (e) {
+    return true;
+  }
+}
+
+function storeSoundPref(on) {
+  try {
+    localStorage.setItem(SOUND_KEY, on ? "on" : "off");
+  } catch (e) {
+    // Private-mode storage can throw. The choice still holds for this page.
+  }
+}
+
+/** Routes the preference to cuelume, which is where every cue is gated — so
+ *  nothing else in initSounds() has to know the switch exists. */
+function applySoundPref(on) {
+  if (window.cuelume) window.cuelume.setEnabled(on);
+}
+
+function initSettings() {
+  const root = document.getElementById("settings");
+  const nub = document.getElementById("settingsNub");
+  if (!root || !nub) return;
+
+  // ── Open/close ──
+  //
+  // Deliberately not part of the openOverlays set the tray and the lightbox
+  // join. That set is what makes Escape close the topmost layer, but it also
+  // makes the digit and arrow shortcuts stand down while a layer is up — and
+  // standing them down here would break the one thing the panel is for. The
+  // key caps inside it flash as you press the real keys with it open (see
+  // flashShortcutKey), which only works if the keys still do anything.
+  function setOpen(open) {
+    root.classList.toggle("is-open", open);
+    nub.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  const isOpen = () => nub.getAttribute("aria-expanded") === "true";
+
+  function close(refocus) {
+    if (!isOpen()) return;
+    // Focus moves first, then the panel hides. The other order looks right and
+    // isn't: hiding the panel takes visibility off whatever inside it holds
+    // focus, and the browser's own "focused element just became invisible"
+    // handling drops focus to the body *after* this function returns, undoing
+    // the focus() call. Moving first also means the focusout below sees the nub
+    // as the new target, which is inside .settings, so it stays out of the way.
+    if (refocus) nub.focus();
+    setOpen(false);
+  }
+
+  nub.addEventListener("click", () => setOpen(!isOpen()));
+
+  // Anywhere outside the whole widget — the panel included, so clicking a
+  // control doesn't dismiss the panel it's in. Pointerdown rather than click,
+  // so the panel is gone by the time whatever is underneath reacts.
+  document.addEventListener("pointerdown", (e) => {
+    if (!isOpen() || root.contains(e.target)) return;
+    close(false);
+  }, { passive: true });
+
+  // Escape returns focus to the dot, since that's where it came from. Not
+  // routed through the shared Escape handler for the reason above.
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && isOpen()) close(true);
+  });
+
+  // Tabbing out the far end of the panel is a dismissal too — the panel is
+  // done, and leaving it open behind the focus ring would be a floating box
+  // with nothing in it selected.
+  root.addEventListener("focusout", (e) => {
+    if (!isOpen()) return;
+    if (e.relatedTarget && root.contains(e.relatedTarget)) return;
+    close(false);
+  });
+
+  // ── Theme ──
+  const themeOptions = Array.from(root.querySelectorAll("[data-theme-choice]"));
+  // Held here rather than re-read from storage on every keystroke: storage can
+  // be unwritable (private mode), and a control that can't remember what it is
+  // set to would be stuck on whatever the failed write left behind.
+  let themeChoice = window.readTheme();
+
+  function paintTheme(choice) {
+    themeChoice = choice;
+    themeOptions.forEach((btn) => {
+      const on = btn.dataset.themeChoice === choice;
+      btn.setAttribute("aria-checked", on ? "true" : "false");
+      // Roving tabindex: a radiogroup is one tab stop, and the arrows below
+      // move within it.
+      btn.tabIndex = on ? 0 : -1;
+    });
+  }
+
+  function chooseTheme(choice) {
+    window.applyTheme(choice);
+    window.storeTheme(choice);
+    paintTheme(choice);
+  }
+
+  themeOptions.forEach((btn) => {
+    btn.addEventListener("click", () => chooseTheme(btn.dataset.themeChoice));
+  });
+
+  const segment = root.querySelector(".settings-segment");
+  if (segment) {
+    segment.addEventListener("keydown", (e) => {
+      const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1
+        : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1
+        : 0;
+      if (!step) return;
+      // preventDefault and stopPropagation both matter, and for different
+      // handlers: inside a radiogroup the arrows belong to the radiogroup, and
+      // the nav's own arrow handler is listening on the document for them.
+      e.preventDefault();
+      e.stopPropagation();
+      const choices = window.THEME_CHOICES;
+      const at = choices.indexOf(themeChoice);
+      const next = choices[(at + step + choices.length) % choices.length];
+      chooseTheme(next);
+      const btn = root.querySelector(`[data-theme-choice="${next}"]`);
+      if (btn) btn.focus();
+    });
+  }
+
+  paintTheme(themeChoice);
+
+  // ── Sound ──
+  const soundToggle = document.getElementById("soundToggle");
+  if (soundToggle) {
+    const paintSound = (on) => soundToggle.setAttribute("aria-checked", on ? "true" : "false");
+
+    soundToggle.addEventListener("click", () => {
+      const on = soundToggle.getAttribute("aria-checked") !== "true";
+      applySoundPref(on);
+      storeSoundPref(on);
+      paintSound(on);
+      // The switch answers itself: turning sound on plays the cue that proves
+      // it, which is the only feedback a sound switch can honestly give. Turning
+      // it off is silent, which is also the proof.
+      if (on && window.cuelume) window.cuelume.play("toggle");
+    });
+
+    paintSound(readSoundPref());
+  }
+}
+
+// ── Interaction sounds ──
+//
+// cuelume (js/cuelume.js) synthesizes every cue live, so this costs no audio
+// files and no network. Four of its fourteen are used: a `tick` as the pointer
+// arrives on anything clickable, a `press`/`release` pair either side of a
+// click so a button sounds like a key going down and coming back up rather than
+// one flat blip, and `bloom` for the one thing that reveals rather than
+// activates. Leaving is silent — the cue marks arriving somewhere.
+//
+// Delegated off the document rather than bound per element — the page builds
+// almost all of its links and cards from site-content.json after this runs, and
+// the lightbox and trays add more later. Nothing has to be re-scanned or carry
+// a data attribute; a new card is audible the moment it exists.
+//
+// Desktop only, on the same query the settings panel uses: sound is something
+// you can turn off, the switch that turns it off lives in that panel, and a
+// phone that could hear the sounds but never see the switch would be the one
+// arrangement with no way out. A phone is also the device most likely to be
+// somewhere sound isn't welcome.
+
+const SOUND_VOLUME = 0.6;
+
+// What counts as clickable. role="button" is the third one that matters here:
+// makeActivatable() stamps it on every work card, writing row and gallery
+// image, which are divs doing a button's job.
+const SOUND_TARGETS = 'a[href], button, [role="button"]';
+
+// Things that aren't clickable but answer the pointer anyway, and so are worth
+// a cue of their own. The About portrait turns the drawing over to reveal the
+// photograph behind it: `bloom` is the palette's slow warm swell, the one cue
+// that sounds like something opening rather than something being clicked.
+//
+// Hover only. These have no click behaviour on a pointer device — the
+// portrait's tap-to-flip is bound only where hover is missing, which is
+// exactly where sound is off — so they stay out of the press/release pair.
+const SOUND_HOVER_CUES = { ".about-portrait": "bloom" };
+const SOUND_HOVER_TARGETS = [SOUND_TARGETS].concat(Object.keys(SOUND_HOVER_CUES)).join(", ");
+
+// Which cue an element hovers with. One matches() against a short list beats a
+// second closest() pass — the union selector above has already found the
+// element, this only has to name what it is.
+function hoverCue(el) {
+  for (const selector in SOUND_HOVER_CUES) {
+    if (el.matches(selector)) return SOUND_HOVER_CUES[selector];
+  }
+  return "tick";
+}
+
+// A pointer dragged across a dense row — the nav, a stack of work cards — can
+// arrive on several elements inside a few milliseconds, which machine-guns.
+// One tick per this window, so a fast sweep is a handful of ticks rather than
+// one per element crossed.
+const SOUND_GAP_MS = 80;
+
+// Kept in step with the @media block above .settings in styles/main.css by
+// hand — there is no way to read a media query back out of a stylesheet the way
+// MOTION_DUR_MS reads --motion-dur, so this is the one place in the site where
+// a breakpoint is written twice. Change one, change the other.
+const DESKTOP_QUERY = "(min-width: 900px) and (min-height: 560px) and (hover: hover) and (pointer: fine)";
+
+function soundTarget(el, selector) {
+  if (!el || !el.closest) return null;
+  const found = el.closest(selector || SOUND_TARGETS);
+  if (!found) return null;
+  if (found.getAttribute("aria-disabled") === "true" || found.disabled) return null;
+  return found;
+}
+
+function initSounds() {
+  const cuelume = window.cuelume;
+  if (!cuelume) return;
+  cuelume.setVolume(SOUND_VOLUME);
+  // Before any listener is wired, so a visitor who turned sound off last time
+  // can't hear a cue from the first hover of this visit.
+  applySoundPref(readSoundPref());
+
+  // Read once and kept current by its own change event, rather than asked on
+  // every pointer event. pointerover is the highest-frequency listener on the
+  // site — it fires on every boundary the pointer crosses, including between an
+  // element and its own children — and .matches re-evaluates the query each
+  // time it's read.
+  const desktopQuery = window.matchMedia(DESKTOP_QUERY);
+  let isDesktop = desktopQuery.matches;
+  desktopQuery.addEventListener("change", (e) => {
+    isDesktop = e.matches;
+  });
+
+  // Every listener here is a pure observer — none of them calls preventDefault,
+  // so none of them should make the browser wait to find out.
+  const PASSIVE = { passive: true };
+
+  let lastTick = -Infinity;
+
+  document.addEventListener("pointerover", (e) => {
+    if (!isDesktop) return;
+    // The throttle is checked before the DOM is walked, not after. Both orders
+    // tick identically — lastTick only moves when a cue actually plays — but
+    // this one skips a closest() on the great majority of these events, which
+    // arrive in bursts far tighter than the gap.
+    const now = performance.now();
+    if (now - lastTick < SOUND_GAP_MS) return;
+    const el = soundTarget(e.target, SOUND_HOVER_TARGETS);
+    if (!el) return;
+    // pointerover also fires on every move between an element's own children.
+    // Only crossing the outer boundary is arriving.
+    const from = e.relatedTarget;
+    if (from instanceof Node && el.contains(from)) return;
+    lastTick = now;
+    cuelume.play(hoverCue(el));
+  }, PASSIVE);
+
+  // The release is owed to the press, not to wherever the pointer ended up: if
+  // you press a card and slide off before letting go, the click is cancelled but
+  // the button still comes back up. So the pointerup listener sits on the
+  // document and answers any press that's outstanding, which also means a press
+  // can never be left hanging without its other half. The keyboard half below
+  // shares the flag for the same reason — a key held down while focus moves
+  // still gets its release.
+  let pressed = false;
+
+  const press = () => {
+    pressed = true;
+    cuelume.play("press");
+  };
+
+  const release = () => {
+    if (!pressed) return;
+    pressed = false;
+    cuelume.play("release");
+  };
+
+  document.addEventListener("pointerdown", (e) => {
+    if (!isDesktop) return;
+    if (!soundTarget(e.target)) return;
+    press();
+  }, PASSIVE);
+
+  document.addEventListener("pointerup", release, PASSIVE);
+  document.addEventListener("pointercancel", release, PASSIVE);
+
+  // The keyboard half. Focus is the keyboard's pointer, so the gate is what
+  // holds focus rather than what the key happens to be: land on a work card or
+  // a nav tab and every key sounds; land in the message form's name field and
+  // none of them do, because a text input is not one of SOUND_TARGETS. That
+  // keeps typing silent without having to keep a list of which keys are typing.
+  document.addEventListener("keydown", (e) => {
+    if (!isDesktop) return;
+    // Holding a key fires keydown over and over against a single keyup. Only
+    // the first is a press.
+    if (e.repeat || pressed) return;
+    if (!soundTarget(document.activeElement)) return;
+    press();
+  }, PASSIVE);
+
+  document.addEventListener("keyup", release, PASSIVE);
+  // Focus leaving the window kills the keyup that was owed — a ⌘-Tab away
+  // mid-press would otherwise leave the flag set and swallow the next press.
+  window.addEventListener("blur", release);
+}
+
+initSounds();
+initSettings();
 
 // ── Dev toolbar loader ──
 // Local-only affordance: dev/devtools.js is in .gitignore and .assetsignore, so

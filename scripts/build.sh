@@ -28,8 +28,8 @@ LIGHTNINGCSS="lightningcss-cli@1.30.1"
 CHECK=0
 [ "${1:-}" = "--check" ] && CHECK=1
 
-# main.css -> main.min.css, site.js -> site.min.js, store.js -> store.min.js
-SOURCES=("styles/main.css" "js/site.js" "js/store.js")
+# main.css -> main.min.css, and each js/*.js -> js/*.min.js
+SOURCES=("styles/main.css" "js/theme.js" "js/cuelume.js" "js/site.js" "js/store.js")
 
 build_one() {
   local src="$1" out="$2"
