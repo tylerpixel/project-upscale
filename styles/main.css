@@ -289,10 +289,45 @@
   --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --motion-quick: 0.15s ease;
   --motion-press: 0.12s ease;
+  /* How far anything gives when you push it. One number for the whole site,
+     because a press is a single physical idea — the surface takes your weight —
+     and four different depths read as four different materials.
+
+     Deliberately barely there. 0.99 is about a pixel on a 96px button and less
+     on the small ones; you feel it answer rather than see it move, which is the
+     point. The previous values ranged from 0.99 to 0.94, and the 0.94 on the
+     FAB was firmly in "see it move" territory.
+
+     Scale rather than a fixed offset, so a large target and a small one give by
+     the same proportion instead of the small one collapsing. */
+  --press-scale: 0.99;
+  /* Icons answer the pointer harder than the surfaces they sit on. A glyph is
+     small and sits in open space, so a shift you would never notice on a
+     full-width button reads clearly on a 20px mark — and there is nothing
+     around it for the movement to crowd.
+
+     Two steps, so hovering and clicking are told apart by feel rather than by
+     degree: the icon draws back as you approach it, then presses in properly
+     when you commit. These are absolute, not multiplied together — clicking
+     lands on 0.9 whether or not you arrived via a hover, which is what keeps a
+     click on a touch device (no hover at all) the same size as one on a
+     desktop. */
+  --icon-hover-scale: 0.95;
+  --icon-press-scale: 0.9;
   /* The icon-weight swap in the nav is the one place a spring is wanted —
      the solid glyph settles into place instead of sliding in — so it keeps
      its own overshoot curve. Duration follows the site's pace. */
   --motion-pop: var(--motion-dur) cubic-bezier(0.34, 1.4, 0.64, 1);
+  /* For state that reverses as often as it arrives — hover, above all. The
+     overshoot above is right for committing to something and wrong here: a
+     spring that fires every time the pointer crosses a tab reads as twitchy,
+     and half of those crossings are the pointer already leaving.
+
+     So: no overshoot, and symmetric, which is the part that matters. An
+     ease-out curve looks right going in and lands wrong coming out, because
+     the fast half ends up at the wrong end of the motion. This one is even at
+     both ends, so the icon fills and empties at the same rate. */
+  --motion-cream: 260ms cubic-bezier(0.4, 0, 0.2, 1);
   /* Everything that slides along the bottom bar moves on this and nothing
      else: the selected-tab indicator, the focus thumb in the nav, the focus
      thumb in the ⌘K tray, the keyboard-nav name chip. They travel side by
@@ -1878,7 +1913,7 @@ body.is-intro .site-footer {
 }
 
 .store-add:active:not(:disabled) {
-  transform: scale(0.99);
+  transform: scale(var(--press-scale));
 }
 
 /* ── CTA button ──
@@ -1939,7 +1974,7 @@ body.is-intro .site-footer {
 }
 
 .cta-button:active {
-  transform: scale(0.98);
+  transform: scale(var(--press-scale));
 }
 
 .cta-button svg {
@@ -3193,7 +3228,7 @@ body.is-404 .attribution {
 }
 
 .work-nav-btn:active {
-  transform: scale(0.98);
+  transform: scale(var(--press-scale));
 }
 
 .work-nav-btn svg {
@@ -3251,6 +3286,13 @@ body.is-404 .attribution {
   transition: color var(--motion-quick);
 }
 
+/* The press lands on the icon, not on the tab.
+   Both the tab and the FAB wrap a .nav-toast — the little label that rises
+   above them on hover — and scaling the button scales the label with it, since
+   an absolutely positioned child is still inside its parent's transform. The
+   tooltip visibly shrinking as you click is not the effect; the glyph giving
+   under your finger is. So the transform sits on .nav-icon, which is the icon
+   and nothing else. Shared with .fab below for the same reason. */
 .nav-toast {
   position: absolute;
   bottom: calc(100% + 10px);
@@ -3346,18 +3388,50 @@ body.is-404 .attribution {
    (.nav-toast is absolutely positioned, so it claims no cell of its own.) */
 .nav-icon {
   grid-area: 1 / 1;
-  /* Two clocks on purpose. The fade is short so the two weights are never both
-     half-present long enough to read as a smudge; the scale runs longer and
-     overshoots a touch, which is where the snap comes from. Doing both on one
-     duration gives you either a mushy fade or a twitchy pop. */
-  transition: opacity var(--motion-quick), transform var(--motion-pop);
+  /* Two independent scales, multiplied rather than one overwriting the other.
+     --weight-scale is where this icon weight sits at rest: the solid glyph
+     waits just under full size so selecting settles it into place. --press is
+     the give when the control is held.
+
+     They have to compose, because both want `transform` and the last rule to
+     set it would otherwise erase the other — pressing a selected tab would
+     spring its icon back to 0.72, and the weight swap would fight the press.
+     A custom property multiplied into one transform is the way to have both;
+     changing either var recomputes the transform, and the transition below
+     still interpolates the resulting matrices.
+
+     --interact carries hover and press as one value rather than two, so the
+     two states can't stack: pressing sets it outright instead of multiplying
+     into whatever hover left behind. */
+  --weight-scale: 1;
+  --interact: 1;
+  transform: scale(calc(var(--weight-scale) * var(--interact)));
+  /* The default is the creamy curve, because the swap now happens on hover as
+     well as on selection and hover is by far the more frequent of the two.
+     One clock here, not two: the fade and the scale share a duration so the
+     weight arrives as a single movement rather than a fade with a separate
+     scale trailing it.
+
+     Selection overrides this below to keep its spring. That asymmetry is
+     deliberate and falls out of how transitions resolve — the browser uses the
+     value declared on the state being entered — so selecting a tab pops, and
+     everything else, including un-selecting and every hover, is creamy. */
+  transition: opacity var(--motion-cream), transform var(--motion-cream);
 }
 
 /* The solid weight waits just under full size, so selecting a tab settles it
    into place rather than sliding it in from somewhere. */
 .nav-icon--solid {
   opacity: 0;
-  transform: scale(0.72);
+  --weight-scale: 0.72;
+}
+
+/* Selection keeps the spring — see --motion-pop. Declared on the selected
+   state so it governs the way in; coming back out falls to the base rule and
+   is creamy, which is what you want when the tab you left is settling rather
+   than announcing itself. */
+.nav-tab[aria-selected="true"] .nav-icon {
+  transition: opacity var(--motion-quick), transform var(--motion-pop);
 }
 
 .nav-tab[aria-selected="true"] .nav-icon--line {
@@ -3366,7 +3440,29 @@ body.is-404 .attribution {
 
 .nav-tab[aria-selected="true"] .nav-icon--solid {
   opacity: 1;
-  transform: scale(1);
+  --weight-scale: 1;
+}
+
+/* Hovering a tab fills its icon without recolouring it. The tab you are *on*
+   is the one thing wearing the brand blue (see the aria-selected rule above);
+   a hover is a pointer passing through, not a second selection, so the glyph
+   changes weight and keeps whatever colour it already had.
+   Gated on (hover: hover) because a touch device latches :hover after a tap,
+   which would leave an unselected tab looking filled until you touched
+   something else. */
+@media (hover: hover) {
+  .nav-tab:hover .nav-icon--line {
+    opacity: 0;
+  }
+
+  .nav-tab:hover .nav-icon--solid {
+    opacity: 1;
+    --weight-scale: 1;
+  }
+
+  .nav-tab:hover .nav-icon {
+    --interact: var(--icon-hover-scale);
+  }
 }
 
 .nav-tab svg {
@@ -3378,12 +3474,13 @@ body.is-404 .attribution {
 /* Keep the cross-fade — it's what stops the weights swapping mid-blink — but
    drop the scale, which is the part that's motion rather than a state change. */
 @media (prefers-reduced-motion: reduce) {
-  .nav-icon {
+  .nav-icon,
+  .nav-tab[aria-selected="true"] .nav-icon {
     transition: opacity var(--motion-quick);
   }
 
   .nav-icon--solid {
-    transform: none;
+    --weight-scale: 1;
   }
 }
 
@@ -3474,12 +3571,53 @@ body.is-404 .attribution {
   place-items: center;
   text-decoration: none;
   box-shadow: var(--shadow-fab);
-  transition: transform var(--motion-press);
+  /* The press keeps its own quick curve — a click wants to feel immediate —
+     while the colour runs on the creamy one, so the fill arrives at the same
+     rate as the icon weight cross-fading on top of it. */
+  transition: transform var(--motion-press), background var(--motion-cream);
 }
 
-.fab:active {
-  transform: scale(0.94);
+/* Unlike the nav tabs, the FAB *does* take the blue on hover. It isn't part of
+   the selected/unselected set the tabs belong to — there is only one of it, and
+   it is the single action on the bar rather than a place you can be — so
+   colouring it can't be confused with saying "you are here". */
+@media (hover: hover) {
+  .fab:hover {
+    background: var(--brand);
+  }
+
+  .fab:hover .nav-icon--line {
+    opacity: 0;
+  }
+
+  .fab:hover .nav-icon--solid {
+    opacity: 1;
+    --weight-scale: 1;
+  }
+
+  .fab:hover .nav-icon {
+    --interact: var(--icon-hover-scale);
+  }
 }
+
+/* ── Must stay below every :hover rule above ──
+   :hover and :active have identical specificity here — both are one
+   pseudo-class on the same two-class selector — so the winner is whichever
+   comes last in the file, not whichever is "more specific". Placed before
+   them, this rule loses, and pressing an icon you are hovering (which is
+   every mouse press there is) would sit at the hover scale and never reach
+   the press one. Nothing about the selectors says so; only the order does. */
+.nav-tab:active .nav-icon,
+.fab:active .nav-icon {
+  --interact: var(--icon-press-scale);
+  /* Declared on the pressed state, so pushing in is immediate and letting go
+     falls back to the creamy curve on .nav-icon. Snap down, ease back — a
+     click wants to feel answered at once, a release wants to settle. */
+  transition: opacity var(--motion-cream), transform var(--motion-press);
+}
+
+/* No :active transform on .fab itself — see the .nav-tab:active rule above.
+   The circle holding the icon stays put so its "Message" toast does too. */
 
 /* ── Settings ──
    A dot in the bottom-left corner of the viewport with the site's preferences

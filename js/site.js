@@ -2952,7 +2952,11 @@ const SOUND_TARGETS = 'a[href], button, [role="button"]';
 // Hover only. These have no click behaviour on a pointer device — the
 // portrait's tap-to-flip is bound only where hover is missing, which is
 // exactly where sound is off — so they stay out of the press/release pair.
-const SOUND_HOVER_CUES = { ".about-portrait": "bloom" };
+// The FAB is the one action on the bar rather than a place you can go, and it
+// gets the palette's fullest cue to match: `chime` where every tab is a `tick`.
+// It also has to be named here to be heard at all — SOUND_TARGETS matches
+// `a[href]`, and the FAB is an anchor without one.
+const SOUND_HOVER_CUES = { ".about-portrait": "bloom", ".fab": "chime" };
 const SOUND_HOVER_TARGETS = [SOUND_TARGETS].concat(Object.keys(SOUND_HOVER_CUES)).join(", ");
 
 // Which cue an element hovers with. One matches() against a short list beats a
@@ -3026,6 +3030,35 @@ function initSounds() {
     if (from instanceof Node && el.contains(from)) return;
     lastTick = now;
     cuelume.play(hoverCue(el));
+  }, PASSIVE);
+
+  // Leaving the About portrait plays "ready" — the drawing has finished turning
+  // back from the photograph behind it, and the cue lands on the settle rather
+  // than the reveal.
+  //
+  // Delegated like everything else here rather than bound when the portrait is
+  // built: renderContact() replaces the panel's children on every visit to
+  // About, so a listener attached to the frame would be thrown away with it.
+  //
+  // pointerout needs the same boundary check as pointerover above, for the
+  // mirror-image reason: the frame holds two stacked images, and crossing
+  // between them fires pointerout without the pointer having left the frame.
+  //
+  // It keeps its own throttle instead of sharing lastTick. Sharing would mean
+  // the hover cue that fires on the way in suppresses this one on the way out,
+  // which is exactly the pair you want to hear.
+  let lastReady = -Infinity;
+
+  document.addEventListener("pointerout", (e) => {
+    if (!isDesktop) return;
+    const frame = e.target instanceof Element ? e.target.closest(".about-portrait") : null;
+    if (!frame) return;
+    const to = e.relatedTarget;
+    if (to instanceof Node && frame.contains(to)) return;
+    const now = performance.now();
+    if (now - lastReady < SOUND_GAP_MS) return;
+    lastReady = now;
+    cuelume.play("ready");
   }, PASSIVE);
 
   // The release is owed to the press, not to wherever the pointer ended up: if
