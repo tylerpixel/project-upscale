@@ -107,14 +107,29 @@ colour simply gained a second value.
 ## Does it hold up?
 
 Lighthouse is Google's standard health check for websites. Run against the live
-site in July 2026, out of 100:
+site in August 2026, out of 100:
 
-| | |
-|---|---|
-| Performance | **92** |
-| Accessibility | **100** |
-| Best practices | **100** |
-| SEO | **100** |
+| | mobile | desktop |
+|---|---|---|
+| Performance | **100** | **94** |
+| Accessibility | **100** | **100** |
+| Best practices | **100** | **100** |
+| SEO | **100** | **100** |
+
+Mobile is the one Lighthouse reports by default and the one that matters most,
+since it assumes a slow connection and a modest phone. Performance was 92
+before the page was put on a diet.
+
+Desktop sits at 94 for a duller reason than it sounds: it grades against a fast
+connection, where the same 1.3-second largest paint that scores full marks on
+mobile is merely fine. Nothing renders differently. The only thing it flags is
+that the stylesheet and the tiny theme script block the first paint — and the
+theme script blocks on purpose, because applying a stored dark mode *after* the
+first paint would mean showing a white page first.
+
+Layout shift is zero and blocking time is zero on both, which is the part I'd
+actually defend: nothing on the page jumps around while it loads, and nothing
+locks up the browser while it starts.
 
 Accessibility at 100 is the one I care about most. The whole site can be
 navigated by keyboard alone, the text colours were picked against a contrast
