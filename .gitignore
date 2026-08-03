@@ -51,3 +51,7 @@ lighthouse/
 # importing it (the build does, to reach its assertions) leaves this behind.
 __pycache__/
 *.pyc
+
+# Worktrees created under .claude/ are checkouts of this same repo, not
+# content. git add -A will otherwise commit one as an embedded gitlink.
+.claude/worktrees/
