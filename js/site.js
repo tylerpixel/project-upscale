@@ -192,7 +192,54 @@ function emptyImageTile(extraClass) {
 // A broken src (deleted file, typo'd path) degrades to the same empty tile
 // the missing-image case uses, keeping the card layout intact.
 function attachImageFallback(img, extraClass) {
-  img.addEventListener("error", () => img.replaceWith(emptyImageTile(extraClass)));
+  img.addEventListener("error", () => {
+    // A display variant that didn't load falls back to the full-size original
+    // before the empty tile does. That retry is what makes setDisplaySrc safe
+    // to apply without checking first whether each @1080 file exists: an image
+    // added through the CMS before scripts/resize-images.js has run costs a
+    // wasted request and renders at full size, instead of vanishing.
+    const full = img.dataset.fullSrc;
+    if (full) {
+      delete img.dataset.fullSrc;
+      img.src = full;
+      return;
+    }
+    img.replaceWith(emptyImageTile(extraClass));
+  });
+}
+
+// ── Display-size images ──
+//
+// Every inline image on the site renders inside the 360px content column —
+// .work-gallery-image, .work-detail-image and .work-thumb all measure exactly
+// --content-width in the browser. The files behind them are up to 2000px wide,
+// which is more than 3x what even a 3x phone can resolve at that size.
+//
+// scripts/resize-images.js writes a 1080px copy of each under an @1080 suffix
+// (360 × 3, so the densest screens are still covered) and this points the
+// inline <img> at it. Across the gallery that is about two thirds of the
+// bytes, for pixels no display was ever going to show.
+//
+// The lightbox deliberately does not go through here. It opens at up to 900
+// CSS px, which is the one place the full file earns its size.
+const DISPLAY_WIDTH = 1080;
+const RESIZABLE = /\.(webp|png|jpe?g)$/i;
+
+function displaySrc(src) {
+  if (typeof src !== "string") return src;
+  // Only the two trees resize-images.js covers. Company logos are SVG, and the
+  // portrait and avatar are already smaller than the variant would be.
+  if (!/(^|\/)images\/(work|figs)\//.test(src)) return src;
+  if (!RESIZABLE.test(src) || src.includes(`@${DISPLAY_WIDTH}.`)) return src;
+  return src.replace(RESIZABLE, (ext) => `@${DISPLAY_WIDTH}${ext}`);
+}
+
+// Point an <img> at the display-size copy, recording the original so the error
+// handler above can fall back to it. Pairs with attachImageFallback.
+function setDisplaySrc(img, src) {
+  const display = displaySrc(src);
+  if (display !== src) img.dataset.fullSrc = src;
+  img.src = display;
 }
 
 // The bare hostname a tooltip names a destination by. Shared by the inline-link
@@ -1430,7 +1477,7 @@ function renderWork(work, label) {
     } else if (project.image) {
       const img = document.createElement("img");
       img.className = "work-thumb";
-      img.src = project.image;
+      setDisplaySrc(img, project.image);
       img.alt = project.title || "";
       img.loading = "lazy";
       attachImageFallback(img, "work-thumb");
@@ -1542,7 +1589,7 @@ function caseFigure(figure) {
   if (figure.src) {
     const img = document.createElement("img");
     img.className = "work-gallery-image";
-    img.src = figure.src;
+    setDisplaySrc(img, figure.src);
     img.alt = figure.alt || figure.caption || "";
     img.loading = "lazy";
     img.decoding = "async";
@@ -1675,7 +1722,7 @@ function buildWorkDetailContent(panel, project) {
   } else if (project.image) {
     hero = document.createElement("img");
     hero.className = "work-detail-image";
-    hero.src = project.image;
+    setDisplaySrc(hero, project.image);
     hero.alt = project.title || "";
     attachImageFallback(hero, "work-detail-image");
   } else {
@@ -1726,7 +1773,7 @@ function buildWorkDetailContent(panel, project) {
 
       const img = document.createElement("img");
       img.className = "work-gallery-image";
-      img.src = image.src;
+      setDisplaySrc(img, image.src);
       img.alt = image.caption || project.title || "";
       img.loading = "lazy";
       attachImageFallback(img, "work-gallery-image");
@@ -2012,7 +2059,7 @@ function renderWriting(writing, label) {
     if (post.thumb) {
       const thumb = document.createElement("img");
       thumb.className = "writing-thumb";
-      thumb.src = post.thumb;
+      setDisplaySrc(thumb, post.thumb);
       // Decorative by default: the row is already labelled "Read <title>" by
       // makeActivatable, so a described thumbnail would announce twice.
       thumb.alt = post.thumbAlt || "";
@@ -2073,7 +2120,7 @@ function openPost(post) {
   if (post.thumb) {
     const hero = document.createElement("img");
     hero.className = "work-detail-image post-hero";
-    hero.src = post.thumb;
+    setDisplaySrc(hero, post.thumb);
     // The title sits directly beneath it, so a described hero would say the
     // same thing twice. thumbAlt overrides when the image carries meaning the
     // title does not.
