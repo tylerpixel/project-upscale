@@ -23,6 +23,24 @@ lighthouse
 .backups
 # Source art kept in the repo so it can be re-encoded, never served — each has
 # a .webp beside it that is what the site actually links to.
+#
+# The two static faces are here for the same reason: scripts/subset-font.py
+# cuts fonts/dmsans-{500,700}-{core,ext}.woff2 from them, and those are what
+# @font-face points at. A .ttf is uncompressed, so uploading one would put a
+# 56 KB file on the edge that nothing links to and that is nearly four times
+# the size of the .woff2 built from it.
+#
+# OFL.txt is not a source and is not served either, but it stays in the repo:
+# the SIL Open Font License requires the licence and copyright notice to
+# accompany any redistributed or modified copy of the font, and the subset
+# .woff2 files are exactly that.
+fonts/DM_Sans/static/DMSans-Medium.ttf
+fonts/DM_Sans/static/DMSans-Bold.ttf
+fonts/DM_Sans/OFL.txt
+# The 404 animation's source. scripts/resize-images.js converts it to
+# images/404.webp, which is what the page links to — a third of the bytes for
+# the same 33 frames.
+images/404.gif
 images/pfp.png
 images/work/caseystevenson/caseystevenson.png
 images/work/northbound-gear/northbound-gear-logo.png

@@ -38,7 +38,17 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <!-- Fonts -->
-    <link rel="preload" href="/fonts/DMSans-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <!-- The design runs on two weights, 500 and 700, and both appear on every
+         page — body copy in one, headings and chips in the other — so both core
+         faces are preloaded.
+         Only the *core* ones. scripts/subset-font.py splits each weight into
+         core (ASCII + Latin-1 + the punctuation the site sets) and an extended
+         face behind a unicode-range, which the browser fetches only if a glyph
+         on the page needs it. Preloading the extended pair would hand back the
+         whole saving to every visitor who never sees a character from them —
+         which is very nearly all of them. -->
+    <link rel="preload" href="/fonts/dmsans-500-core.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/dmsans-700-core.woff2" as="font" type="font/woff2" crossorigin />
     <!-- Swapped at deploy time by scripts/inline-content.js: the preload below
          becomes a script element of type application/json, id="siteContent",
          carrying the whole content file — so the document and the site's copy
@@ -246,11 +256,16 @@
              Works thumbnail. -->
         <section class="panel t-stagger" data-panel="notfound" id="panel-404" hidden>
           <!-- loading="lazy" matters more here than anywhere else on the site:
-               this GIF is 669 KiB, and a hidden panel is still eager-loaded, so
-               without it every visitor downloaded two thirds of the page weight
-               for a panel almost none of them will ever see — mid-flight
-               against the CSS, the fonts and the content JSON. -->
-          <img class="work-thumb notfound-thumb" src="/images/404.gif" alt="A lone figure walking away across an empty desert" loading="lazy" decoding="async" width="453" height="255" />
+               a hidden panel is still eager-loaded, so without it every visitor
+               downloaded this animation for a panel almost none of them will
+               ever see — mid-flight against the CSS, the fonts and the content
+               JSON.
+               It is animated WebP rather than the 669 KiB GIF it started as:
+               same 33 frames at the same 453x255, a third of the bytes.
+               scripts/resize-images.js converts it; images/404.gif stays in the
+               repo as the source and is kept out of the upload. It is not
+               downscaled — 453px in a 360px column is already under 2x. -->
+          <img class="work-thumb notfound-thumb" src="/images/404.webp" alt="A lone figure walking away across an empty desert" loading="lazy" decoding="async" width="453" height="255" />
           <p class="notfound-title">404 Error</p>
           <p class="notfound-message">This page does not exist.</p>
           <a class="notfound-home cta-button" href="/">
@@ -286,7 +301,7 @@
     </main>
 
     <div class="attribution">
-      <a href="/images/404.gif" class="light-link">GIF</a> by HBO /
+      <a href="/images/404.webp" class="light-link">GIF</a> by HBO /
       <a href="https://creativecommons.org/licenses/by/2.0/" class="light-link" target="_blank" rel="noopener noreferrer">CC BY</a>
     </div>
 

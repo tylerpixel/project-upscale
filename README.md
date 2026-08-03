@@ -29,10 +29,12 @@ I wanted three things:
 **To own it.** No monthly subscription and no company between me and my own
 site. Hosting it now costs close to nothing.
 
-**To make it fast.** All the code that makes the site work — the page, the way
-it looks, and everything it does — comes to about 59 KB. That's a fraction of a
-single photo off your phone, and it means the site loads more or less
-instantly, anywhere.
+**To make it fast.** Everything a browser downloads before it can show you the
+site — the page, the typeface, the way it looks, and everything it does — comes
+to about 69 KB. That's a fraction of a single photo off your phone, and it
+means the site loads more or less instantly, anywhere. You can check that
+number yourself at any time with `node scripts/weigh.js`, which measures it the
+way the browser actually receives it rather than the way it sits on disk.
 
 **To be able to follow through.** A builder hands you a site you can only change
 in the ways it allows. Here nothing is off limits, because I know where
@@ -73,6 +75,28 @@ here.
 | **Lives on** | Cloudflare, at the edge — served from a data centre near whoever's visiting |
 | **Content** | All the words and images live in one file I edit through a small editor that runs on my own machine, so updating the site never means touching code |
 | **Publishing** | One command builds it, stamps a version number on it, saves it to GitHub and pushes it live |
+| **Weight** | Measured, not guessed. `scripts/weigh.js` reports what a cold visit actually costs, compressed the way the CDN compresses it |
+
+Three things earn most of that speed, and each one is a build step rather than a
+rule anybody has to remember:
+
+- **The typeface is cut to fit.** DM Sans ships around 400 characters per
+  weight. The site is English in two weights, so each one is cut down to what a
+  keyboard can actually type — letters, numbers, punctuation — plus the
+  currency symbols, the copyright marks, and the handful of typographer's
+  characters the writing already uses, like proper apostrophes and em dashes.
+  Everything else, chiefly accented letters, goes into a second file the
+  browser fetches only if a page ever needs one. Almost nobody does. The type
+  that loads on a normal visit went from 73 KB to 23 KB, and the single-storey
+  *g* the whole site is set in survives the cut — the build fails outright if
+  it ever doesn't.
+- **Images are sent at the size they're shown.** Every case-study image renders
+  in a 360-pixel column, and the files behind them were up to 2000 pixels wide.
+  Each now has a display-size copy alongside it, and the full-resolution
+  original is still exactly what the lightbox opens.
+- **The comments don't ship.** The page's source is full of explanations of why
+  things are the way they are. They're stripped on the way out and kept in the
+  repository, so the reasoning survives without anyone downloading it.
 
 The design side is handled the same way a design system would be. Every colour,
 size, corner radius and animation speed is defined once at the top of the
