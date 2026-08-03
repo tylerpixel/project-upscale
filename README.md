@@ -31,7 +31,7 @@ site. Hosting it now costs close to nothing.
 
 **To make it fast.** Everything a browser downloads before it can show you the
 site — the page, the typeface, the way it looks, and everything it does — comes
-to about 69 KB. That's a fraction of a single photo off your phone, and it
+to about 83 KB. That's a fraction of a single photo off your phone, and it
 means the site loads more or less instantly, anywhere. You can check that
 number yourself at any time with `node scripts/weigh.js`, which measures it the
 way the browser actually receives it rather than the way it sits on disk.
@@ -87,7 +87,7 @@ rule anybody has to remember:
   characters the writing already uses, like proper apostrophes and em dashes.
   Everything else, chiefly accented letters, goes into a second file the
   browser fetches only if a page ever needs one. Almost nobody does. The type
-  that loads on a normal visit went from 73 KB to 23 KB, and the single-storey
+  that loads on a normal visit went from 73 KB to 24 KB, and the single-storey
   *g* the whole site is set in survives the cut — the build fails outright if
   it ever doesn't.
 - **Images are sent at the size they're shown.** Every case-study image renders

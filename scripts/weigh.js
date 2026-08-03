@@ -6,13 +6,28 @@
 //   node scripts/weigh.js --save base.json # weigh it and record the result
 //   node scripts/weigh.js --against base.json   # weigh it and show the delta
 //
-// Why this exists: `ls -la` measures the wrong thing. Cloudflare brotli-encodes
-// text assets on the way out, so a 45 KB stylesheet is a 7 KB download, and a
+// Why this exists: `ls -la` measures the wrong thing. Cloudflare compresses
+// text assets on the way out, so a 45 KB stylesheet is a 10 KB download, and a
 // change that removes 10 KB of repetitive CSS might remove 200 bytes from the
 // response. Optimising against raw file size is optimising against a number no
-// visitor ever experiences. Everything here is measured post-brotli, at the
-// quality Cloudflare uses for static assets, so the totals are what a browser
-// on a cold cache genuinely pulls down.
+// visitor ever experiences.
+//
+// This file used to assume brotli at quality 11 and reported totals about 8 KB
+// under what the site actually served. Cloudflare negotiates **zstd**, and at
+// its default level. That was not guessed: the deployed assets were fetched
+// from tylerpixel.com with `Accept-Encoding: zstd`, their encoded sizes
+// recorded, and every plausible level compared against them.
+//
+//     level    css     js  store  cuelume  theme   legal   mean error
+//         3  10455  19704   5870     2107    426   17194       0.58%
+//         6   9204  18111   5561     2007    420   16177       6.34%
+//        11   8849  17848   5515     2016    418   15791       7.64%
+//        19   8588  17313   5420     1979    415   15288       9.67%
+//    actual  10491  19476   5938     2110    425   17272           —
+//
+// Level 3 tracks production to well under a percent; anything higher flatters
+// the result. A CDN compressing on the fly is optimising for latency, not
+// ratio, so this is the number to hold the site to.
 //
 // The asset list is read out of index.html rather than hard-coded, so adding a
 // script or dropping a stylesheet is reflected here without anyone remembering
@@ -33,24 +48,38 @@ const ROOT = path.join(__dirname, "..");
 const HTML = path.join(ROOT, "index.html");
 const CONTENT = path.join(ROOT, "data", "site-content.json");
 
-// Cloudflare serves brotli at quality 11 for cacheable static assets. Matching
-// it here rather than using a cheaper level keeps these numbers honest — a
-// lower quality would flatter every result by a few hundred bytes.
-const BROTLI = {
-  [zlib.constants.BROTLI_PARAM_QUALITY]: 11,
-  [zlib.constants.BROTLI_PARAM_SIZE_HINT]: 0,
-};
+// Calibrated against production — see the table above.
+const ZSTD_LEVEL = 3;
+
+if (typeof zlib.zstdCompressSync !== "function") {
+  console.error(
+    `weigh: this Node (${process.version}) has no zstd support, so it cannot\n` +
+      "measure what Cloudflare actually sends. Node 22.15+ or 23.8+ is needed."
+  );
+  process.exit(1);
+}
 
 const wire = (buf) =>
-  zlib.brotliCompressSync(buf, {
-    params: { ...BROTLI, [zlib.constants.BROTLI_PARAM_SIZE_HINT]: buf.length },
+  zlib.zstdCompressSync(buf, {
+    params: { [zlib.constants.ZSTD_c_compressionLevel]: ZSTD_LEVEL },
   }).length;
 
-// woff2 is a brotli container already. Running brotli over it again is not just
-// pointless, it's counterproductive — the output is a few bytes *larger*, and a
-// server that has any sense sends the file untouched. Anything in this set is
-// reported at its true on-disk size.
-const PRECOMPRESSED = /\.(woff2?|avif|webp|png|jpe?g|gif|mp4|webm|zip|gz|br)$/i;
+// Every response also carries headers, which no compression figure captures but
+// a visitor's connection certainly does. Measured on the live document over
+// HTTP/2: transferSize 21250 against encodedBodySize 20950.
+//
+// Do not "correct" this upward from a curl run. curl speaks HTTP/1.1 and shows
+// roughly 1500 bytes of headers per response; browsers speak HTTP/2, where
+// HPACK compresses them against a shared table and repeated headers across the
+// eight requests cost almost nothing after the first. 300 is the HTTP/2 figure
+// and it is the one a visitor actually pays.
+const HEADER_BYTES_PER_REQUEST = 300;
+
+// woff2 is a compressed container already, as are the image formats. Running
+// zstd over one is not just pointless, it is counterproductive — the output is
+// larger, and any sensible server sends the file untouched. Confirmed on
+// production: dmsans-500-core.woff2 comes back with no content-encoding at all.
+const PRECOMPRESSED = /\.(woff2?|avif|webp|png|jpe?g|gif|mp4|webm|zip|gz|br|zst)$/i;
 const cost = (file, buf) => (PRECOMPRESSED.test(file) ? buf.length : wire(buf));
 
 // ── What a cold visit to "/" actually fetches ────────────────────────────────
@@ -209,7 +238,8 @@ function measure() {
     displayedBytes,
     lightboxCount: lightboxOnly.length,
     lightboxBytes,
-    firstPaint: rows.reduce((sum, r) => sum + r.wire, 0),
+    headerBytes: rows.length * HEADER_BYTES_PER_REQUEST,
+    firstPaint: rows.reduce((sum, r) => sum + r.wire, 0) + rows.length * HEADER_BYTES_PER_REQUEST,
   };
 }
 
@@ -231,6 +261,11 @@ function print(result, baseline) {
     console.log(`  ${pad(r.file, width)} ${num(kb(r.raw), 9)} ${num(kb(r.wire), 12)}${delta(r.file, r.wire)}`);
   }
   console.log(`  ${"─".repeat(width + 23)}`);
+  if (result.headerBytes) {
+    console.log(
+      `  ${pad(`response headers (${result.rows.length} requests)`, width)} ${num("", 9)} ${num(kb(result.headerBytes), 12)}`
+    );
+  }
   console.log(`  ${pad("TOTAL", width)} ${num("", 9)} ${num(kb(result.firstPaint), 12)}`);
   if (baseline) {
     const diff = result.firstPaint - baseline.firstPaint;
