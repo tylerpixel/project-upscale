@@ -46,3 +46,8 @@ dev/
 # Lighthouse reports (local audit output)
 lighthouse/
 
+
+# Python bytecode cache — scripts/subset-font.py is run through uv, and
+# importing it (the build does, to reach its assertions) leaves this behind.
+__pycache__/
+*.pyc
