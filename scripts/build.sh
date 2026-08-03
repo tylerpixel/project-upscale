@@ -28,6 +28,26 @@ LIGHTNINGCSS="lightningcss-cli@1.30.1"
 CHECK=0
 [ "${1:-}" = "--check" ] && CHECK=1
 
+# The font is cut before the CSS is minified, because subset-font.py rewrites
+# the two @font-face rules in styles/main.css from the ranges it just built.
+# Minifying first would produce a main.min.css whose unicode-range disagrees
+# with the .woff2 files beside it — the kind of mismatch that shows up as one
+# stray character in the wrong typeface and nowhere else.
+#
+# fonttools is fetched through uv exactly the way terser and lightningcss are
+# fetched through npx: pinned, one-shot, nothing stored in the repo.
+if command -v uv >/dev/null 2>&1; then
+  if [ "$CHECK" -eq 1 ]; then
+    uv run --quiet --with 'fonttools[woff]' python scripts/subset-font.py --check || FONT_STALE=1
+  else
+    uv run --quiet --with 'fonttools[woff]' python scripts/subset-font.py
+  fi
+elif [ "$CHECK" -eq 0 ]; then
+  # Not fatal: the checked-in subsets are still valid, and the font source only
+  # changes when the typeface itself does.
+  echo "  note: uv not found — skipping the font subset, reusing fonts/dmsans-*.woff2" >&2
+fi
+
 # main.css -> main.min.css, and each js/*.js -> js/*.min.js
 SOURCES=("styles/main.css" "js/theme.js" "js/cuelume.js" "js/site.js" "js/store.js")
 
@@ -44,7 +64,7 @@ build_one() {
 # terser leaves top-level names alone by default, which is exactly what's needed
 # — don't add --mangle-props or toplevel mangling here.
 
-STALE=0
+STALE="${FONT_STALE:-0}"
 for src in "${SOURCES[@]}"; do
   out="${src%.*}.min.${src##*.}"
   if [ "$CHECK" -eq 1 ]; then
@@ -67,3 +87,7 @@ if [ "$CHECK" -eq 1 ]; then
 fi
 
 echo "Built. index.html loads the .min files; the sources stay deployed for cached clients."
+echo "index.html itself is minified at deploy time by inline-content.js, not here —"
+echo "committing a minified index.html would destroy the source it was built from."
+echo
+echo "Weigh the result:  node scripts/weigh.js"
