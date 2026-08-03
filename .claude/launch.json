@@ -2,23 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "worker",
+      "name": "site",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["wrangler", "dev", "--port", "8787"],
       "port": 8787
-    },
-    {
-      "name": "static-preview",
-      "runtimeExecutable": "sh",
-      "runtimeArgs": ["-c", "python3 -m http.server \"$PORT\""],
-      "port": 4173,
-      "autoPort": true
-    },
-    {
-      "name": "cms",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["admin/server.js"],
-      "port": 4877
     }
   ]
 }

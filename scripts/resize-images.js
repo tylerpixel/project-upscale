@@ -2,7 +2,7 @@
 //
 // Generate the display-size copy of every oversized image.
 //
-//   node scripts/resize-images.js           # write the missing @1080 variants
+//   node scripts/resize-images.js           # write the missing -1080w variants
 //   node scripts/resize-images.js --force   # rebuild them all
 //   node scripts/resize-images.js --check   # list what's missing, write nothing
 //
@@ -43,6 +43,53 @@ const { execFileSync } = require("child_process");
 
 const ROOT = path.join(__dirname, "..");
 
+// ── Filenames the edge will not serve directly ───────────────────────────────
+//
+// Cloudflare's static-asset router normalises request paths and answers any URL
+// containing a character outside RFC 3986's unreserved set with a 307 to the
+// percent-encoded form. Browsers follow it, so the image still appears — which
+// is exactly why this is worth guarding: it costs a full extra round trip per
+// file and is invisible in every check that only asks "did the image render?".
+//
+// This was found the expensive way. The display variants were originally named
+// `foo@1080.webp`, and every one of the 56 cost a redirect — on a change whose
+// entire purpose was to make images cheaper. `-1080w` is unreserved and serves
+// straight through.
+//
+// It also caught images/work/healthcar/..._healthcar-website+app-p-2000.webp,
+// a Webflow export name that predates any of this and had been paying the same
+// toll since the day it was uploaded.
+const UNSAFE_IN_PATH = /[@+,=#?[\]{}|\\^ ]/;
+
+function assertServableNames() {
+  const ignored = fs
+    .readFileSync(path.join(ROOT, ".assetsignore"), "utf8")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("#"));
+
+  const bad = [];
+  (function walk(dir) {
+    for (const entry of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
+      const rel = path.join(dir, entry.name);
+      if (entry.name.startsWith(".")) continue;
+      if (ignored.some((g) => rel === g || rel.startsWith(g + "/") || entry.name === g)) continue;
+      if (entry.isDirectory()) walk(rel);
+      else if (UNSAFE_IN_PATH.test(entry.name)) bad.push(rel);
+    }
+  })("images");
+
+  if (bad.length) {
+    console.error(
+      "resize-images: these files would be served through a 307 redirect because\n" +
+        "their names contain a character Cloudflare percent-encodes. Rename them:\n" +
+        bad.map((b) => `  ${b}`).join("\n")
+    );
+    return false;
+  }
+  return true;
+}
+
 // Pinned and fetched on demand, like every other tool the build uses.
 const SHARP = "sharp-cli@5.1.0";
 
@@ -55,7 +102,7 @@ const QUALITY = 82;
 // nothing to resize. It still gets a variant — as a byte-for-byte copy.
 //
 // That copy is not redundancy for its own sake. js/site.js rewrites every
-// inline image URL to the @1080 name without checking whether the file exists,
+// inline image URL to the -1080w name without checking whether the file exists,
 // because checking would mean shipping a manifest of which images have
 // variants. If a name doesn't resolve, the browser 404s and then re-requests
 // the original: correct, but two round trips instead of one, on exactly the
@@ -88,8 +135,8 @@ const ignored = fs
   .map((l) => l.trim())
   .filter((l) => l && !l.startsWith("#"));
 
-const variantOf = (rel) => rel.replace(ENCODABLE, (ext) => `@${DISPLAY_WIDTH}${ext}`);
-const isVariant = (rel) => rel.includes(`@${DISPLAY_WIDTH}.`);
+const variantOf = (rel) => rel.replace(ENCODABLE, (ext) => `-${DISPLAY_WIDTH}w${ext}`);
+const isVariant = (rel) => rel.includes(`-${DISPLAY_WIDTH}w.`);
 
 function walk(dir, out = []) {
   const full = path.join(ROOT, dir);
@@ -178,13 +225,19 @@ const animatedJobs = ANIMATED.filter((job) => {
   return FORCE || !fs.existsSync(out) || fs.statSync(out).mtimeMs < fs.statSync(src).mtimeMs;
 });
 
+// Runs in both modes and before anything else is reported: a name the edge
+// won't serve directly is a problem whether or not any variant is stale.
+const namesOk = assertServableNames();
+
 if (CHECK) {
-  if (!jobs.length && !animatedJobs.length) {
-    console.log(`All ${sources.length} images have a current @${DISPLAY_WIDTH} variant, and ${ANIMATED.length} animation(s) are converted.`);
+  if (namesOk && !jobs.length && !animatedJobs.length) {
+    console.log(`All ${sources.length} images have a current -${DISPLAY_WIDTH}w variant, and ${ANIMATED.length} animation(s) are converted.`);
+    console.log("Every served image name is a path the edge returns directly.");
     process.exit(0);
   }
+  if (!namesOk) process.exitCode = 1;
   if (jobs.length) {
-    console.error(`${jobs.length} image(s) missing a current @${DISPLAY_WIDTH} variant:`);
+    console.error(`${jobs.length} image(s) missing a current -${DISPLAY_WIDTH}w variant:`);
     for (const j of jobs) console.error(`  ${j.rel}`);
   }
   for (const j of animatedJobs) console.error(`  ${j.from} -> ${j.to} missing or stale`);

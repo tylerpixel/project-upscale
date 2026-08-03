@@ -195,7 +195,7 @@ function attachImageFallback(img, extraClass) {
   img.addEventListener("error", () => {
     // A display variant that didn't load falls back to the full-size original
     // before the empty tile does. That retry is what makes setDisplaySrc safe
-    // to apply without checking first whether each @1080 file exists: an image
+    // to apply without checking first whether each -1080w file exists: an image
     // added through the CMS before scripts/resize-images.js has run costs a
     // wasted request and renders at full size, instead of vanishing.
     const full = img.dataset.fullSrc;
@@ -215,7 +215,7 @@ function attachImageFallback(img, extraClass) {
 // --content-width in the browser. The files behind them are up to 2000px wide,
 // which is more than 3x what even a 3x phone can resolve at that size.
 //
-// scripts/resize-images.js writes a 1080px copy of each under an @1080 suffix
+// scripts/resize-images.js writes a 1080px copy of each under a -1080w suffix
 // (360 × 3, so the densest screens are still covered) and this points the
 // inline <img> at it. Across the gallery that is about two thirds of the
 // bytes, for pixels no display was ever going to show.
@@ -230,8 +230,8 @@ function displaySrc(src) {
   // Only the two trees resize-images.js covers. Company logos are SVG, and the
   // portrait and avatar are already smaller than the variant would be.
   if (!/(^|\/)images\/(work|figs)\//.test(src)) return src;
-  if (!RESIZABLE.test(src) || src.includes(`@${DISPLAY_WIDTH}.`)) return src;
-  return src.replace(RESIZABLE, (ext) => `@${DISPLAY_WIDTH}${ext}`);
+  if (!RESIZABLE.test(src) || src.includes(`-${DISPLAY_WIDTH}w.`)) return src;
+  return src.replace(RESIZABLE, (ext) => `-${DISPLAY_WIDTH}w${ext}`);
 }
 
 // Point an <img> at the display-size copy, recording the original so the error

@@ -192,8 +192,8 @@ function measure() {
   // What a visitor pays is the variant where one exists and the original where
   // one doesn't; the full-size files are lightbox-only, opened deliberately
   // and one at a time.
-  const isVariant = (f) => /@\d+\.(webp|png|jpe?g)$/i.test(f);
-  const variantFor = (f) => f.replace(/\.(webp|png|jpe?g)$/i, (ext) => `@1080${ext}`);
+  const isVariant = (f) => /-\d+w\.(webp|png|jpe?g)$/i.test(f);
+  const variantFor = (f) => f.replace(/\.(webp|png|jpe?g)$/i, (ext) => `-1080w${ext}`);
   const displayed = served.filter((f) => !isVariant(f) && !served.includes(variantFor(f)))
     .concat(served.filter(isVariant));
   const displayedBytes = displayed.reduce((sum, f) => sum + fs.statSync(path.join(ROOT, f)).size, 0);
