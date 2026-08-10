@@ -1,6 +1,6 @@
 {
-  "version": "1.0.28",
-  "versionDate": "2026-08-03T22:34:00.801Z",
+  "version": "1.0.29",
+  "versionDate": "2026-08-10T23:19:08.804Z",
   "profile": {
     "name": "Tyler Patterson",
     "role": "Design Engineer"
@@ -714,6 +714,11 @@
     ],
     "resumeFile": "00-TylerPatterson-CreativeResume.pdf",
     "resume": [
+      {
+        "title": "Freelance Designer",
+        "place": "Self",
+        "date": "Jun 2026 – Present"
+      },
       {
         "title": "Trade Digital Design Specialist",
         "place": "Supercheap Auto",
