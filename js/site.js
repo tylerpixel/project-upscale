@@ -1103,6 +1103,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderSiteFooter(content);
   initNav(content.tabs);
   initWordmarkHome(); // after initNav — selectTab is assigned in there
+  initLogoCopyMenu();
   initFab(content.contact);
 
   // Honour a deep link on first paint rather than always opening the intro.
@@ -1185,6 +1186,273 @@ function initWordmarkHome() {
     if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
     selectTab("intro");
+  });
+}
+
+// ── Copying the wordmark ──
+//
+// Right-clicking the header mark hands over the artwork instead of the
+// browser's stock menu of things to do with a link. The mark is the one file on
+// this site somebody else has a real reason to want — a talk slide, a sponsor
+// row, a directory listing — and the alternative is asking me for it.
+//
+// The three colours are the only three the identity is allowed to be: the blue
+// it wears here, and the two mono versions for when a background won't take the
+// blue. Anything else is a wrong answer, so the menu offers no way to reach one.
+const WORDMARK_TONES = [
+  { label: "Black", value: "#000000" },
+  { label: "White", value: "#FFFFFF" },
+  { label: "Blue", value: "#0060E5" },
+];
+
+// How long the copied row holds its confirmation before the menu goes. Long
+// enough to read two syllables, short enough that it isn't in the way.
+const COPY_HOLD_MS = 900;
+
+// Serialised from the mark already in the DOM rather than from a second copy of
+// that path kept here — the same reason renderSiteFooter() clones the header's
+// svg instead of shipping the geometry twice. A 6 KB path stored in two places
+// is 6 KB wasted and one silent way for the file people copy to stop being the
+// file on the page.
+function wordmarkSvg(fill) {
+  const source = document.querySelector(".wordmark svg");
+  const path = source && source.querySelector("path");
+  if (!path) return "";
+  const box = source.getAttribute("viewBox") || "";
+  const [, , width, height] = box.split(/\s+/);
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" ` +
+    `viewBox="${box}" fill="none" role="img" aria-label="Tyler Pixel">` +
+    `<path fill="${fill}" d="${path.getAttribute("d")}"/>` +
+    `</svg>`
+  );
+}
+
+function initLogoCopyMenu() {
+  const mark = document.querySelector(".wordmark-home");
+  if (!mark) return;
+
+  const menu = document.createElement("div");
+  menu.className = "ctx-menu";
+  menu.setAttribute("role", "menu");
+  menu.setAttribute("aria-label", "Tyler Pixel logo");
+  menu.hidden = true;
+
+  const group = document.createElement("div");
+  group.className = "ctx-group";
+
+  const parent = document.createElement("button");
+  parent.type = "button";
+  parent.className = "ctx-item";
+  parent.setAttribute("role", "menuitem");
+  parent.setAttribute("aria-haspopup", "true");
+  parent.setAttribute("aria-expanded", "false");
+  const parentLabel = document.createElement("span");
+  parentLabel.className = "ctx-label";
+  parentLabel.textContent = "Copy logo as SVG";
+  parent.appendChild(parentLabel);
+  const caret = document.createElementNS(SVG_NS, "svg");
+  caret.setAttribute("class", "ctx-caret");
+  caret.setAttribute("viewBox", "0 0 24 24");
+  caret.setAttribute("fill", "none");
+  caret.setAttribute("aria-hidden", "true");
+  const chevron = document.createElementNS(SVG_NS, "path");
+  chevron.setAttribute("d", "M9 5l7 7-7 7");
+  chevron.setAttribute("stroke", "currentColor");
+  chevron.setAttribute("stroke-width", "2.5");
+  chevron.setAttribute("stroke-linecap", "round");
+  chevron.setAttribute("stroke-linejoin", "round");
+  caret.appendChild(chevron);
+  parent.appendChild(caret);
+
+  const sub = document.createElement("div");
+  sub.className = "ctx-sub";
+  sub.setAttribute("role", "menu");
+  sub.setAttribute("aria-label", "Colour");
+  sub.hidden = true;
+
+  const tones = WORDMARK_TONES.map(({ label, value }) => {
+    const row = document.createElement("button");
+    row.type = "button";
+    row.className = "ctx-item";
+    row.setAttribute("role", "menuitem");
+    const swatch = document.createElement("span");
+    swatch.className = "ctx-swatch";
+    swatch.style.setProperty("--swatch", value);
+    const text = document.createElement("span");
+    text.className = "ctx-label";
+    text.textContent = label;
+    row.append(swatch, text);
+    row.addEventListener("click", () => copyTone(row, text, label, value));
+    sub.appendChild(row);
+    return row;
+  });
+
+  group.append(parent, sub);
+  menu.appendChild(group);
+  document.body.appendChild(menu);
+
+  let closeTimer = 0;
+
+  // Hover moves focus rather than lighting a row up on its own, so "the lit
+  // row" and "the row Enter takes" are the same row by construction — the
+  // jump palette's arrangement, for the same reason.
+  menu.addEventListener("pointerover", (e) => {
+    const row = e.target instanceof Element ? e.target.closest(".ctx-item") : null;
+    if (!row) return;
+    row.focus();
+    // Arriving on the parent opens the submenu; arriving on anything else at
+    // the top level would be where it closes again, except there is nothing
+    // else at the top level yet. Left as an if rather than an if/else so
+    // adding a second top-level row can't silently leave the submenu open.
+    if (row === parent) openSub();
+  });
+
+  function openSub() {
+    if (!sub.hidden) return;
+    sub.hidden = false;
+    parent.setAttribute("aria-expanded", "true");
+    // Measured only once it's laid out: a hidden element has no box. If it
+    // would run off the right edge, it opens to the left instead.
+    sub.classList.remove("flip");
+    const box = sub.getBoundingClientRect();
+    if (box.right > window.innerWidth - 8) sub.classList.add("flip");
+  }
+
+  function closeSub(refocus) {
+    if (sub.hidden) return;
+    sub.hidden = true;
+    parent.setAttribute("aria-expanded", "false");
+    if (refocus) parent.focus();
+  }
+
+  function open(x, y) {
+    clearTimeout(closeTimer);
+    resetRows();
+    closeSub(false);
+    menu.hidden = false;
+    // Placed before the class that fades it in, so the first painted frame is
+    // already in the right corner of the screen — otherwise it animates in
+    // from wherever the last one was.
+    const box = menu.getBoundingClientRect();
+    const pad = 8;
+    const left = Math.max(pad, Math.min(x, window.innerWidth - box.width - pad));
+    const top = Math.max(pad, Math.min(y, window.innerHeight - box.height - pad));
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+    // A frame between `hidden` coming off and `open` going on, or the two land
+    // in the same style recalculation and there is nothing to transition from.
+    requestAnimationFrame(() => menu.classList.add("open"));
+    parent.focus();
+  }
+
+  function close(refocus) {
+    if (menu.hidden) return;
+    clearTimeout(closeTimer);
+    menu.classList.remove("open");
+    closeSub(false);
+    // Held open until the fade finishes, then actually hidden — the same shape
+    // as hideOverlay, and the reason the row's confirmation doesn't vanish the
+    // instant the menu starts leaving.
+    closeTimer = setTimeout(() => {
+      menu.hidden = true;
+      resetRows();
+    }, MOTION_DUR_MS);
+    if (refocus) mark.focus();
+  }
+
+  function resetRows() {
+    tones.forEach((row, i) => {
+      row.classList.remove("is-copied", "is-failed");
+      row.querySelector(".ctx-label").textContent = WORDMARK_TONES[i].label;
+    });
+  }
+
+  async function copyTone(row, text, label, value) {
+    const svg = wordmarkSvg(value);
+    let ok = false;
+    try {
+      // Text, not an image blob: what people want from "copy as SVG" is the
+      // markup, so it can go straight into a file, an editor, or a pasteboard
+      // that will render it. A blob would paste as a picture and lose that.
+      await navigator.clipboard.writeText(svg);
+      ok = !!svg;
+    } catch (err) {
+      ok = false;
+    }
+    row.classList.add(ok ? "is-copied" : "is-failed");
+    text.textContent = ok ? "Copied" : "Couldn't copy";
+    if (window.cuelume) window.cuelume.play(ok ? "success" : "whisper");
+    clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => close(true), COPY_HOLD_MS);
+  }
+
+  mark.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    // The context-menu key fires this with no useful coordinates — 0,0 in some
+    // browsers, the focused element's corner in others. Anything at or above
+    // the top-left corner is treated as "the keyboard asked", and the menu is
+    // hung off the mark itself instead of off the pointer.
+    const keyboard = e.clientX <= 0 && e.clientY <= 0;
+    const box = mark.getBoundingClientRect();
+    open(keyboard ? box.left : e.clientX, keyboard ? box.bottom + 6 : e.clientY);
+  });
+
+  menu.addEventListener("keydown", (e) => {
+    const inSub = !sub.hidden && sub.contains(document.activeElement);
+    const rows = inSub ? tones : [parent];
+
+    if (e.key === "Escape") {
+      e.preventDefault();
+      // Escape unwinds one level at a time: out of the colours, then out of
+      // the menu. Closing the lot from inside the submenu would throw away a
+      // step the arrow keys make you take deliberately.
+      if (inSub) closeSub(true);
+      else close(true);
+      return;
+    }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const step = e.key === "ArrowDown" ? 1 : -1;
+      const at = rows.indexOf(document.activeElement);
+      rows[(at + step + rows.length) % rows.length].focus();
+      return;
+    }
+    if (e.key === "ArrowRight" && !inSub) {
+      e.preventDefault();
+      openSub();
+      tones[0].focus();
+      return;
+    }
+    if (e.key === "ArrowLeft" && inSub) {
+      e.preventDefault();
+      closeSub(true);
+      return;
+    }
+    if ((e.key === "Enter" || e.key === " ") && document.activeElement === parent) {
+      e.preventDefault();
+      openSub();
+      tones[0].focus();
+    }
+  });
+
+  // Dismissal. pointerdown rather than click, so the menu is gone by the time
+  // whatever was underneath it reacts, and capture so a handler that stops the
+  // event on its way up can't leave the menu stranded on screen.
+  document.addEventListener(
+    "pointerdown",
+    (e) => {
+      if (menu.hidden) return;
+      if (e.target instanceof Node && menu.contains(e.target)) return;
+      close(false);
+    },
+    true
+  );
+
+  // Anything that moves the page out from under it: the menu is pinned to
+  // viewport coordinates that stopped being true the moment any of these fired.
+  ["scroll", "resize", "blur"].forEach((type) => {
+    window.addEventListener(type, () => close(false), type === "scroll" ? { passive: true } : false);
   });
 }
 

@@ -371,6 +371,11 @@
   /* ── Layers ───────────────────────────────────────────────────────────── */
   --z-page: 2;
   --z-nav: 200;
+  /* The wordmark's copy menu. Above the nav, which it can overlap on a short
+     window, and below the tray — nothing that opens a tray leaves it up, so
+     the two are never on screen together and the lower number is the honest
+     one. */
+  --z-menu: 250;
   --z-tray: 300;
   --z-lightbox: 400;
 }
@@ -3999,6 +4004,147 @@ body.is-404 .attribution {
 @media (prefers-reduced-motion: reduce) {
   .lightbox-overlay {
     transition: none;
+  }
+}
+
+/* ── Logo copy menu — what right-clicking the header wordmark opens ──
+   The mark is the one piece of artwork on the site somebody else might
+   legitimately want, so right-clicking it hands over the file instead of the
+   browser's own menu of things to do with a link.
+
+   Positioned from JS at the pointer (see initLogoCopyMenu in site.js), which
+   is why there is no anchor rule here — only `position: fixed` and the paint.
+   Fixed rather than absolute because the coordinates a contextmenu event
+   carries are viewport coordinates; anything else would need the scroll
+   offset added back on. */
+.ctx-menu {
+  position: fixed;
+  z-index: var(--z-menu);
+  min-width: 186px;
+  padding: 4px;
+  background: var(--bg);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity var(--motion-quick), transform var(--motion-quick);
+}
+
+.ctx-menu[hidden] {
+  display: none;
+}
+
+.ctx-menu.open {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* The positioning context the submenu hangs off — the menu itself can't be it,
+   because the submenu has to sit outside the menu's own box. */
+.ctx-group {
+  position: relative;
+}
+
+.ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 9px;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--fg);
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--motion-quick), color var(--motion-quick);
+}
+
+/* One highlight for both, because hovering a row focuses it — the same trick
+   the jump palette plays. There is never a lit row that Enter wouldn't take,
+   which is what makes dropping the focus ring below safe. */
+.ctx-item:hover,
+.ctx-item:focus {
+  background: var(--wash);
+}
+
+.ctx-item:focus,
+.ctx-item:focus-visible {
+  outline: none;
+}
+
+.ctx-label {
+  flex: 1;
+}
+
+.ctx-caret {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  color: var(--fg-muted);
+}
+
+/* The chip of colour each row is offering. The inset line is what keeps the
+   white one from disappearing into a light page and the black one from
+   disappearing into a dark one — it's the same hairline every other floating
+   thing on the site is drawn with. */
+.ctx-swatch {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-xs);
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 1px var(--hairline);
+}
+
+/* Confirmation replaces the row's own label rather than arriving somewhere
+   else on screen: the answer belongs where the question was asked, and the
+   pointer is already there. */
+.ctx-item.is-copied {
+  color: var(--brand);
+}
+
+.ctx-item.is-failed {
+  color: var(--danger);
+}
+
+.ctx-sub {
+  position: absolute;
+  /* Pulled up by the menu's own padding so the submenu's first row sits on the
+     same line as the parent row that opened it. */
+  top: -5px;
+  left: 100%;
+  margin-left: 5px;
+  min-width: 130px;
+  padding: 4px;
+  background: var(--bg);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
+
+.ctx-sub[hidden] {
+  display: none;
+}
+
+/* Flipped to the other side when the menu was opened near the right edge and
+   the submenu would otherwise open off-screen. */
+.ctx-sub.flip {
+  right: 100%;
+  left: auto;
+  margin-right: 5px;
+  margin-left: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ctx-menu {
+    transform: none;
+    transition: opacity var(--motion-quick);
   }
 }
 
