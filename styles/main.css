@@ -122,6 +122,10 @@
      another product's brand colour rather than this site's, and it clears
      4.5:1 on both page colours as it is. */
   --sortcash: #ff5500;
+  /* What the mark's counter is knocked out in once the squircle is orange —
+     white in both themes, because that is the actual sort.cash lockup and the
+     orange underneath it doesn't change either. */
+  --on-sortcash: #ffffff;
   /* Form errors, the cart's dead-item flag, the message form's field errors. */
   --danger: light-dark(#ef4444, #ff6b6b);
   --underline: light-dark(#d9d9d9, rgba(255, 255, 255, 0.22));
@@ -511,11 +515,72 @@ h2 {
   text-decoration-color: var(--underline);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.14em;
-  transition: text-decoration-color var(--motion-quick);
+  transition: color var(--motion-quick), text-decoration-color var(--motion-quick);
 }
 
+/* Both hover colours arrive through custom properties rather than a more
+   specific override, so a link that wants to hover in a brand colour sets two
+   variables instead of fighting this rule's specificity — which a modifier
+   class on the same element would tie, leaving source order to decide it. */
 .inline-link:hover {
-  text-decoration-color: var(--underline-hover);
+  color: var(--link-hover-fg, inherit);
+  text-decoration-color: var(--link-hover-rule, var(--underline-hover));
+}
+
+/* ── Inline brand logos ──
+   A link that wears the destination's own mark ahead of its text — currently
+   just the sort.cash mention in the intro. The mark is painted in
+   `currentColor`, so the logo and the words it belongs to take the brand
+   colour together on hover. That single shared movement is the whole reason
+   it sits inline instead of rising above the link as a tooltip: the logo is
+   part of the link now, not a label about it.
+
+   nowrap because the alternative is a line breaking between the mark and the
+   name, which strands the logo alone at the end of a line. */
+.inline-link--sortcash {
+  --link-hover-fg: var(--sortcash);
+  --link-hover-rule: var(--sortcash);
+  white-space: nowrap;
+}
+
+.inline-logo {
+  display: inline-block;
+  /* Sized against the text rather than in pixels, so it holds its proportion
+     wherever the copy is set — the intro paragraph runs larger than body.
+     0.8em puts the mark a little over DM Sans's cap height (0.7em), which is
+     where a bounded shape has to sit to read as the same size as the letters:
+     matching cap exactly makes it look smaller than them, because the squircle
+     spends its top and bottom rows on corner radius. */
+  width: 0.8em;
+  height: 0.8em;
+  /* Centred on the cap, not sat on the baseline. An inline-block's baseline is
+     its bottom edge, so alignment defaults to the mark resting on the line and
+     towering over it; dropping it 0.05em puts its middle at 0.35em above the
+     baseline, which is exactly half the cap height. */
+  vertical-align: -0.05em;
+  /* Slightly tighter than a word space (~0.26em), so the mark binds to the
+     name it belongs to rather than floating as a word of its own. */
+  margin-right: 0.24em;
+}
+
+.inline-logo svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The counter is knocked out in the page colour rather than painted white,
+   which is what lets the mark survive dark mode — a white counter inside a
+   near-white squircle is a solid blob. On hover the squircle goes orange and
+   the counter goes white, so both themes land on the real lockup: light mode
+   was already white and doesn't move, dark mode arrives there. */
+.inline-logo .logo-counter {
+  fill: var(--bg);
+  transition: fill var(--motion-quick);
+}
+
+.inline-link--sortcash:hover .logo-counter {
+  fill: var(--on-sortcash);
 }
 
 /* ── Empty-image tiles ──
@@ -1246,20 +1311,6 @@ nav.identity-links {
   bottom: 10px;
   left: auto;
   transform: translateY(4px);
-}
-
-.nav-toast.icon-toast {
-  bottom: calc(100% + 2px);
-  padding: 0;
-  background: transparent;
-  border-radius: 0;
-  color: var(--sortcash);
-}
-
-.nav-toast.icon-toast svg {
-  display: block;
-  width: 16px;
-  height: 16px;
 }
 
 @media (hover: hover) {

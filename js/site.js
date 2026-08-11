@@ -107,8 +107,8 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 // Tags rich content is allowed to use, by lowercase local name. Anything else
 // is unwrapped (element dropped, its text kept) so a stray wrapper never
 // silently swallows a paragraph of copy. The SVG shapes are here because the
-// content itself uses them — the sort.cash mention carries that brand mark
-// inline as its tooltip.
+// content itself uses them — the sort.cash mention sets that brand mark inline
+// ahead of the link text.
 const ALLOWED_TAGS = new Set([
   "a", "b", "strong", "i", "em", "u", "br", "p", "span", "small", "code", "ul", "ol", "li",
   "svg", "g", "path", "circle", "ellipse", "rect", "line", "polyline", "polygon",
@@ -1155,12 +1155,18 @@ function renderPanelHeading(panel, label, actionHref, actionText, onClick) {
   return renderHeading(panel, label, { actionHref, actionText, onClick });
 }
 
-// Gives inline text links (e.g. the sort.cash mention) the same hover/tap
-// tooltip treatment as the bottom nav, instead of the old icon + thick-underline.
+// Gives inline text links the same hover/tap tooltip treatment as the bottom
+// nav, instead of the old icon + thick-underline.
 function initInlineLinkTooltips(root) {
   root.querySelectorAll(".inline-link").forEach((a) => {
-    // Markup can already ship its own tooltip content (e.g. a brand logo) —
-    // only fall back to a generic text tooltip when none is present.
+    // A link carrying the destination's logo inline already says where it
+    // goes, and it says so at rest rather than on hover — a tooltip naming the
+    // same hostname would be the second answer to a question nobody asked.
+    // (It's also the one case touch gains from: the mark is simply there,
+    // where the tooltip needed a tap to reveal it.)
+    if (a.querySelector(".inline-logo")) return;
+    // Markup can still ship its own tooltip content — only fall back to a
+    // generic text tooltip when none is present.
     if (!a.querySelector(".nav-toast")) {
       addToast(a, `Visit ${hostLabel(a.href)}`);
     }
