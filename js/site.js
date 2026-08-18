@@ -3332,17 +3332,27 @@ function initNavStow() {
   // somewhere unclickable, or a touch that moved far enough for the browser to
   // withhold the click entirely, produces nothing to swallow at all, and a
   // listener left armed for that case would eat the next real click instead.
+  //
+  // The fuse is why the orb is excluded below. The click being waited for
+  // arrives a frame or two after the press ends, so anything longer is pure
+  // margin — but dropping the orb and immediately tapping it to bring the bar
+  // back is an ordinary thing to do, and lands well inside even a generous
+  // margin. Left to itself this listener would eat exactly that tap and the bar
+  // would refuse to come back for no reason the person tapping could see.
   function swallowNextClick() {
     const done = () => {
       clearTimeout(timer);
       document.removeEventListener("click", kill, true);
     };
     const kill = (e) => {
+      // Still armed afterwards, not spent: the orb's tap isn't the click this
+      // is waiting for, so it shouldn't count as having caught it either.
+      if (orb.contains(e.target)) return;
       e.preventDefault();
       e.stopPropagation();
       done();
     };
-    const timer = setTimeout(done, 600);
+    const timer = setTimeout(done, 400);
     document.addEventListener("click", kill, true);
   }
 
