@@ -448,6 +448,24 @@
       </div>
     </div>
 
+    <!-- The stowed bar. Press and hold the nav and it shrinks into this, which
+         then follows your finger and settles against whichever side of the
+         screen you let go nearest; tapping it puts the bar back. See
+         initNavStow() in js/site.js.
+
+         A sibling of .navwrap rather than a child, because the two are placed
+         by different rules — the bar is centred on the bottom of the viewport
+         and the orb is wherever it was last dropped, which is a position
+         .navwrap's own centring transform would fight.
+
+         The glyph is written in by JS: it wears whichever section you're in,
+         so the orb says where you are as well as what it opens. Empty here for
+         the same reason the nav tabs are — the icon follows the route, and a
+         hardcoded one would be wrong the moment you moved. -->
+    <button class="nav-orb" id="navOrb" type="button" aria-label="Show the navigation bar" hidden>
+      <span class="orb-icon" id="navOrbIcon" aria-hidden="true"></span>
+    </button>
+
     <!-- Tray — fixed bottom sheet shared by the cart and the message form.
          One view is shown at a time; openTray(view, title) in site.js swaps them. -->
     <div class="tray-overlay" id="trayOverlay" hidden>

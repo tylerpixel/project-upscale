@@ -345,6 +345,15 @@
      behind a segmented control settles. */
   --nav-move: var(--motion-dur) cubic-bezier(0.32, 0.72, 0, 1);
 
+  /* How long a press has to sit still on the bar before the bar comes off its
+     mooring and follows your finger. Long enough that a slow tap on a tab is
+     never mistaken for it, short enough that you don't have to mean it twice.
+     Read back out of the stylesheet by initNavStow() in js/site.js, the way
+     --motion-dur is — the dip the bar does under the finger runs for exactly
+     this long, so the timer and the animation can't be set to different
+     numbers. */
+  --nav-hold: 420ms;
+
   /* Staggered reveal (see the Transitions.dev block at the foot of the file).
      Duration and curve are the site's own, so a panel's entrance is the same
      move as the tray's or the lightbox's — only spread across its lines. The
@@ -1590,6 +1599,168 @@ nav.identity-links {
 
 /* No :active transform on .fab itself — see the .nav-tab:active rule above.
    The circle holding the icon stays put so its "Message" toast does too. */
+
+/* ── Stowing the bar ──
+   Press and hold anywhere on the bar and it shrinks away into a single orb
+   that follows your finger; let go and the orb magnetises to whichever side of
+   the screen it ended up nearest. Tap it and the bar comes back.
+
+   The point is a bar you can move out of the way rather than one you have to
+   put up with. It sits over the content by design — that's what a floating nav
+   is — and on a short window, or a wide image you're actually trying to look
+   at, "over the content" and "in the way" are the same sentence. So it stows.
+
+   No exit for it in the settings panel: the gesture is the affordance, and
+   something you can only turn on from a panel you have to find first is a
+   setting, not a bar you picked up. */
+
+/* Scales toward its own bottom edge rather than its middle, so it reads as
+   dropping into the orb rather than shrinking in place. Left off the transform
+   when the bar is up, because .navwrap already carries translateX(-50%) for
+   its centring and the two have to be written together or not at all. */
+.navwrap {
+  transition: opacity var(--motion-cream), transform var(--motion-cream);
+  transform-origin: 50% 100%;
+}
+
+/* pointer-events, not just opacity: a bar faded to nothing is still a bar you
+   can press. `visibility` on the same timing takes it out of the tab order and
+   off the screen reader once the fade has landed — a delay of 0s in and the
+   full duration out, which is the standard way to transition a property that
+   has no in-between values. */
+.navwrap.is-stowed {
+  opacity: 0;
+  transform: translateX(-50%) scale(0.86);
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity var(--motion-cream), transform var(--motion-cream),
+    visibility 0s linear var(--motion-dur);
+}
+
+/* Nothing in the bar is text worth selecting, and a long press is exactly the
+   gesture a phone reads as "select this word" or "show me this link" — so both
+   have to be turned off here or the hold fights the OS for the same press. */
+.navwrap-row,
+.nav-orb {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* The orb. The FAB's circle and colours, two sizes down: it's the same object
+   the bar's action lives in, so it should be recognisably the same thing
+   rather than a new shape the site hasn't used before.
+
+   Placed with left/top rather than a transform, because transform is what the
+   press and the entrance are using, and a drag that has to compose with them
+   is a drag that can't simply be written down. Both are set by JS.
+
+   touch-action: none so dragging it never becomes a page scroll. Safe here in
+   a way it wouldn't be on the bar itself: this is a 44px puck you deliberately
+   pick up, not a strip along the bottom of the screen that a thumb might well
+   flick past on its way to scrolling. The bar blocks the scroll from JS, and
+   only for as long as a hold is actually underway. */
+.nav-orb {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--fg);
+  color: var(--on-fg);
+  display: grid;
+  place-items: center;
+  cursor: grab;
+  touch-action: none;
+  box-shadow: var(--shadow-fab);
+  opacity: 0;
+  transform: scale(0.4);
+  z-index: var(--z-nav);
+  transition: left var(--nav-move), top var(--nav-move),
+    opacity var(--motion-cream), transform var(--motion-cream),
+    background var(--motion-cream);
+}
+
+.nav-orb[hidden] {
+  display: none;
+}
+
+.nav-orb.is-in {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (hover: hover) {
+  .nav-orb:hover {
+    background: var(--brand);
+  }
+}
+
+.nav-orb:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+/* ── Must stay below .is-in and :hover above ──
+   Same trap as the .fab:active rule further up: these are all one class or one
+   pseudo-class deep on .nav-orb, so the transform that wins is the one written
+   last, not the one that looks more specific. A lifted orb is always also an
+   `is-in` one.
+
+   Overriding the whole transition rather than one part of it is the point of
+   the rule: left and top drop out of it entirely, so a held orb tracks the
+   finger frame for frame instead of easing along behind it. They come back the
+   moment the class does, which is what animates the settle against the edge. */
+.nav-orb.is-lifted {
+  transform: scale(1.12);
+  cursor: grabbing;
+  box-shadow: var(--shadow-raised), var(--shadow-fab);
+  transition: transform var(--motion-press);
+}
+
+.orb-icon {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+}
+
+.orb-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* The hold has to be visible before it completes, or a press that's about to
+   pick the bar up is indistinguishable from one that's about to miss a tab.
+   The bar dips under the finger the way every other pressable thing on the
+   site does, just slower and further — the length of the hold, so the dip
+   finishing and the bar lifting are the same moment.
+
+   The dip going in runs on --nav-hold and coming back out on the site's own
+   curve: a hold that's abandoned halfway should return at the speed everything
+   else on the page returns at, not spend another 420ms undoing itself. */
+.navwrap-row {
+  transition: transform var(--motion-cream);
+}
+
+.navwrap.is-holding .navwrap-row {
+  transform: scale(0.96);
+  transition: transform var(--nav-hold) ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navwrap,
+  .navwrap-row,
+  .navwrap.is-holding .navwrap-row,
+  .nav-orb,
+  .nav-orb.is-lifted {
+    transition: none;
+  }
+}
 
 /* ── Settings ──
    A dot in the bottom-left corner of the viewport with the site's preferences

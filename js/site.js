@@ -338,16 +338,17 @@ function markStagger(el, index) {
 //
 // So they're read back out of the stylesheet instead. One dial moves the CSS
 // and the JS together, and neither can drift.
-const MOTION_DUR_MS = (() => {
-  const raw = getComputedStyle(document.documentElement)
-    .getPropertyValue("--motion-dur")
-    .trim();
+//
+// The fallback matters: this runs at parse time, and a stylesheet that hasn't
+// applied yet (or a token someone renamed) would otherwise hand every timer NaN
+// and strand panels mid-transition.
+function cssMs(token, fallback) {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue(token).trim();
   const ms = raw.endsWith("ms") ? parseFloat(raw) : parseFloat(raw) * 1000;
-  // The fallback matters: this runs at parse time, and a stylesheet that hasn't
-  // applied yet (or a token someone renamed) would otherwise hand every timer
-  // NaN and strand panels mid-transition.
-  return Number.isFinite(ms) && ms > 0 ? ms : 320;
-})();
+  return Number.isFinite(ms) && ms > 0 ? ms : fallback;
+}
+
+const MOTION_DUR_MS = cssMs("--motion-dur", 320);
 
 // How long to leave the outgoing panel on screen before raising the next one —
 // exactly its own fade, so the two hand over without a gap or an overlap.
@@ -2894,6 +2895,10 @@ function initNav(tabs) {
     });
     indicator.hidden = !id;
     if (id) positionIndicator();
+    // A stowed bar is still the thing that says where you are, so the orb wears
+    // the same icon the selected tab would have. Routed through here rather than
+    // watched separately, because this is already the one place that knows.
+    syncOrbIcon(id);
   };
 
   // The shared name chip above the bar. One element and one timer for the whole
@@ -3026,7 +3031,429 @@ function initNav(tabs) {
     positionIndicator();
     repositionNavFocus();
   });
+
+  // Last, because it seeds the orb's glyph off whichever tab is already
+  // selected — which is only true once the tabs above exist.
+  initNavStow();
+
   requestAnimationFrame(positionIndicator);
+}
+
+// ── Stowing the bar ──
+//
+// Press and hold anywhere on the bar and it drops into a single orb that
+// follows your finger. Let go and the orb magnetises to whichever side of the
+// screen it ended up nearest; pick it up again and put it somewhere else; tap
+// it and the bar comes back.
+//
+// The bar floats over the content, which is what a floating nav is for and also
+// what's wrong with it: on a short window, or over a wide image you are
+// actually trying to look at, "over the content" and "in the way" are the same
+// sentence. Every other answer to that costs something — hiding it on scroll
+// makes it unreliable, docking it to the page makes it stop floating. Letting
+// you pick it up and move it costs nothing and leaves the decision with whoever
+// can see the screen.
+//
+// Held rather than tapped, and there is deliberately no switch for it in the
+// settings panel. A hold is a gesture you can only perform on purpose, so it
+// can live on the bar itself without stealing a single tab press; a switch in a
+// panel would be a preference to find and understand before you could move
+// something you are already touching.
+
+const NAV_STOW_KEY = "tp-nav-orb";
+
+// How long a press has to sit still on the bar before it lifts. Read out of the
+// stylesheet, because the bar dips under the finger for exactly this long — see
+// --nav-hold and the .is-holding rule — and a timer that disagreed with the
+// animation would either lift a bar that hadn't finished dipping or leave one
+// sitting at the bottom of its dip waiting.
+const NAV_HOLD_MS = cssMs("--nav-hold", 420);
+
+// How far a press may drift and still count as a hold. Generous, because a
+// finger resting on glass for the best part of half a second is never actually
+// still — and because the cost of being wrong in this direction is a hold that
+// doesn't fire, which you notice and simply do again.
+const NAV_HOLD_SLOP = 10;
+
+// And how far the orb has to move before a press on it is a drag rather than a
+// tap. Tighter than the hold's slop: this one only has to survive the wobble in
+// a quick tap, not the tremor in a deliberate hold.
+const ORB_TAP_SLOP = 5;
+
+// The gap the orb keeps from the edges of the screen.
+const ORB_INSET = 12;
+
+// Where a first-time orb lands: the right-hand side, low enough to be near a
+// thumb and well clear of anything at the top of the page.
+const ORB_DEFAULT = { stowed: false, side: "right", y: 0.68 };
+
+// Phosphor "dots-three" (fill), for the pages no tab owns — the 404 and the
+// legal pages, where the orb has no section to wear. Three dots is what a
+// collapsed row of things looks like everywhere else, which is exactly what it
+// is here.
+const NAV_ORB_ICON = `<svg viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><circle cx="128" cy="128" r="16"/><circle cx="60" cy="128" r="16"/><circle cx="196" cy="128" r="16"/></svg>`;
+
+// Assigned by initNavStow, so syncNavSelection can keep a stowed orb wearing
+// the section you are actually in. Same shape as syncNavSelection itself: a
+// no-op until the thing that implements it has run.
+let syncOrbIcon = () => {};
+
+/** Where the bar was left last visit — which side, how far down, and whether it
+ *  was stowed at all. Everything is re-validated on the way out of storage:
+ *  this is the one preference on the site a visitor can put arbitrary JSON in
+ *  front of, and a NaN fraction would place the orb nowhere at all. */
+function readOrbPref() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(NAV_STOW_KEY) || "null");
+    if (!stored || typeof stored !== "object") return ORB_DEFAULT;
+    return {
+      stowed: stored.stowed === true,
+      side: stored.side === "left" ? "left" : "right",
+      y: Number.isFinite(stored.y) ? Math.min(Math.max(stored.y, 0), 1) : ORB_DEFAULT.y,
+    };
+  } catch (e) {
+    return ORB_DEFAULT;
+  }
+}
+
+function storeOrbPref(pref) {
+  try {
+    localStorage.setItem(NAV_STOW_KEY, JSON.stringify(pref));
+  } catch (e) {
+    // Private-mode storage can throw. The bar still stays where you put it for
+    // as long as the page is open.
+  }
+}
+
+function initNavStow() {
+  const wrap = document.querySelector(".navwrap");
+  const orb = document.getElementById("navOrb");
+  const orbIcon = document.getElementById("navOrbIcon");
+  const row = wrap && wrap.querySelector(".navwrap-row");
+  if (!wrap || !orb || !row) return;
+
+  const pref = readOrbPref();
+  let side = pref.side;
+  let y = pref.y; // how far down the band the orb can occupy, 0 to 1
+  let stowed = false;
+  let hideTimer;
+
+  function clamp(n, lo, hi) {
+    return Math.min(Math.max(n, lo), Math.max(lo, hi));
+  }
+
+  // ── Placing it ──
+  //
+  // Stored as a side plus a fraction rather than as a pair of pixels, so
+  // rotating a phone or dragging a window narrower puts the orb back where it
+  // looked like it was rather than where it literally was — and, more to the
+  // point, never off the screen entirely.
+  function band() {
+    return Math.max(1, window.innerHeight - orb.offsetHeight - ORB_INSET * 2);
+  }
+
+  function moveTo(left, top) {
+    orb.style.left = `${left}px`;
+    orb.style.top = `${top}px`;
+  }
+
+  // Where the stored side and height put it in today's viewport.
+  function settle() {
+    const left = side === "left" ? ORB_INSET : window.innerWidth - orb.offsetWidth - ORB_INSET;
+    moveTo(left, ORB_INSET + y * band());
+  }
+
+  // Keyed lookup into the constant map — never the content's own markup.
+  syncOrbIcon = (id) => {
+    if (orbIcon) orbIcon.innerHTML = (id && NAV_ICONS_FILL[id]) || NAV_ORB_ICON;
+  };
+
+  const selected = document.querySelector('.nav-tab[aria-selected="true"]');
+  syncOrbIcon(selected ? selected.dataset.tab : null);
+
+  // Sound is desktop-only everywhere on the site, because the switch that turns
+  // it off is — see the note above DESKTOP_QUERY. The gate has to be repeated
+  // here rather than assumed: initSounds() holds its own copy for the delegated
+  // listeners, and these two cues are played directly.
+  function playCue(cue) {
+    if (window.cuelume && window.matchMedia(DESKTOP_QUERY).matches) window.cuelume.play(cue);
+  }
+
+  // ── Stowing and coming back ──
+
+  function stow() {
+    if (stowed) return;
+    stowed = true;
+    clearTimeout(hideTimer);
+    wrap.classList.remove("is-holding");
+    wrap.classList.add("is-stowed");
+    orb.hidden = false;
+    settle();
+    // The orb has just come off display:none, so its start state has to be
+    // committed before the class that leaves it — otherwise there is nothing
+    // for the entrance to interpolate from and it simply appears.
+    orb.classList.remove("is-in");
+    void orb.offsetWidth;
+    orb.classList.add("is-in");
+    // Focus can't be left on a bar that isn't there any more. Moved only if it
+    // was in the bar to begin with: stowing shouldn't yank focus away from
+    // whatever you were reading.
+    if (wrap.contains(document.activeElement)) orb.focus();
+    storeOrbPref({ stowed: true, side, y });
+    playCue("droplet");
+  }
+
+  function restore() {
+    if (!stowed) return;
+    stowed = false;
+    const hadFocus = orb.contains(document.activeElement);
+    wrap.classList.remove("is-stowed");
+    orb.classList.remove("is-in", "is-lifted");
+    // Hidden only once the fade has landed, so it leaves the tab order and the
+    // screen reader rather than sitting there invisible. On a timer and not on
+    // transitionend for the reason hideOverlay is: under prefers-reduced-motion
+    // there is no transition and that event never arrives.
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => {
+      if (!stowed) orb.hidden = true;
+    }, prefersReducedMotion ? 0 : MOTION_DUR_MS);
+    if (hadFocus) {
+      const tab = wrap.querySelector('.nav-tab[aria-selected="true"]') || wrap.querySelector(".nav-tab");
+      if (tab) tab.focus();
+    }
+    storeOrbPref({ stowed: false, side, y });
+    playCue("bloom");
+  }
+
+  // ── The drag ──
+  //
+  // One routine for both ways in: the hold that lifts the bar off the bottom of
+  // the screen, and a later press that moves the orb somewhere else. Both end
+  // the same way — let go and it goes to the nearer side.
+  let drag = null;
+
+  // Blocks the page scroll a touch-drag would otherwise turn into. Bound only
+  // while a drag is live, and non-passive because preventDefault is the whole
+  // job. The orb has touch-action: none in CSS and needs none of this; a hold
+  // that started on the bar does, because the bar can't be touch-action: none
+  // without costing every flick-scroll that happens to begin on it.
+  function blockScroll(e) {
+    e.preventDefault();
+  }
+
+  // Where the orb ends up is remembered on the way past rather than measured
+  // again when the drag ends. Two reasons, and both of them bite: a held orb is
+  // scaled up, so its box is a couple of pixels bigger than its position on
+  // every axis and would drift a little further from where you put it with each
+  // drag — and the inline left and top written here aren't resolved until the
+  // browser next paints, so reading the box back is a question about what has
+  // been rendered rather than about what was asked for.
+  function dragTo(x, y2) {
+    if (!drag) return;
+    drag.left = clamp(x - drag.grabX, ORB_INSET, window.innerWidth - orb.offsetWidth - ORB_INSET);
+    drag.top = clamp(y2 - drag.grabY, ORB_INSET, window.innerHeight - orb.offsetHeight - ORB_INSET);
+    moveTo(drag.left, drag.top);
+  }
+
+  function onDragMove(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    dragTo(e.clientX, e.clientY);
+  }
+
+  function beginDrag(id, grabX, grabY, x, y2, fromBar) {
+    drag = { id, grabX, grabY, fromBar };
+    // Adding this before the first placement is what stops the orb easing
+    // across from wherever settle() just put it: .is-lifted drops left and top
+    // out of the transition entirely, so it tracks the pointer frame for frame.
+    orb.classList.add("is-lifted");
+    dragTo(x, y2);
+    window.addEventListener("pointermove", onDragMove);
+    window.addEventListener("pointerup", endDrag);
+    window.addEventListener("pointercancel", endDrag);
+    document.addEventListener("touchmove", blockScroll, { passive: false });
+  }
+
+  function endDrag(e) {
+    if (!drag || (e && e.pointerId !== drag.id)) return;
+    const at = drag;
+    drag = null;
+    window.removeEventListener("pointermove", onDragMove);
+    window.removeEventListener("pointerup", endDrag);
+    window.removeEventListener("pointercancel", endDrag);
+    document.removeEventListener("touchmove", blockScroll);
+    // Armed here rather than back when the hold fired, because the click this
+    // has to catch is the one the press ends in — and the press ends whenever
+    // you let go, which is as long after the hold as you cared to spend
+    // dragging. A window opened at the start of that would have closed again
+    // long before the thing it was waiting for arrived.
+    if (at.fromBar) swallowNextClick();
+    // Hands left and top their transition back, which is what animates the
+    // settle below rather than snapping to it.
+    orb.classList.remove("is-lifted");
+    // Which side it goes to is decided by where its middle ended up, not by
+    // which way it was travelling: you put it down somewhere, and the nearer
+    // edge is the one you meant.
+    side = at.left + orb.offsetWidth / 2 < window.innerWidth / 2 ? "left" : "right";
+    y = clamp((at.top - ORB_INSET) / band(), 0, 1);
+    settle();
+    storeOrbPref({ stowed: true, side, y });
+  }
+
+  // ── The hold ──
+
+  let hold = null;
+
+  function endHold() {
+    if (!hold) return;
+    clearTimeout(hold.timer);
+    hold = null;
+    wrap.classList.remove("is-holding");
+    window.removeEventListener("pointermove", onHoldMove);
+    window.removeEventListener("pointerup", endHold);
+    window.removeEventListener("pointercancel", endHold);
+  }
+
+  function onHoldMove(e) {
+    if (!hold || e.pointerId !== hold.id) return;
+    // Kept even when the hold survives, so the orb can be handed the pointer's
+    // real position when it lifts rather than where the press first landed.
+    hold.x = e.clientX;
+    hold.y = e.clientY;
+    if (Math.abs(e.clientX - hold.fromX) > NAV_HOLD_SLOP || Math.abs(e.clientY - hold.fromY) > NAV_HOLD_SLOP) {
+      endHold();
+    }
+  }
+
+  // A press that turned into a hold has already done something — it picked the
+  // bar up — so whatever it was otherwise going to do, select the tab under it
+  // or open the message tray, has to be called off before the click carrying it
+  // is dispatched. Capture phase, so this lands before the tab's own listener
+  // rather than after it, and one shot on a short fuse: a drag that ends
+  // somewhere unclickable, or a touch that moved far enough for the browser to
+  // withhold the click entirely, produces nothing to swallow at all, and a
+  // listener left armed for that case would eat the next real click instead.
+  function swallowNextClick() {
+    const done = () => {
+      clearTimeout(timer);
+      document.removeEventListener("click", kill, true);
+    };
+    const kill = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      done();
+    };
+    const timer = setTimeout(done, 600);
+    document.addEventListener("click", kill, true);
+  }
+
+  row.addEventListener("pointerdown", (e) => {
+    // e.button is 0 for touch and pen as well as for the left mouse button; a
+    // right-click on the bar has no business picking it up.
+    if (stowed || drag || hold || e.button > 0) return;
+    hold = { id: e.pointerId, fromX: e.clientX, fromY: e.clientY, x: e.clientX, y: e.clientY, timer: 0 };
+    hold.timer = setTimeout(() => {
+      const at = hold;
+      endHold();
+      stow();
+      // Centred on the pointer, so the thing you are holding is under your
+      // finger rather than beside it. Measured rather than assumed — stow() has
+      // already made the orb visible, so it has a real size by now.
+      const half = orb.offsetWidth / 2;
+      beginDrag(at.id, half, half, at.x, at.y, true);
+    }, NAV_HOLD_MS);
+    wrap.classList.add("is-holding");
+    window.addEventListener("pointermove", onHoldMove);
+    window.addEventListener("pointerup", endHold);
+    window.addEventListener("pointercancel", endHold);
+  });
+
+  // ── Picking the orb up again ──
+
+  // Cleared at the start of every press, so it can only ever survive from a drag
+  // to the click immediately behind it — a touch-drag that ends without
+  // producing a click can't leave it set and eat the next genuine tap.
+  let orbDragged = false;
+
+  orb.addEventListener("pointerdown", (e) => {
+    if (drag || e.button > 0) return;
+    orbDragged = false;
+    const rect = orb.getBoundingClientRect();
+    const from = {
+      id: e.pointerId,
+      x: e.clientX,
+      y: e.clientY,
+      grabX: e.clientX - rect.left,
+      grabY: e.clientY - rect.top,
+    };
+    const stop = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+    };
+    // Grabbed where you actually took hold of it, not by its middle: an orb
+    // that jumps under the finger the moment it starts moving is an orb you are
+    // chasing rather than carrying.
+    const move = (ev) => {
+      if (ev.pointerId !== from.id) return;
+      if (Math.abs(ev.clientX - from.x) <= ORB_TAP_SLOP && Math.abs(ev.clientY - from.y) <= ORB_TAP_SLOP) return;
+      stop();
+      orbDragged = true;
+      beginDrag(from.id, from.grabX, from.grabY, ev.clientX, ev.clientY);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+  });
+
+  // click, not pointerup, so Enter and Space on a focused orb come through the
+  // same door as a tap does. A press that turned into a drag still ends in a
+  // click on some platforms; the flag is what tells the two apart.
+  orb.addEventListener("click", () => {
+    if (orbDragged) {
+      orbDragged = false;
+      return;
+    }
+    restore();
+  });
+
+  // Escape brings the bar back — the keyboard's way out of a state a gesture
+  // put you in. Only when nothing is layered over the page, though: the tray and
+  // the lightbox own that key while they're up, and closing the bar's stow from
+  // underneath one of them would be answering a press meant for something else.
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || !stowed || openOverlays.size) return;
+    restore();
+  });
+
+  // A pointer can simply go missing: the window loses focus mid-drag, the OS
+  // takes the gesture over, a second finger's pointerup arrives in place of the
+  // one being tracked. Both guards above test state that nothing would then be
+  // left to clear — which strands the orb on the cursor and, worse, leaves
+  // `drag` set forever so the bar can never be picked up again. This is the same
+  // net initSounds() puts under a key held while focus leaves the window.
+  window.addEventListener("blur", () => {
+    endHold();
+    endDrag();
+  });
+
+  window.addEventListener("resize", () => {
+    if (stowed && !drag) settle();
+  });
+
+  // Stowed on a previous visit. No entrance and no cue, because nothing just
+  // happened — this is simply where the bar is. The transition is suppressed
+  // around the class rather than after it, so the bar doesn't visibly fade out
+  // of a position it was never really in.
+  if (pref.stowed) {
+    stowed = true;
+    wrap.style.transition = "none";
+    wrap.classList.add("is-stowed");
+    void wrap.offsetWidth;
+    wrap.style.transition = "";
+    orb.hidden = false;
+    settle();
+    orb.classList.add("is-in");
+  }
 }
 
 // ── Settings ──
