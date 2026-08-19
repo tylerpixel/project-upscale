@@ -3651,7 +3651,12 @@ function initSettings() {
 // arrangement with no way out. A phone is also the device most likely to be
 // somewhere sound isn't welcome.
 
-const SOUND_VOLUME = 0.6;
+// A linear multiplier on every cue's own gain — cuelume's setVolume scales
+// recipe.masterGain by it, so this is amplitude and not a perceptual curve.
+// Down from 0.6, which was loud enough to be the first thing you noticed about
+// the site rather than something you registered afterwards. These are meant to
+// sit under the interaction, not announce it.
+const SOUND_VOLUME = 0.2;
 
 // What counts as clickable. role="button" is the third one that matters here:
 // makeActivatable() stamps it on every work card, writing row and gallery
