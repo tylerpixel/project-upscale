@@ -270,6 +270,139 @@ function hostLabel(url) {
   }
 }
 
+// ── Brand marks ──
+// logo.dev turns a bare domain into that company's mark, which is what lets a
+// resume row and an outbound link wear the logo of the place they name without
+// nine more image files entering the repo. The key below is the publishable
+// half of the pair — it is meant to ship in the client, and it authorises
+// nothing but reading images.
+const LOGO_DEV_TOKEN = "pk_ELDGER8TT_u5N7U6e8E9gA";
+
+// 64px covers the ~13px the mark is drawn at even on a 3x screen. `fallback=404`
+// in place of logo.dev's default monogram: a stranger's initial on a colour the
+// service picked is not that brand's mark, and a 404 is something an onerror
+// can catch and quietly take the empty slot back out of the line.
+function logoDevUrl(domain) {
+  return (
+    `https://img.logo.dev/${encodeURIComponent(domain)}` +
+    `?token=${LOGO_DEV_TOKEN}&size=64&format=png&fallback=404`
+  );
+}
+
+// The empty slot on its own. A resume row with no domain still gets one, so
+// every company name in the list starts at the same x — a column of marks with
+// two names jutting out to the left of it is worse than a couple of gaps.
+function markSlot() {
+  const slot = document.createElement("span");
+  slot.className = "inline-logo inline-logo--brand";
+  return slot;
+}
+
+// A filled slot: the same .inline-logo box the sort.cash lockup sits in, so a
+// fetched logo and the hand-drawn one meet the text identically.
+//
+// alt="" because the mark is decorative everywhere it is used — the row or the
+// link says the company's name in words immediately beside it, and a second
+// announcement of "Eight360" is noise to a screen reader.
+//
+// The img is dropped on error rather than left broken, and `onError` then
+// decides the slot's fate: an inline link takes it away entirely, a resume row
+// keeps it empty to hold the column.
+function brandMark(domain, { onLoad, onError } = {}) {
+  const slot = markSlot();
+  const img = document.createElement("img");
+  img.src = logoDevUrl(domain);
+  img.alt = "";
+  img.width = 64;
+  img.height = 64;
+  // Not lazy, unlike every other image on the site. The slot is already
+  // holding its 0.8em of the line, so a mark that waits for the scroll to
+  // reach it is a blank indent in the middle of a sentence until then — and
+  // these are 2-6 KB apiece over a connection the preconnect has already
+  // opened, which is not a page's worth of bytes to defer.
+  img.decoding = "async";
+  img.addEventListener("load", () => {
+    slot.classList.add("inline-logo--loaded");
+    if (onLoad) onLoad(slot);
+  });
+  img.addEventListener("error", () => {
+    img.remove();
+    if (onError) onError(slot);
+  });
+  slot.appendChild(img);
+  return slot;
+}
+
+// The absolute http(s) URL an inline link points off-site at, or null when it
+// doesn't point off-site at all — a "#" placeholder waiting for a JS click
+// handler, an in-page anchor, a mailto:, another page of this site.
+function externalUrl(href) {
+  if (!href) return null;
+  let url;
+  try {
+    url = new URL(href, document.baseURI);
+  } catch (err) {
+    return null;
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+  if (url.origin === location.origin) return null;
+  return url;
+}
+
+// Seats the mark at the head of a link along with the first word of its text,
+// inside a nowrap box. Without that box the line is free to break between the
+// two — an atomic inline offers a break opportunity on both sides even with no
+// space sitting there — and the logo is left stranded at the end of a line,
+// orphaned from the name it belongs to. Only the lead word is bound to it, so
+// a long link title still wraps everywhere else it needs to.
+function bindMarkToLead(a, mark) {
+  const lead = document.createElement("span");
+  lead.className = "inline-logo-lead";
+  lead.appendChild(mark);
+
+  const first = a.firstChild;
+  if (first && first.nodeType === Node.TEXT_NODE) {
+    const word = /^\s*\S+/.exec(first.nodeValue);
+    if (word) {
+      lead.appendChild(document.createTextNode(word[0]));
+      first.nodeValue = first.nodeValue.slice(word[0].length);
+    }
+  } else if (
+    first &&
+    first.nodeType === Node.ELEMENT_NODE &&
+    first.textContent.trim().length <= 28
+  ) {
+    // <em>The Richest Man in Babylon</em> and friends: the whole element goes
+    // in, because lifting one word out of it would lift that word out of the
+    // emphasis too. Longer ones are left alone rather than forced onto a
+    // single unbreakable line.
+    lead.appendChild(first);
+  }
+  a.insertBefore(lead, a.firstChild);
+}
+
+// Gives an outbound inline link its destination's logo, the way the sort.cash
+// mention in the intro has always had one — same slot, same size — except the
+// mark is fetched from the hostname the link already points at instead of
+// being written into the content file by hand.
+//
+// The tooltip its caller just added is removed here only once the image has
+// actually loaded. A domain logo.dev has never heard of therefore degrades to
+// exactly what the link was before: gray underline, "Visit example.com" on
+// hover, no gap where a logo should have been.
+function addInlineLinkLogo(a) {
+  const url = externalUrl(a.getAttribute("href"));
+  if (!url) return;
+  const mark = brandMark(url.hostname.replace(/^www\./, ""), {
+    onLoad: () => {
+      const tip = a.querySelector(".nav-toast");
+      if (tip) tip.remove();
+    },
+    onError: (slot) => slot.remove(),
+  });
+  bindMarkToLead(a, mark);
+}
+
 // A brand-orange tile carrying the sort.cash mark at a fixed pixel size — used
 // wherever sort.cash needs a thumbnail but has no product screenshot to show.
 function sortCashTile(extraClass, size) {
@@ -1166,13 +1299,18 @@ function initInlineLinkTooltips(root) {
     // same hostname would be the second answer to a question nobody asked.
     // (It's also the one case touch gains from: the mark is simply there,
     // where the tooltip needed a tap to reveal it.)
-    if (a.querySelector(".inline-logo")) return;
+    const marked = a.querySelector(".inline-logo");
     // Markup can still ship its own tooltip content — only fall back to a
     // generic text tooltip when none is present.
-    if (!a.querySelector(".nav-toast")) {
+    if (!marked && !a.querySelector(".nav-toast")) {
       addToast(a, `Visit ${hostLabel(a.href)}`);
     }
     a.addEventListener("click", () => flashToast(a));
+    // Every other outbound link now gets the same treatment the sort.cash one
+    // was hand-built for, fetched rather than authored. The tooltip above
+    // stands until the mark loads, and stays for good if it never does — see
+    // addInlineLinkLogo.
+    if (!marked) addInlineLinkLogo(a);
   });
 }
 
@@ -2539,6 +2677,15 @@ function renderContact(contact, label) {
         <p class="resume-title">${esc(r.title)}</p>
         <p class="resume-meta"><span class="resume-place">${esc(r.place)}</span> · <span class="resume-date">${esc(r.date)}</span></p>
       `;
+      // The company's own mark ahead of its name, from logo.dev, keyed by the
+      // `domain` beside the place in the content file. It goes inside
+      // .resume-place rather than in front of the whole meta line so it takes
+      // that line's muted colour and travels with the name if the row wraps.
+      // A row whose employer has no domain to ask about — freelance, or a
+      // business with no site left — still gets the empty slot, so the names
+      // stay in one column.
+      const place = item.querySelector(".resume-place");
+      place.insertBefore(r.domain ? brandMark(r.domain) : markSlot(), place.firstChild);
       markStagger(item, idx + i);
       list.appendChild(item);
     });

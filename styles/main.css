@@ -583,6 +583,29 @@ h2 {
   height: 100%;
 }
 
+/* A fetched logo.dev mark, which arrives as a square bitmap rather than a
+   silhouette in currentColor: it keeps the brand's own colours and its own
+   ground, so it can't take the hover colour with the link the way the
+   sort.cash squircle does. object-fit keeps a lockup that isn't square
+   (Mitre 10's is a wide one) inside the box instead of stretched to fill it,
+   and the small radius stops a hard-cornered tile from reading as a heavier
+   object than the letters beside it. */
+.inline-logo--brand img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 2.5px;
+}
+
+/* The mark plus the first word of the text it leads, held on one line. An
+   inline-block is a break opportunity on both sides even where no space sits,
+   so without this the logo can be left alone at the end of a line while the
+   name it belongs to starts the next one. */
+.inline-logo-lead {
+  white-space: nowrap;
+}
+
 /* The counter is knocked out in the page colour rather than painted white,
    which is what lets the mark survive dark mode — a white counter inside a
    near-white squircle is a solid blob. On hover the squircle goes orange and
@@ -2949,6 +2972,13 @@ body.is-intro .site-footer {
   margin: 2px 0 0;
   font-size: var(--text-body);
   color: var(--fg-muted);
+}
+
+/* Keeps the company's mark, its name and nothing else on one line: the meta
+   row is free to break at the middot between the place and the dates, but
+   never between a logo and the word it belongs to. */
+.resume-place {
+  white-space: nowrap;
 }
 
 /* ── Store ── */

@@ -1,6 +1,6 @@
 {
-  "version": "1.0.34",
-  "versionDate": "2026-08-19T02:23:37.433Z",
+  "version": "1.0.35",
+  "versionDate": "2026-08-21T05:39:16.418Z",
   "profile": {
     "name": "Tyler Patterson",
     "role": "Design Engineer"
@@ -717,46 +717,55 @@
       {
         "title": "Freelance Designer",
         "place": "Self",
+        "domain": "tylerpixel.com",
         "date": "Jun 2026 – Present"
       },
       {
         "title": "Trade Digital Design Specialist",
         "place": "Supercheap Auto",
+        "domain": "supercheapauto.co.nz",
         "date": "Jan 2026 – Jun 2026"
       },
       {
         "title": "Graphic Designer",
         "place": "Caden Office Leasing",
+        "domain": "caden.com.au",
         "date": "Oct 2024 – Oct 2025"
       },
       {
         "title": "Web Designer",
         "place": "Rise SEO",
+        "domain": "riseseo.com.au",
         "date": "Aug 2024 – Sept 2024"
       },
       {
         "title": "Flooring Team Member",
         "place": "Mitre 10 Mega",
+        "domain": "mitre10.co.nz",
         "date": "Oct 2023 – Jun 2024"
       },
       {
         "title": "Founder/Designer",
         "place": "Engulf Studio",
+        "domain": "engulf.studio",
         "date": "Mar 2022 – Feb 2023"
       },
       {
         "title": "Graphic Designer",
         "place": "Northbound Gear",
+        "domain": "northboundgear.co",
         "date": "Oct 2021 – Mar 2022"
       },
       {
         "title": "Graphic Designer",
         "place": "VTNZ",
+        "domain": "vtnz.co.nz",
         "date": "Jan 2020 – Oct 2021"
       },
       {
         "title": "Web/Graphic Designer",
         "place": "Eight360",
+        "domain": "eight360.com",
         "date": "Oct 2018 – Sept 2019"
       }
     ]

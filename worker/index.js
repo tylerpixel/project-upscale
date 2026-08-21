@@ -35,7 +35,7 @@ const CSP = [
   "default-src 'self'",
   "script-src 'self' https://static.cloudflareinsights.com https://app.cal.com",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https://imgproxy.fourthwall.dev https://firebasestorage.googleapis.com",
+  "img-src 'self' data: https://img.logo.dev https://imgproxy.fourthwall.dev https://firebasestorage.googleapis.com",
   "font-src 'self'",
   "connect-src 'self' https://storefront-api.fourthwall.com https://cloudflareinsights.com https://app.cal.com",
   "frame-src https://app.cal.com",
