@@ -91,23 +91,6 @@ const geoCurrency = (() => {
 
 // ── Helpers ──
 
-// Fourthwall descriptions are HTML with entities (&#39;, &nbsp;). Stripping tags
-// with a regex leaves those entities showing literally, so parse properly.
-// DOMParser is used rather than innerHTML because it neither runs scripts nor
-// fetches resources for the markup it parses.
-function plainText(html) {
-  const doc = new DOMParser().parseFromString(String(html || ""), "text/html");
-  return (doc.body.textContent || "").replace(/\s+/g, " ").trim();
-}
-
-// Trims to a word boundary so a card never ends mid-word.
-function truncate(text, max) {
-  if (text.length <= max) return text;
-  const cut = text.slice(0, max);
-  const space = cut.lastIndexOf(" ");
-  return `${(space > max * 0.6 ? cut.slice(0, space) : cut).replace(/[\s,;:.]+$/, "")}…`;
-}
-
 function fmt(value, currency) {
   if (!value) return "Free";
   return new Intl.NumberFormat("en-US", {
@@ -271,18 +254,6 @@ async function fetchProducts() {
   return data.results || [];
 }
 
-// Card blurbs live in site-content.json alongside the rest of the site's copy.
-// site.js already has that file in flight — awaiting its promise reuses the
-// one request instead of issuing a second.
-async function fetchBlurbs() {
-  try {
-    const data = await window.__contentReady;
-    return (data.store && data.store.descriptions) || {};
-  } catch (err) {
-    return {};
-  }
-}
-
 function priceChips(product) {
   const v = (product.variants || [])[0] || {};
   const price = (v.unitPrice || {}).value || 0;
@@ -423,8 +394,8 @@ function renderStore(label, reopenSlug) {
   markStagger(status, 2);
   panel.appendChild(status);
 
-  Promise.all([fetchProducts(), fetchBlurbs()])
-    .then(([products, blurbs]) => {
+  fetchProducts()
+    .then((products) => {
       store.products = products;
       // Keep the cart in step with the catalogue's currency before anything
       // renders a price.
@@ -450,16 +421,14 @@ function renderStore(label, reopenSlug) {
       products.forEach((product, i) => {
         const card = document.createElement("div");
         card.className = "work-card";
-        // Prefer the hand-written one-liner; fall back to the store's own copy
-        // so a newly added product still reads sensibly.
-        const desc = blurbs[product.name] || truncate(plainText(product.description), 90);
+        // Photo, name, price — in that reading order, and nothing else. A
+        // catalogue is scanned rather than read: the three parts line up
+        // across each row (see the subgrid in main.css), which only works if
+        // every card carries exactly the same three.
         card.innerHTML = `
           <img class="work-thumb store-thumb"${srcAttr(imageUrl((product.images || [])[0]))} alt="${esc(product.name)}" loading="lazy" />
-          <div class="work-head">
-            <p class="work-title">${esc(product.name)}</p>
-            <div class="work-chips">${priceChips(product)}</div>
-          </div>
-          ${desc ? `<p class="work-description">${esc(desc)}</p>` : ""}
+          <p class="work-title">${esc(product.name)}</p>
+          <div class="work-chips">${priceChips(product)}</div>
         `;
         makeActivatable(card, `View ${product.name}`, () => openProductDetail(product));
         markStagger(card, i + 1);

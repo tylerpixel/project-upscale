@@ -1,6 +1,6 @@
 {
-  "version": "1.0.35",
-  "versionDate": "2026-08-21T05:39:16.418Z",
+  "version": "1.0.36",
+  "versionDate": "2026-08-23T04:44:53.044Z",
   "profile": {
     "name": "Tyler Patterson",
     "role": "Design Engineer"
@@ -687,18 +687,18 @@
     ]
   },
   "store": {
-    "_comment": "Short card blurbs keyed by Fourthwall product name. The full product description still comes from Fourthwall and is shown on the detail page; these just keep the listing to one tidy line each. Products without an entry fall back to their Fourthwall copy.",
+    "_comment": "PARKED — nothing reads this. The store cards carry name, photo and price only; the full product description still comes from Fourthwall and is shown on the detail page. Kept here because the copy is written and the keys are in sync with the live catalogue, so putting blurbs back on the cards is a two-line change in store.js. Delete this block if that is not coming back.",
     "descriptions": {
       "The Techno-Optimist Manifesto": "The manifesto, as a 35-page PDF.",
-      "Anti Entropy Entropy Club Tee": "Heavyweight tee, emblem on the chest.",
-      "Anti Entropy Entropy Club Sticker": "Die-cut sticker of the club emblem.",
+      "AEEC Tee": "Heavyweight tee, emblem on the chest.",
+      "AEEC Sticker": "Die-cut sticker of the club emblem.",
       "Cracked e/acc Mug": "Ceramic mug for coffee or cola.",
       "Cracked e/acc Tumbler": "Steel tumbler that keeps drinks cold.",
-      "Dyson Sphere Enjoyer Society Tee": "Relaxed-fit tee for Sphere enjoyers.",
-      "Dyson Sphere Enjoyer Society Long Sleeve": "Long sleeve for Sphere enjoyers.",
-      "Dyson Sphere Enjoyer Society Sweater": "Crewneck sweater for the Society.",
-      "Dyson Sphere Enjoyer Society Hoodie": "Heavyweight hoodie for the Society.",
-      "Dyson Sphere Enjoyer Society Cap": "Cap for card-carrying Society members."
+      "DSES Tee": "Relaxed-fit tee for Sphere enjoyers.",
+      "DSES Long Sleeve": "Long sleeve for Sphere enjoyers.",
+      "DSES Sweater": "Crewneck sweater for the Society.",
+      "DSES Hoodie": "Heavyweight hoodie for the Society.",
+      "DSES Cap": "Cap for card-carrying Society members."
     }
   },
   "contact": {

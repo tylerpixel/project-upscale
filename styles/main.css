@@ -2983,51 +2983,136 @@ body.is-intro .site-footer {
 
 /* ── Store ── */
 
-/* Each product is one tight block — image, title row, one-line blurb — with a
-   clear gap to the next, so the list doesn't read as one continuous column.
-   `display` is re-asserted because `.t-stagger-line` forces `display: block`,
-   which silently drops the row gap if this element ever gets staggered. */
+/* The catalogue is a grid at every width — two up even on a phone, where a
+   single column of 3:4 photos meant one product filled the screen and the
+   shop read as a slideshow. The gaps are deliberately tighter than the rest
+   of the site: a shop wants its products near each other to be compared,
+   where an essay wants air.
+
+   A fixed count, not auto-fit. A catalogue that doesn't divide evenly
+   therefore ends on a short row filling from the left, which is the honest
+   shape of the list; letting the remainder stretch across the full width
+   would make those last products look like features rather than what is left
+   over.
+
+   `display` is re-asserted past `.t-stagger-line` (which forces
+   `display: block`) by the ID in the selector, which outranks it. */
 #panel-store .work-list {
-  display: flex;
-  gap: 44px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 14px;
+  row-gap: 30px;
+}
+
+/* ── The card itself ──
+   Photo, name, price, stacked, with one gap value between all three and
+   nothing else contributing to it — no margins, no padding. That "nothing
+   else" is the whole rule: every previous attempt at this leaked spacing in
+   from somewhere and the two gaps stopped matching.
+
+   This was a subgrid for a while, so that a name wrapping to two lines in one
+   card would push its neighbours' prices down with it and keep a row's prices
+   on one line. It genuinely does that — and it also sizes the name's track to
+   34px for 21px of text, in every row, whether or not anything wraps. That is
+   13px of dead space under every product name on the page, which is a worse
+   defect than a price sitting a line lower than the one beside it, and it
+   isn't tunable from the parent: grid-auto-rows, align-content and dropping
+   the photo's aspect-ratio all leave the track at 34px.
+
+   So: a plain column. Prices line up across a row whenever the names in it
+   take the same number of lines, which at three and four columns is always,
+   and on a phone is most of the time. */
+#panel-store .work-card {
+  display: grid;
+  row-gap: 6px;
 }
 
 /* Every product is shot 3:4 portrait, so the card matches that ratio and the
    photo fills it edge to edge — full column width, full height, no pale
    letterbox bars either side. `cover` rather than `contain` so a future
    product shot at some other ratio still fills the card instead of
-   reintroducing them; at 3:4 it crops nothing. */
+   reintroducing them; at 3:4 it crops nothing.
+
+   margin-bottom is zeroed rather than left alone: .work-thumb carries 10px of
+   it for Selected Works, which here would stack on top of the card's row-gap
+   and make the gap under the photo wider than the one under the name. All the
+   spacing in this card comes from row-gap and nothing else. */
 .store-thumb {
   aspect-ratio: 3 / 4;
   object-fit: cover;
   background: var(--media-bg);
-  margin-bottom: 14px;
-}
-
-/* Product names run long ("Marc Andreessen's The Techno-Optimist Manifesto"),
-   so the title needs room to wrap without shoving the price chip off the row. */
-#panel-store .work-head {
-  display: flex;
-  align-items: baseline;
-  gap: 4px 12px;
   margin-bottom: 0;
-}
-
-#panel-store .work-title {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-/* Blurbs are written to fit one line; the clamp is just a guard for products
-   that fall back to their Fourthwall copy. */
-#panel-store .work-description {
-  margin-top: 4px;
-  -webkit-line-clamp: 2;
 }
 
 #panel-store .store-status {
   margin: 0;
   color: var(--fg-muted);
+}
+
+/* ── The shop breaks the measure ──
+   Every other panel on this site is a 360px column and stays one, because the
+   site is a piece of writing with pictures in it. A shop isn't: products are
+   things you compare against each other, and comparing them one above the
+   other down a narrow column is the worst way to show them. So on a screen
+   with the room for it, this one panel steps outside the column and lays its
+   catalogue out in a grid — two across on a laptop, four on a desktop.
+
+   The breakout is negative margin rather than a transform, because
+   .t-stagger-line already owns `transform` on everything inside here — the
+   entrance animation would fight a transform on the container and one of them
+   would lose.
+
+   `100%` in the margin resolves against the 360px column the panel is sitting
+   in, so half the difference on each side pulls it out symmetrically and it
+   stays centred on the same axis as the wordmark, the nav and every other
+   panel. The 96px is a flat reserve rather than a gutter multiple, because
+   `100vw` counts a scrollbar the layout doesn't get to use and --gutter drops
+   to 16px at exactly the widths this rule applies to — 48px a side clears any
+   scrollbar going. body's overflow-x: hidden is the backstop under that. */
+@media (min-width: 900px) {
+  #panel-store {
+    --store-width: min(1040px, 100vw - 96px);
+    width: var(--store-width);
+    margin-inline: calc((100% - var(--store-width)) / 2);
+  }
+
+  /* The columns come from the base rule; out here the cards are two to three
+     times wider, so the gaps open up in proportion rather than staying at the
+     phone's hairline spacing. */
+  #panel-store .work-list {
+    column-gap: 20px;
+    row-gap: 40px;
+  }
+
+  /* Only the catalogue breaks out; the chrome above and below it stays on the
+     column measure. The heading row is the page's own header — title,
+     currency, Cart — and pushing the Cart link out to the far edge of a
+     1400px grid puts it a screen away from the product you were looking at
+     when you decided to buy it. The legal row is the page's footer, and its
+     hairline is drawn to line up with the site footer's, which is outside
+     this panel and stays 360px wide. Both centre, so they land exactly where
+     they would have without the breakout. */
+  #panel-store .panel-heading,
+  #panel-store .store-footer {
+    width: var(--content-width);
+    margin-inline: auto;
+  }
+}
+
+/* Four across once there is room for it, on a wider breakout so the cards
+   don't shrink to pay for the extra columns: at 1280px a four-column row is
+   still ~260px a card, and it opens out from there to a 1400px ceiling.
+   Everything else — the centring maths, the footer returning to the column —
+   carries over from the block above; only the two numbers that change are
+   restated. */
+@media (min-width: 1280px) {
+  #panel-store {
+    --store-width: min(1400px, 100vw - 96px);
+  }
+
+  #panel-store .work-list {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 /* Empty cart — centred icon tile over a title, the same shape as the Writing
